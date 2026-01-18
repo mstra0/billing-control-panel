@@ -316,39 +316,110 @@ function render_header($title = "Control Panel")
 
     <?php
     $action = get_action();
-    $config_active = strpos($action, "pricing_") === 0 || strpos($action, "escalator") === 0
-        || strpos($action, "business_rule") === 0 || strpos($action, "lms") === 0
-        || strpos($action, "minimums") === 0 || strpos($action, "annualized") === 0;
-    $data_active = strpos($action, "ingestion") === 0 || strpos($action, "generation") === 0
-        || $action === "list_reports" || $action === "view_report"
-        || strpos($action, "export") === 0 || $action === "history";
+    $config_active =
+        strpos($action, "pricing_") === 0 ||
+        strpos($action, "escalator") === 0 ||
+        strpos($action, "business_rule") === 0 ||
+        strpos($action, "lms") === 0 ||
+        strpos($action, "minimums") === 0 ||
+        strpos($action, "annualized") === 0;
+    $data_active =
+        strpos($action, "ingestion") === 0 ||
+        strpos($action, "generation") === 0 ||
+        $action === "list_reports" ||
+        $action === "view_report" ||
+        strpos($action, "export") === 0 ||
+        $action === "history";
     ?>
     <div class="nav">
-        <a href="?action=dashboard" <?php echo $action === "dashboard" ? 'class="active"' : ""; ?>>Dashboard</a>
-        <a href="?action=calendar" <?php echo strpos($action, "calendar") === 0 ? 'class="active"' : ""; ?>>Calendar</a>
+        <a href="?action=dashboard" <?php echo $action === "dashboard"
+            ? 'class="active"'
+            : ""; ?>>Dashboard</a>
+        <a href="?action=calendar" <?php echo strpos($action, "calendar") === 0
+            ? 'class="active"'
+            : ""; ?>>Calendar</a>
 
-        <div class="nav-group<?php echo $config_active ? ' has-active' : ''; ?>">
+        <div class="nav-group<?php echo $config_active
+            ? " has-active"
+            : ""; ?>">
             <span class="nav-group-label">Configuration</span>
             <div class="nav-dropdown">
-                <a href="?action=pricing_customers" <?php echo strpos($action, "pricing_customer") === 0 ? 'class="active"' : ""; ?>>Customers</a>
-                <a href="?action=pricing_groups" <?php echo strpos($action, "pricing_group") === 0 ? 'class="active"' : ""; ?>>Groups</a>
-                <a href="?action=lms" <?php echo strpos($action, "lms") === 0 ? 'class="active"' : ""; ?>>LMS</a>
-                <a href="?action=escalators" <?php echo strpos($action, "escalator") === 0 ? 'class="active"' : ""; ?>>Escalators</a>
-                <a href="?action=business_rules" <?php echo strpos($action, "business_rule") === 0 ? 'class="active"' : ""; ?>>Rules</a>
-                <a href="?action=minimums" <?php echo strpos($action, "minimums") === 0 ? 'class="active"' : ""; ?>>Monthly Minimums</a>
-                <a href="?action=annualized" <?php echo strpos($action, "annualized") === 0 ? 'class="active"' : ""; ?>>Annualized Tiers</a>
-                <a href="?action=pricing_defaults" <?php echo strpos($action, "pricing_defaults") === 0 ? 'class="active"' : ""; ?>>Default Pricing</a>
+                <a href="?action=pricing_customers" <?php echo strpos(
+                    $action,
+                    "pricing_customer",
+                ) === 0
+                    ? 'class="active"'
+                    : ""; ?>>Customers</a>
+                <a href="?action=pricing_groups" <?php echo strpos(
+                    $action,
+                    "pricing_group",
+                ) === 0
+                    ? 'class="active"'
+                    : ""; ?>>Groups</a>
+                <a href="?action=lms" <?php echo strpos($action, "lms") === 0
+                    ? 'class="active"'
+                    : ""; ?>>LMS</a>
+                <a href="?action=escalators" <?php echo strpos(
+                    $action,
+                    "escalator",
+                ) === 0
+                    ? 'class="active"'
+                    : ""; ?>>Escalators</a>
+                <a href="?action=business_rules" <?php echo strpos(
+                    $action,
+                    "business_rule",
+                ) === 0
+                    ? 'class="active"'
+                    : ""; ?>>Rules</a>
+                <a href="?action=minimums" <?php echo strpos(
+                    $action,
+                    "minimums",
+                ) === 0
+                    ? 'class="active"'
+                    : ""; ?>>Monthly Minimums</a>
+                <a href="?action=annualized" <?php echo strpos(
+                    $action,
+                    "annualized",
+                ) === 0
+                    ? 'class="active"'
+                    : ""; ?>>Annualized Tiers</a>
+                <a href="?action=pricing_defaults" <?php echo strpos(
+                    $action,
+                    "pricing_defaults",
+                ) === 0
+                    ? 'class="active"'
+                    : ""; ?>>Default Pricing</a>
             </div>
         </div>
 
-        <div class="nav-group<?php echo $data_active ? ' has-active' : ''; ?>">
+        <div class="nav-group<?php echo $data_active ? " has-active" : ""; ?>">
             <span class="nav-group-label">Data</span>
             <div class="nav-dropdown">
-                <a href="?action=ingestion" <?php echo strpos($action, "ingestion") === 0 ? 'class="active"' : ""; ?>>Ingestion</a>
-                <a href="?action=generation" <?php echo strpos($action, "generation") === 0 ? 'class="active"' : ""; ?>>Generation</a>
-                <a href="?action=list_reports" <?php echo $action === "list_reports" || $action === "view_report" ? 'class="active"' : ""; ?>>Reports</a>
-                <a href="?action=export" <?php echo strpos($action, "export") === 0 ? 'class="active"' : ""; ?>>Export</a>
-                <a href="?action=history" <?php echo $action === "history" ? 'class="active"' : ""; ?>>History</a>
+                <a href="?action=ingestion" <?php echo strpos(
+                    $action,
+                    "ingestion",
+                ) === 0
+                    ? 'class="active"'
+                    : ""; ?>>Ingestion</a>
+                <a href="?action=generation" <?php echo strpos(
+                    $action,
+                    "generation",
+                ) === 0
+                    ? 'class="active"'
+                    : ""; ?>>Generation</a>
+                <a href="?action=list_reports" <?php echo $action ===
+                    "list_reports" || $action === "view_report"
+                    ? 'class="active"'
+                    : ""; ?>>Reports</a>
+                <a href="?action=export" <?php echo strpos(
+                    $action,
+                    "export",
+                ) === 0
+                    ? 'class="active"'
+                    : ""; ?>>Export</a>
+                <a href="?action=history" <?php echo $action === "history"
+                    ? 'class="active"'
+                    : ""; ?>>History</a>
             </div>
         </div>
 
@@ -432,7 +503,7 @@ function render_dashboard($data)
     <div class="card">
         <h2>Pending Configs</h2>
         <p class="text-muted mb-20"><?php echo count(
-            $data["pending_configs"]
+            $data["pending_configs"],
         ); ?> files awaiting processing.</p>
         <table>
             <thead>
@@ -452,7 +523,7 @@ function render_dashboard($data)
                     <td><?php echo format_filesize($file["size"]); ?></td>
                     <td><?php echo date(
                         "Y-m-d H:i:s",
-                        $file["modified"]
+                        $file["modified"],
                     ); ?></td>
                 </tr>
                 <?php endforeach; ?>
@@ -480,14 +551,14 @@ function render_dashboard($data)
                     <td><?php echo format_filesize($file["size"]); ?></td>
                     <td><?php echo date(
                         "Y-m-d H:i:s",
-                        $file["modified"]
+                        $file["modified"],
                     ); ?></td>
                     <td class="text-right">
                         <a href="?action=view_report&file=<?php echo urlencode(
-                            $file["name"]
+                            $file["name"],
                         ); ?>" class="btn btn-sm">View</a>
                         <a href="?action=download_report&file=<?php echo urlencode(
-                            $file["name"]
+                            $file["name"],
                         ); ?>" class="btn btn-sm btn-success">Download</a>
                     </td>
                 </tr>
@@ -527,14 +598,14 @@ function render_list_reports($data)
                         <td><?php echo format_filesize($file["size"]); ?></td>
                         <td><?php echo date(
                             "Y-m-d H:i:s",
-                            $file["modified"]
+                            $file["modified"],
                         ); ?></td>
                         <td class="text-right">
                             <a href="?action=view_report&file=<?php echo urlencode(
-                                $file["name"]
+                                $file["name"],
                             ); ?>" class="btn btn-sm">View</a>
                             <a href="?action=download_report&file=<?php echo urlencode(
-                                $file["name"]
+                                $file["name"],
                             ); ?>" class="btn btn-sm btn-success">Download</a>
                         </td>
                     </tr>
@@ -554,7 +625,7 @@ function render_view_report($data)
         <h2>
             <?php echo h($data["filename"]); ?>
             <a href="?action=download_report&file=<?php echo urlencode(
-                $data["filename"]
+                $data["filename"],
             ); ?>" class="btn btn-sm btn-success" style="float: right;">Download</a>
         </h2>
         <p class="text-muted mb-20"><?php echo $data["count"]; ?> rows</p>
@@ -576,12 +647,12 @@ function render_view_report($data)
                         <tr>
                             <?php foreach ($data["headers"] as $header): ?>
                                 <td title="<?php echo h(
-                                    isset($row[$header]) ? $row[$header] : ""
+                                    isset($row[$header]) ? $row[$header] : "",
                                 ); ?>">
                                     <?php echo h(
                                         isset($row[$header])
                                             ? $row[$header]
-                                            : ""
+                                            : "",
                                     ); ?>
                                 </td>
                             <?php endforeach; ?>
@@ -593,7 +664,9 @@ function render_view_report($data)
         </div>
     </div>
 
-    <div class="breadcrumb"><a href="?action=list_reports">Reports</a><span>/</span><?php echo h($data["report"]["report_type"]); ?> - <?php echo $data["report"]["report_year"]; ?>-<?php echo str_pad($data["report"]["report_month"], 2, "0", STR_PAD_LEFT); ?></div>
+    <div class="breadcrumb"><a href="?action=list_reports">Reports</a><span>/</span><?php echo h(
+        $data["report"]["report_type"],
+    ); ?> - <?php echo $data["report"]["report_year"]; ?>-<?php echo str_pad($data["report"]["report_month"], 2, "0", STR_PAD_LEFT); ?></div>
 <?php
 } /**
  * Render upload config form
@@ -606,7 +679,7 @@ function render_upload_config($data)
 
         <?php if ($data["error"]): ?>
             <div class="flash flash-error"><?php echo h(
-                $data["error"]
+                $data["error"],
             ); ?></div>
         <?php endif; ?>
 
@@ -631,8 +704,7 @@ function render_upload_config($data)
         </ul>
     </div>
 <?php
-}
-/**
+} /**
  * Render ingestion page - upload and manage billing reports
  */
 function render_ingestion($data)
@@ -640,44 +712,76 @@ function render_ingestion($data)
     render_header("Ingestion - Control Panel");
     $tab = isset($data["tab"]) ? $data["tab"] : "reports";
     $drive_files = isset($data["drive_files"]) ? $data["drive_files"] : [];
-    $not_imported = array_filter($drive_files, function($f) { return !$f["imported"]; });
+    $not_imported = array_filter($drive_files, function ($f) {
+        return !$f["imported"];
+    });
     ?>
     <div class="card">
         <h2>Billing Report Ingestion</h2>
 
         <div style="display: flex; gap: 20px; margin-bottom: 20px;">
             <div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">
-                <div style="font-size: 24px; font-weight: bold;"><?php echo isset($data["stats"]["total_reports"]) ? $data["stats"]["total_reports"] : 0; ?></div>
+                <div style="font-size: 24px; font-weight: bold;"><?php echo isset(
+                    $data["stats"]["total_reports"],
+                )
+                    ? $data["stats"]["total_reports"]
+                    : 0; ?></div>
                 <div style="color: #666; font-size: 13px;">Imported Reports</div>
             </div>
             <div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">
-                <div style="font-size: 24px; font-weight: bold;"><?php echo isset($data["stats"]["total_rows"]) ? number_format($data["stats"]["total_rows"]) : 0; ?></div>
+                <div style="font-size: 24px; font-weight: bold;"><?php echo isset(
+                    $data["stats"]["total_rows"],
+                )
+                    ? number_format($data["stats"]["total_rows"])
+                    : 0; ?></div>
                 <div style="color: #666; font-size: 13px;">Total Rows</div>
             </div>
-            <div style="flex: 1; background: <?php echo count($not_imported) > 0 ? '#fff3cd' : '#d4edda'; ?>; padding: 15px; border-radius: 4px;">
-                <div style="font-size: 24px; font-weight: bold;"><?php echo count($not_imported); ?></div>
+            <div style="flex: 1; background: <?php echo count($not_imported) > 0
+                ? "#fff3cd"
+                : "#d4edda"; ?>; padding: 15px; border-radius: 4px;">
+                <div style="font-size: 24px; font-weight: bold;"><?php echo count(
+                    $not_imported,
+                ); ?></div>
                 <div style="color: #666; font-size: 13px;">Pending on Drive</div>
             </div>
             <div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">
                 <div style="font-size: 13px; color: #666;">Date Range</div>
-                <div><?php echo isset($data["stats"]["earliest"]) && $data["stats"]["earliest"] ? $data["stats"]["earliest"] . " to " . $data["stats"]["latest"] : "No data"; ?></div>
+                <div><?php echo isset($data["stats"]["earliest"]) &&
+                $data["stats"]["earliest"]
+                    ? $data["stats"]["earliest"] .
+                        " to " .
+                        $data["stats"]["latest"]
+                    : "No data"; ?></div>
             </div>
         </div>
 
         <!-- Tabs -->
         <div style="margin-bottom: 20px; border-bottom: 2px solid #eee;">
-            <a href="?action=ingestion&tab=reports" style="display: inline-block; padding: 10px 20px; text-decoration: none; color: <?php echo $tab === 'reports' ? '#3498db' : '#666'; ?>; border-bottom: 2px solid <?php echo $tab === 'reports' ? '#3498db' : 'transparent'; ?>; margin-bottom: -2px; font-weight: <?php echo $tab === 'reports' ? '600' : 'normal'; ?>;">
+            <a href="?action=ingestion&tab=reports" style="display: inline-block; padding: 10px 20px; text-decoration: none; color: <?php echo $tab ===
+            "reports"
+                ? "#3498db"
+                : "#666"; ?>; border-bottom: 2px solid <?php echo $tab === "reports" ? "#3498db" : "transparent"; ?>; margin-bottom: -2px; font-weight: <?php echo $tab === "reports" ? "600" : "normal"; ?>;">
                 Imported Reports
             </a>
-            <a href="?action=ingestion&tab=upload" style="display: inline-block; padding: 10px 20px; text-decoration: none; color: <?php echo $tab === 'upload' ? '#3498db' : '#666'; ?>; border-bottom: 2px solid <?php echo $tab === 'upload' ? '#3498db' : 'transparent'; ?>; margin-bottom: -2px; font-weight: <?php echo $tab === 'upload' ? '600' : 'normal'; ?>;">
+            <a href="?action=ingestion&tab=upload" style="display: inline-block; padding: 10px 20px; text-decoration: none; color: <?php echo $tab ===
+            "upload"
+                ? "#3498db"
+                : "#666"; ?>; border-bottom: 2px solid <?php echo $tab === "upload" ? "#3498db" : "transparent"; ?>; margin-bottom: -2px; font-weight: <?php echo $tab === "upload" ? "600" : "normal"; ?>;">
                 Upload File
             </a>
-            <a href="?action=ingestion&tab=drive" style="display: inline-block; padding: 10px 20px; text-decoration: none; color: <?php echo $tab === 'drive' ? '#3498db' : '#666'; ?>; border-bottom: 2px solid <?php echo $tab === 'drive' ? '#3498db' : 'transparent'; ?>; margin-bottom: -2px; font-weight: <?php echo $tab === 'drive' ? '600' : 'normal'; ?>;">
-                Import from Drive <?php if (count($not_imported) > 0): ?><span class="badge badge-warning"><?php echo count($not_imported); ?></span><?php endif; ?>
+            <a href="?action=ingestion&tab=drive" style="display: inline-block; padding: 10px 20px; text-decoration: none; color: <?php echo $tab ===
+            "drive"
+                ? "#3498db"
+                : "#666"; ?>; border-bottom: 2px solid <?php echo $tab === "drive" ? "#3498db" : "transparent"; ?>; margin-bottom: -2px; font-weight: <?php echo $tab === "drive" ? "600" : "normal"; ?>;">
+                Import from Drive <?php if (
+                    count($not_imported) > 0
+                ): ?><span class="badge badge-warning"><?php echo count(
+    $not_imported,
+); ?></span><?php endif; ?>
             </a>
         </div>
 
-        <?php if ($tab === 'upload'): ?>
+        <?php if ($tab === "upload"): ?>
         <!-- Upload Tab -->
         <h3>Upload Billing CSV</h3>
         <form method="POST" enctype="multipart/form-data" style="margin-bottom: 30px;">
@@ -691,7 +795,7 @@ function render_ingestion($data)
             </p>
         </form>
 
-        <?php elseif ($tab === 'drive'): ?>
+        <?php elseif ($tab === "drive"): ?>
         <!-- Drive Tab -->
         <h3>Import from Drive</h3>
         <p class="text-muted" style="margin-bottom: 15px;">Files available in the archive directory for import.</p>
@@ -719,25 +823,45 @@ function render_ingestion($data)
                     </thead>
                     <tbody>
                         <?php foreach ($drive_files as $file): ?>
-                        <tr style="<?php echo $file['imported'] ? 'opacity: 0.6;' : ''; ?>">
+                        <tr style="<?php echo $file["imported"]
+                            ? "opacity: 0.6;"
+                            : ""; ?>">
                             <td>
-                                <input type="checkbox" name="selected_files[]" value="<?php echo h($file['filename']); ?>"
-                                    class="file-checkbox" <?php echo $file['imported'] ? 'disabled' : ''; ?>
-                                    data-pending="<?php echo $file['imported'] ? '0' : '1'; ?>">
+                                <input type="checkbox" name="selected_files[]" value="<?php echo h(
+                                    $file["filename"],
+                                ); ?>"
+                                    class="file-checkbox" <?php echo $file[
+                                        "imported"
+                                    ]
+                                        ? "disabled"
+                                        : ""; ?>
+                                    data-pending="<?php echo $file["imported"]
+                                        ? "0"
+                                        : "1"; ?>">
                             </td>
-                            <td><code><?php echo h($file['filename']); ?></code></td>
-                            <td><?php echo number_format($file['size'] / 1024, 1); ?> KB</td>
-                            <td><?php echo date("Y-m-d H:i", $file['modified']); ?></td>
+                            <td><code><?php echo h(
+                                $file["filename"],
+                            ); ?></code></td>
+                            <td><?php echo number_format(
+                                $file["size"] / 1024,
+                                1,
+                            ); ?> KB</td>
+                            <td><?php echo date(
+                                "Y-m-d H:i",
+                                $file["modified"],
+                            ); ?></td>
                             <td>
-                                <?php if ($file['imported']): ?>
+                                <?php if ($file["imported"]): ?>
                                     <span class="badge badge-success">Imported</span>
                                 <?php else: ?>
                                     <span class="badge badge-warning">Pending</span>
                                 <?php endif; ?>
                             </td>
                             <td class="text-right">
-                                <?php if (!$file['imported']): ?>
-                                    <a href="?action=ingestion&import_file=<?php echo urlencode($file['filename']); ?>" class="btn btn-sm btn-success">Import</a>
+                                <?php if (!$file["imported"]): ?>
+                                    <a href="?action=ingestion&import_file=<?php echo urlencode(
+                                        $file["filename"],
+                                    ); ?>" class="btn btn-sm btn-success">Import</a>
                                 <?php else: ?>
                                     <span class="text-muted">-</span>
                                 <?php endif; ?>
@@ -785,17 +909,32 @@ function render_ingestion($data)
                     <?php foreach ($data["reports"] as $report): ?>
                     <tr>
                         <td>
-                            <span class="badge badge-<?php echo $report["report_type"] === "monthly" ? "success" : "info"; ?>">
+                            <span class="badge badge-<?php echo $report[
+                                "report_type"
+                            ] === "monthly"
+                                ? "success"
+                                : "info"; ?>">
                                 <?php echo h($report["report_type"]); ?>
                             </span>
                         </td>
                         <td><?php echo h($report["report_date"]); ?></td>
-                        <td><code style="font-size: 11px;"><?php echo h($report["file_path"]); ?></code></td>
-                        <td><?php echo number_format($report["record_count"]); ?></td>
-                        <td><?php echo date("Y-m-d H:i", strtotime($report["imported_at"])); ?></td>
+                        <td><code style="font-size: 11px;"><?php echo h(
+                            $report["file_path"],
+                        ); ?></code></td>
+                        <td><?php echo number_format(
+                            $report["record_count"],
+                        ); ?></td>
+                        <td><?php echo date(
+                            "Y-m-d H:i",
+                            strtotime($report["imported_at"]),
+                        ); ?></td>
                         <td class="text-right">
-                            <a href="?action=ingestion_view&id=<?php echo $report["id"]; ?>" class="btn btn-sm">View</a>
-                            <a href="?action=ingestion&delete=<?php echo $report["id"]; ?>" class="btn btn-sm" style="background: #e74c3c;" onclick="return confirm('Delete this report?');">Delete</a>
+                            <a href="?action=ingestion_view&id=<?php echo $report[
+                                "id"
+                            ]; ?>" class="btn btn-sm">View</a>
+                            <a href="?action=ingestion&delete=<?php echo $report[
+                                "id"
+                            ]; ?>" class="btn btn-sm" style="background: #e74c3c;" onclick="return confirm('Delete this report?');">Delete</a>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -805,49 +944,109 @@ function render_ingestion($data)
         <?php endif; ?>
     </div>
 <?php
-}
-/**
+} /**
  * Render single billing report view
  */
 function render_ingestion_view($data)
 {
     render_header("View Report - Control Panel"); ?>
-    <div class="breadcrumb"><a href="?action=ingestion">Ingestion</a><span>/</span><?php echo h($data["report"]["report_type"]); ?> - <?php echo h($data["report"]["report_date"]); ?></div>
+    <div class="breadcrumb"><a href="?action=ingestion">Ingestion</a><span>/</span><?php echo h(
+        $data["report"]["report_type"],
+    ); ?> - <?php echo h($data["report"]["report_date"]); ?></div>
 
     <div class="card">
-        <h2><?php echo ucfirst($data["report"]["report_type"]); ?> Report: <?php echo h($data["report"]["report_date"]); ?></h2>
-        <p class="text-muted"><?php echo number_format($data["report"]["record_count"]); ?> rows imported on <?php echo date("Y-m-d H:i", strtotime($data["report"]["created_at"])); ?></p>
+        <h2><?php echo ucfirst(
+            $data["report"]["report_type"],
+        ); ?> Report: <?php echo h($data["report"]["report_date"]); ?></h2>
+        <p class="text-muted"><?php echo number_format(
+            $data["report"]["record_count"],
+        ); ?> rows imported on <?php echo date("Y-m-d H:i", strtotime($data["report"]["created_at"])); ?></p>
 
+        <?php if (!empty($data["customer_summary"])): ?>
+        <h3 style="margin-top: 20px;">Summary by Customer</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Cust ID</th>
+                    <th>Customer Name</th>
+                    <th class="text-right">Line Items</th>
+                    <th class="text-right">Total Count</th>
+                    <th class="text-right">Total Revenue</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($data["customer_summary"] as $cust): ?>
+                <tr>
+                    <td><?php echo h($cust["customer_id"]); ?></td>
+                    <td><?php echo h($cust["customer_name"]); ?></td>
+                    <td class="text-right"><?php echo number_format(
+                        $cust["line_count"],
+                    ); ?></td>
+                    <td class="text-right"><?php echo number_format(
+                        $cust["total_count"],
+                    ); ?></td>
+                    <td class="text-right">$<?php echo number_format(
+                        $cust["total_revenue"],
+                        2,
+                    ); ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php endif; ?>
+
+        <h3 style="margin-top: 30px;">All Line Items</h3>
         <?php if (empty($data["lines"])): ?>
             <p class="text-muted">No line items.</p>
         <?php else: ?>
+            <div style="overflow-x: auto;">
             <table>
                 <thead>
                     <tr>
-                        <th>Customer</th>
-                        <th>EFX Code</th>
-                        <th>Service</th>
+                        <th>Year</th>
+                        <th>Month</th>
+                        <th>Cust ID</th>
+                        <th>Customer Name</th>
+                        <th>Hit Code</th>
+                        <th>Transaction</th>
+                        <th class="text-right">Unit Cost</th>
                         <th class="text-right">Count</th>
                         <th class="text-right">Revenue</th>
+                        <th>EFX Code</th>
+                        <th>Billing ID</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($data["lines"] as $line): ?>
                     <tr>
-                        <td><?php echo h($line["cust_id"]); ?></td>
+                        <td><?php echo h($line["year"]); ?></td>
+                        <td><?php echo h($line["month"]); ?></td>
+                        <td><?php echo h($line["customer_id"]); ?></td>
+                        <td><?php echo h($line["customer_name"]); ?></td>
+                        <td><?php echo h($line["hit_code"]); ?></td>
+                        <td><?php echo h($line["tran_displayname"]); ?></td>
+                        <td class="text-right">$<?php echo number_format(
+                            $line["actual_unit_cost"],
+                            4,
+                        ); ?></td>
+                        <td class="text-right"><?php echo number_format(
+                            $line["count"],
+                        ); ?></td>
+                        <td class="text-right">$<?php echo number_format(
+                            $line["revenue"],
+                            2,
+                        ); ?></td>
                         <td><?php echo h($line["efx_code"]); ?></td>
-                        <td><?php echo h($line["service_name"]); ?></td>
-                        <td class="text-right"><?php echo number_format($line["count"]); ?></td>
-                        <td class="text-right">$<?php echo number_format($line["revenue"], 2); ?></td>
+                        <td><?php echo h($line["billing_id"]); ?></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            </div>
         <?php endif; ?>
     </div>
 <?php
-}
-/**
+} /**
  * Render bulk ingestion page
  */
 function render_ingestion_bulk($data)
@@ -872,12 +1071,24 @@ function render_ingestion_bulk($data)
                     <tr>
                         <td><?php echo h($result["filename"]); ?></td>
                         <td>
-                            <span class="badge badge-<?php echo $result["success"] ? "success" : "error"; ?>">
-                                <?php echo $result["success"] ? "OK" : "Failed"; ?>
+                            <span class="badge badge-<?php echo $result[
+                                "success"
+                            ]
+                                ? "success"
+                                : "error"; ?>">
+                                <?php echo $result["success"]
+                                    ? "OK"
+                                    : "Failed"; ?>
                             </span>
                         </td>
-                        <td><?php echo isset($result["rows_imported"]) ? $result["rows_imported"] : "-"; ?></td>
-                        <td><?php echo h(isset($result["errors"]) ? implode(", ", $result["errors"]) : ""); ?></td>
+                        <td><?php echo isset($result["rows_imported"])
+                            ? $result["rows_imported"]
+                            : "-"; ?></td>
+                        <td><?php echo h(
+                            isset($result["errors"])
+                                ? implode(", ", $result["errors"])
+                                : "",
+                        ); ?></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -887,8 +1098,7 @@ function render_ingestion_bulk($data)
         <?php endif; ?>
     </div>
 <?php
-}
-/**
+} /**
  * Render generation page - generate tier_pricing.csv
  */
 function render_generation($data)
@@ -899,15 +1109,21 @@ function render_generation($data)
 
         <div style="display: flex; gap: 20px; margin-bottom: 20px;">
             <div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">
-                <div style="font-size: 24px; font-weight: bold;"><?php echo $data["active_customers"]; ?></div>
+                <div style="font-size: 24px; font-weight: bold;"><?php echo $data[
+                    "active_customers"
+                ]; ?></div>
                 <div style="color: #666; font-size: 13px;">Active Customers</div>
             </div>
             <div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">
-                <div style="font-size: 24px; font-weight: bold;"><?php echo $data["services_count"]; ?></div>
+                <div style="font-size: 24px; font-weight: bold;"><?php echo $data[
+                    "services_count"
+                ]; ?></div>
                 <div style="color: #666; font-size: 13px;">Services</div>
             </div>
             <div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">
-                <div style="font-size: 24px; font-weight: bold;"><?php echo $data["transaction_types_count"]; ?></div>
+                <div style="font-size: 24px; font-weight: bold;"><?php echo $data[
+                    "transaction_types_count"
+                ]; ?></div>
                 <div style="color: #666; font-size: 13px;">Transaction Types</div>
             </div>
         </div>
@@ -916,18 +1132,27 @@ function render_generation($data)
             <div style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
                 <div>
                     <label style="display: block; margin-bottom: 5px; font-weight: 500;">As of Date</label>
-                    <input type="date" name="as_of_date" value="<?php echo h($data["as_of_date"]); ?>" class="form-control">
+                    <input type="date" name="as_of_date" value="<?php echo h(
+                        $data["as_of_date"],
+                    ); ?>" class="form-control">
                 </div>
                 <div>
                     <label style="display: block; margin-bottom: 5px;">
-                        <input type="checkbox" name="include_inactive" value="1" <?php echo $data["include_inactive"] ? "checked" : ""; ?>>
+                        <input type="checkbox" name="include_inactive" value="1" <?php echo $data[
+                            "include_inactive"
+                        ]
+                            ? "checked"
+                            : ""; ?>>
                         Include inactive customers
                     </label>
                 </div>
                 <div style="display: flex; gap: 10px;">
                     <button type="submit" name="preview" value="1" class="btn">Preview</button>
                     <button type="submit" name="action" value="save_pending" class="btn btn-success">Generate & Save</button>
-                    <a href="?action=generation&download=1&as_of_date=<?php echo h($data["as_of_date"]); ?><?php echo $data["include_inactive"] ? "&include_inactive=1" : ""; ?>" class="btn btn-info">Download CSV</a>
+                    <a href="?action=generation&download=1&as_of_date=<?php
+                    echo h($data["as_of_date"]);
+                    echo $data["include_inactive"] ? "&include_inactive=1" : "";
+                    ?>" class="btn btn-info">Download CSV</a>
                 </div>
             </div>
         </form>
@@ -935,7 +1160,9 @@ function render_generation($data)
         <?php if (!empty($data["preview"])): ?>
         <h3>Preview (<?php echo $data["preview"]["row_count"]; ?> rows)</h3>
         <?php if (!empty($data["preview"]["errors"])): ?>
-            <div class="flash flash-error"><?php echo h(implode(", ", $data["preview"]["errors"])); ?></div>
+            <div class="flash flash-error"><?php echo h(
+                implode(", ", $data["preview"]["errors"]),
+            ); ?></div>
         <?php endif; ?>
 
         <?php if (!empty($data["preview"]["rows"])): ?>
@@ -943,13 +1170,19 @@ function render_generation($data)
                 <table>
                     <thead>
                         <tr>
-                            <?php foreach (array_keys($data["preview"]["rows"][0]) as $col): ?>
+                            <?php foreach (
+                                array_keys($data["preview"]["rows"][0])
+                                as $col
+                            ): ?>
                                 <th><?php echo h($col); ?></th>
                             <?php endforeach; ?>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach (array_slice($data["preview"]["rows"], 0, 50) as $row): ?>
+                        <?php foreach (
+                            array_slice($data["preview"]["rows"], 0, 50)
+                            as $row
+                        ): ?>
                         <tr>
                             <?php foreach ($row as $val): ?>
                                 <td><?php echo h($val); ?></td>
@@ -960,7 +1193,9 @@ function render_generation($data)
                 </table>
             </div>
             <?php if ($data["preview"]["row_count"] > 50): ?>
-                <p class="text-muted">Showing first 50 of <?php echo $data["preview"]["row_count"]; ?> rows.</p>
+                <p class="text-muted">Showing first 50 of <?php echo $data[
+                    "preview"
+                ]["row_count"]; ?> rows.</p>
             <?php endif; ?>
         <?php endif; ?>
         <?php endif; ?>
@@ -980,7 +1215,10 @@ function render_generation($data)
                 <tr>
                     <td><?php echo h($file["filename"]); ?></td>
                     <td><?php echo format_filesize($file["size"]); ?></td>
-                    <td><?php echo date("Y-m-d H:i:s", $file["modified"]); ?></td>
+                    <td><?php echo date(
+                        "Y-m-d H:i:s",
+                        $file["modified"],
+                    ); ?></td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -994,8 +1232,7 @@ function render_generation($data)
         <a href="?action=generation_types" class="btn">Manage Transaction Types</a>
     </div>
 <?php
-}
-/**
+} /**
  * Render transaction types management
  */
 function render_generation_types($data)
@@ -1034,11 +1271,19 @@ function render_generation_types($data)
                 <tbody>
                     <?php foreach ($data["types"] as $type): ?>
                     <tr>
-                        <td><code><?php echo h($type["efx_code"]); ?></code></td>
+                        <td><code><?php echo h(
+                            $type["efx_code"],
+                        ); ?></code></td>
                         <td><?php echo h($type["description"]); ?></td>
-                        <td><?php echo h(isset($type["service_name"]) ? $type["service_name"] : "-"); ?></td>
+                        <td><?php echo h(
+                            isset($type["service_name"])
+                                ? $type["service_name"]
+                                : "-",
+                        ); ?></td>
                         <td class="text-right">
-                            <a href="?action=generation_types&delete=<?php echo $type["id"]; ?>" class="btn btn-sm" style="background: #e74c3c;" onclick="return confirm('Delete this type?');">Delete</a>
+                            <a href="?action=generation_types&delete=<?php echo $type[
+                                "id"
+                            ]; ?>" class="btn btn-sm" style="background: #e74c3c;" onclick="return confirm('Delete this type?');">Delete</a>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -1063,7 +1308,9 @@ function render_generation_types($data)
                     <select name="service_id" class="form-control">
                         <option value="">-- None --</option>
                         <?php foreach ($data["services"] as $svc): ?>
-                            <option value="<?php echo $svc["id"]; ?>"><?php echo h($svc["name"]); ?></option>
+                            <option value="<?php echo $svc[
+                                "id"
+                            ]; ?>"><?php echo h($svc["name"]); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -1072,8 +1319,7 @@ function render_generation_types($data)
         </form>
     </div>
 <?php
-}
-/**
+} /**
  * Render LMS list
  */
 function render_lms($data)
@@ -1090,12 +1336,18 @@ function render_lms($data)
         </div>
 
         <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
-            <strong>Default Commission Rate:</strong> <?php echo $data["default_rate"] !== null ? number_format($data["default_rate"], 2) . "%" : "Not set"; ?>
+            <strong>Default Commission Rate:</strong> <?php echo $data[
+                "default_rate"
+            ] !== null
+                ? number_format($data["default_rate"], 2) . "%"
+                : "Not set"; ?>
         </div>
 
         <?php if (!empty($data["unassigned_customers"])): ?>
         <div style="background: #fff3cd; padding: 15px; border-radius: 4px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
-            <strong>Warning:</strong> <?php echo count($data["unassigned_customers"]); ?> customer(s) have no LMS assigned.
+            <strong>Warning:</strong> <?php echo count(
+                $data["unassigned_customers"],
+            ); ?> customer(s) have no LMS assigned.
         </div>
         <?php endif; ?>
 
@@ -1103,12 +1355,16 @@ function render_lms($data)
         $search_val = isset($data["search"]) ? $data["search"] : "";
         render_search_bar("lms", [
             "search" => $search_val,
-            "placeholder" => "Search LMS..."
+            "placeholder" => "Search LMS...",
         ]);
         ?>
 
         <?php if (empty($data["lms_list"])): ?>
-            <p class="text-muted">No LMS entries found. <?php echo empty($search_val) ? 'Click "Sync from Remote" to import.' : 'Try a different search.'; ?></p>
+            <p class="text-muted">No LMS entries found. <?php echo empty(
+                $search_val
+            )
+                ? 'Click "Sync from Remote" to import.'
+                : "Try a different search."; ?></p>
         <?php else: ?>
             <table>
                 <thead>
@@ -1126,14 +1382,19 @@ function render_lms($data)
                         <td><code><?php echo h($lms["id"]); ?></code></td>
                         <td><?php echo h($lms["name"]); ?></td>
                         <td>
-                            <?php echo number_format($lms["effective_rate"], 2); ?>%
+                            <?php echo number_format(
+                                $lms["effective_rate"],
+                                2,
+                            ); ?>%
                             <?php if ($lms["is_inherited"]): ?>
                                 <span class="text-muted" style="font-size: 11px;">(default)</span>
                             <?php endif; ?>
                         </td>
                         <td><?php echo $lms["customer_count"]; ?></td>
                         <td class="text-right">
-                            <a href="?action=lms_edit&lms_id=<?php echo urlencode($lms["id"]); ?>" class="btn btn-sm">Edit</a>
+                            <a href="?action=lms_edit&lms_id=<?php echo urlencode(
+                                $lms["id"],
+                            ); ?>" class="btn btn-sm">Edit</a>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -1151,14 +1412,14 @@ function render_lms($data)
     </div>
 <?php
 }
-
 /**
  * Render LMS edit form
- */
-function render_lms_edit($data)
+ */ function render_lms_edit($data)
 {
     render_header("Edit LMS - Control Panel"); ?>
-    <div class="breadcrumb"><a href="?action=lms">LMS</a><span>/</span><?php echo h($data["lms"]["name"]); ?></div>
+    <div class="breadcrumb"><a href="?action=lms">LMS</a><span>/</span><?php echo h(
+        $data["lms"]["name"],
+    ); ?></div>
 
     <div class="card">
         <h2>Edit LMS: <?php echo h($data["lms"]["name"]); ?></h2>
@@ -1166,15 +1427,27 @@ function render_lms_edit($data)
         <form method="POST">
             <div style="margin-bottom: 20px;">
                 <label style="display: block; margin-bottom: 10px;">
-                    <input type="checkbox" name="use_default" value="1" <?php echo $data["lms"]["commission_rate"] === null ? "checked" : ""; ?> onchange="document.getElementById('rate_input').disabled = this.checked;">
-                    Use default commission rate (<?php echo number_format($data["default_rate"], 2); ?>%)
+                    <input type="checkbox" name="use_default" value="1" <?php echo $data[
+                        "lms"
+                    ]["commission_rate"] === null
+                        ? "checked"
+                        : ""; ?> onchange="document.getElementById('rate_input').disabled = this.checked;">
+                    Use default commission rate (<?php echo number_format(
+                        $data["default_rate"],
+                        2,
+                    ); ?>%)
                 </label>
                 <div>
                     <label style="display: block; margin-bottom: 5px;">Commission Rate (%)</label>
                     <input type="number" step="0.01" name="commission_rate" id="rate_input"
-                           value="<?php echo $data["lms"]["commission_rate"] !== null ? $data["lms"]["commission_rate"] : $data["default_rate"]; ?>"
+                           value="<?php echo $data["lms"]["commission_rate"] !==
+                           null
+                               ? $data["lms"]["commission_rate"]
+                               : $data["default_rate"]; ?>"
                            class="form-control" style="width: 150px;"
-                           <?php echo $data["lms"]["commission_rate"] === null ? "disabled" : ""; ?>>
+                           <?php echo $data["lms"]["commission_rate"] === null
+                               ? "disabled"
+                               : ""; ?>>
                 </div>
             </div>
             <button type="submit" class="btn btn-success">Save</button>
@@ -1183,7 +1456,9 @@ function render_lms_edit($data)
 
     <?php if (!empty($data["customers"])): ?>
     <div class="card">
-        <h2>Customers Using This LMS (<?php echo count($data["customers"]); ?>)</h2>
+        <h2>Customers Using This LMS (<?php echo count(
+            $data["customers"],
+        ); ?>)</h2>
         <table>
             <thead>
                 <tr>
@@ -1197,7 +1472,12 @@ function render_lms_edit($data)
                 <tr>
                     <td><code><?php echo h($cust["id"]); ?></code></td>
                     <td><?php echo h($cust["name"]); ?></td>
-                    <td><span class="badge badge-<?php echo $cust["status"] === "active" ? "success" : "info"; ?>"><?php echo h($cust["status"]); ?></span></td>
+                    <td><span class="badge badge-<?php echo $cust["status"] ===
+                    "active"
+                        ? "success"
+                        : "info"; ?>"><?php echo h(
+    $cust["status"],
+); ?></span></td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -1208,8 +1488,7 @@ function render_lms_edit($data)
 }
 /**
  * Render LMS settings
- */
-function render_lms_settings($data)
+ */ function render_lms_settings($data)
 {
     render_header("LMS Settings - Control Panel"); ?>
     <div class="breadcrumb"><a href="?action=lms">LMS</a><span>/</span>Settings</div>
@@ -1221,7 +1500,9 @@ function render_lms_settings($data)
             <div style="margin-bottom: 20px;">
                 <label style="display: block; margin-bottom: 5px; font-weight: 500;">Default Commission Rate (%)</label>
                 <input type="number" step="0.01" name="default_commission_rate"
-                       value="<?php echo $data["default_rate"] !== null ? $data["default_rate"] : ""; ?>"
+                       value="<?php echo $data["default_rate"] !== null
+                           ? $data["default_rate"]
+                           : ""; ?>"
                        class="form-control" style="width: 150px;">
                 <p class="text-muted" style="margin-top: 5px; font-size: 12px;">
                     This rate is used for LMS entries that don't have a custom rate set.
@@ -1231,8 +1512,7 @@ function render_lms_settings($data)
         </form>
     </div>
 <?php
-}
-/**
+} /**
  * Render LMS commission report
  */
 function render_lms_report($data)
@@ -1259,9 +1539,18 @@ function render_lms_report($data)
                     <?php foreach ($data["report"] as $row): ?>
                     <tr>
                         <td><?php echo h($row["lms_name"]); ?></td>
-                        <td class="text-right">$<?php echo number_format($row["revenue"], 2); ?></td>
-                        <td class="text-right"><?php echo number_format($row["rate"], 2); ?>%</td>
-                        <td class="text-right">$<?php echo number_format($row["commission"], 2); ?></td>
+                        <td class="text-right">$<?php echo number_format(
+                            $row["revenue"],
+                            2,
+                        ); ?></td>
+                        <td class="text-right"><?php echo number_format(
+                            $row["rate"],
+                            2,
+                        ); ?>%</td>
+                        <td class="text-right">$<?php echo number_format(
+                            $row["commission"],
+                            2,
+                        ); ?></td>
                     </tr>
                     <?php $total_commission += $row["commission"]; ?>
                     <?php endforeach; ?>
@@ -1269,20 +1558,24 @@ function render_lms_report($data)
                 <tfoot>
                     <tr style="font-weight: bold;">
                         <td colspan="3">Total</td>
-                        <td class="text-right">$<?php echo number_format($total_commission, 2); ?></td>
+                        <td class="text-right">$<?php echo number_format(
+                            $total_commission,
+                            2,
+                        ); ?></td>
                     </tr>
                 </tfoot>
             </table>
         <?php endif; ?>
     </div>
 <?php
-}
-/**
+} /**
  * Render customer pricing view - color-coded effective pricing
  */
 function render_customer_pricing($data)
 {
-    render_header("Pricing View: " . $data["customer"]["name"] . " - Control Panel"); ?>
+    render_header(
+        "Pricing View: " . $data["customer"]["name"] . " - Control Panel",
+    ); ?>
 
     <style>
         .pricing-source-default { background: #e3f2fd; border-left: 4px solid #2196f3; }
@@ -1321,13 +1614,18 @@ function render_customer_pricing($data)
     </style>
 
     <div class="breadcrumb">
-        <a href="?action=pricing_customers">Customers</a><span>/</span><?php echo h($data["customer"]["name"]); ?><span>/</span>Pricing View
+        <a href="?action=pricing_customers">Customers</a><span>/</span><?php echo h(
+            $data["customer"]["name"],
+        ); ?><span>/</span>Pricing View
     </div>
 
     <div class="card">
         <h2>
             <?php echo h($data["customer"]["name"]); ?>
-            <span class="badge badge-<?php echo $data["customer"]["status"] === "active" ? "success" : "info"; ?>" style="margin-left: 10px;">
+            <span class="badge badge-<?php echo $data["customer"]["status"] ===
+            "active"
+                ? "success"
+                : "info"; ?>" style="margin-left: 10px;">
                 <?php echo h($data["customer"]["status"]); ?>
             </span>
         </h2>
@@ -1335,7 +1633,11 @@ function render_customer_pricing($data)
         <?php if ($data["customer"]["group_name"]): ?>
             <p style="margin-bottom: 15px;">
                 <strong>Discount Group:</strong>
-                <a href="?action=pricing_group_edit&id=<?php echo $data["customer"]["discount_group_id"]; ?>"><?php echo h($data["customer"]["group_name"]); ?></a>
+                <a href="?action=pricing_group_edit&id=<?php echo $data[
+                    "customer"
+                ]["discount_group_id"]; ?>"><?php echo h(
+    $data["customer"]["group_name"],
+); ?></a>
             </p>
         <?php else: ?>
             <p style="margin-bottom: 15px; color: #666;">No discount group (inherits directly from system defaults)</p>
@@ -1362,19 +1664,27 @@ function render_customer_pricing($data)
     <!-- Summary Stats -->
     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
         <div class="summary-box" style="background: #f8f9fa;">
-            <div class="number"><?php echo $data["summary"]["total_services"]; ?></div>
+            <div class="number"><?php echo $data["summary"][
+                "total_services"
+            ]; ?></div>
             <div class="label">Total Services</div>
         </div>
         <div class="summary-box" style="background: #e3f2fd;">
-            <div class="number" style="color: #2196f3;"><?php echo $data["summary"]["using_defaults"]; ?></div>
+            <div class="number" style="color: #2196f3;"><?php echo $data[
+                "summary"
+            ]["using_defaults"]; ?></div>
             <div class="label">Using Defaults</div>
         </div>
         <div class="summary-box" style="background: #fff3e0;">
-            <div class="number" style="color: #ff9800;"><?php echo $data["summary"]["group_overrides"]; ?></div>
+            <div class="number" style="color: #ff9800;"><?php echo $data[
+                "summary"
+            ]["group_overrides"]; ?></div>
             <div class="label">Group Overrides</div>
         </div>
         <div class="summary-box" style="background: #e8f5e9;">
-            <div class="number" style="color: #4caf50;"><?php echo $data["summary"]["customer_overrides"]; ?></div>
+            <div class="number" style="color: #4caf50;"><?php echo $data[
+                "summary"
+            ]["customer_overrides"]; ?></div>
             <div class="label">Customer Overrides</div>
         </div>
     </div>
@@ -1387,7 +1697,10 @@ function render_customer_pricing($data)
                 <div class="label">Monthly Minimum</div>
                 <div class="value">
                     <?php if ($data["settings"]["monthly_minimum"]): ?>
-                        $<?php echo number_format($data["settings"]["monthly_minimum"], 2); ?>
+                        $<?php echo number_format(
+                            $data["settings"]["monthly_minimum"],
+                            2,
+                        ); ?>
                     <?php else: ?>
                         <span style="color: #999;">None</span>
                     <?php endif; ?>
@@ -1398,8 +1711,12 @@ function render_customer_pricing($data)
                 <div class="value">
                     <?php if ($data["settings"]["uses_annualized"]): ?>
                         <span style="color: #4caf50;">Enabled</span>
-                        <?php if ($data["settings"]["annualized_start_date"]): ?>
-                            <br><small>Start: <?php echo h($data["settings"]["annualized_start_date"]); ?></small>
+                        <?php if (
+                            $data["settings"]["annualized_start_date"]
+                        ): ?>
+                            <br><small>Start: <?php echo h(
+                                $data["settings"]["annualized_start_date"],
+                            ); ?></small>
                         <?php endif; ?>
                     <?php else: ?>
                         <span style="color: #999;">Disabled</span>
@@ -1410,7 +1727,9 @@ function render_customer_pricing($data)
                 <div class="label">Look Period</div>
                 <div class="value">
                     <?php if ($data["settings"]["look_period_months"]): ?>
-                        <?php echo $data["settings"]["look_period_months"]; ?> months
+                        <?php echo $data["settings"][
+                            "look_period_months"
+                        ]; ?> months
                     <?php else: ?>
                         <span style="color: #999;">N/A</span>
                     <?php endif; ?>
@@ -1439,19 +1758,28 @@ function render_customer_pricing($data)
             $start_date = $data["escalators"][0]["escalator_start_date"];
             $current_year = 1;
             if ($start_date) {
-                $years_since = floor((time() - strtotime($start_date)) / (365.25 * 24 * 60 * 60));
+                $years_since = floor(
+                    (time() - strtotime($start_date)) / (365.25 * 24 * 60 * 60),
+                );
                 $current_year = max(1, $years_since + 1);
             }
             ?>
             <p><strong>Contract Start:</strong> <?php echo h($start_date); ?>
                <?php if ($data["total_delay"] > 0): ?>
-                   <span class="badge badge-warning">+<?php echo $data["total_delay"]; ?> month delay applied</span>
+                   <span class="badge badge-warning">+<?php echo $data[
+                       "total_delay"
+                   ]; ?> month delay applied</span>
                <?php endif; ?>
             </p>
             <div class="escalator-timeline">
                 <?php foreach ($data["escalators"] as $esc): ?>
-                    <div class="escalator-year <?php echo $esc["year_number"] == $current_year ? "active" : ""; ?>">
-                        <div class="year-num">Year <?php echo $esc["year_number"]; ?></div>
+                    <div class="escalator-year <?php echo $esc["year_number"] ==
+                    $current_year
+                        ? "active"
+                        : ""; ?>">
+                        <div class="year-num">Year <?php echo $esc[
+                            "year_number"
+                        ]; ?></div>
                         <div class="year-pct">
                             <?php if ($esc["escalator_percentage"] > 0): ?>
                                 +<?php echo $esc["escalator_percentage"]; ?>%
@@ -1459,7 +1787,12 @@ function render_customer_pricing($data)
                                 Base
                             <?php endif; ?>
                             <?php if ($esc["fixed_adjustment"] != 0): ?>
-                                <br><?php echo $esc["fixed_adjustment"] > 0 ? "+" : ""; ?>$<?php echo number_format($esc["fixed_adjustment"], 2); ?>
+                                <br><?php echo $esc["fixed_adjustment"] > 0
+                                    ? "+"
+                                    : ""; ?>$<?php echo number_format(
+    $esc["fixed_adjustment"],
+    2,
+); ?>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -1470,7 +1803,9 @@ function render_customer_pricing($data)
 
     <!-- Service Pricing -->
     <div class="card">
-        <h2>Service Pricing (<?php echo count($data["pricing_data"]); ?> services)</h2>
+        <h2>Service Pricing (<?php echo count(
+            $data["pricing_data"],
+        ); ?> services)</h2>
 
         <?php if (empty($data["pricing_data"])): ?>
             <p class="text-muted">No services configured.</p>
@@ -1489,7 +1824,11 @@ function render_customer_pricing($data)
                     <div class="pricing-card-header <?php echo $header_class; ?>">
                         <span><?php echo h($service["name"]); ?></span>
                         <span style="font-weight: normal; font-size: 12px;">
-                            <?php echo count($pd["tiers"]); ?> tier<?php echo count($pd["tiers"]) != 1 ? "s" : ""; ?>
+                            <?php echo count(
+                                $pd["tiers"],
+                            ); ?> tier<?php echo count($pd["tiers"]) != 1
+     ? "s"
+     : ""; ?>
                         </span>
                     </div>
                     <div class="pricing-card-body">
@@ -1499,7 +1838,9 @@ function render_customer_pricing($data)
                                     <th>Volume Range</th>
                                     <th>Effective Price</th>
                                     <th>Default</th>
-                                    <?php if ($data["customer"]["discount_group_id"]): ?>
+                                    <?php if (
+                                        $data["customer"]["discount_group_id"]
+                                    ): ?>
                                         <th>Group</th>
                                     <?php endif; ?>
                                     <th>Customer</th>
@@ -1508,30 +1849,75 @@ function render_customer_pricing($data)
                             </thead>
                             <tbody>
                                 <?php foreach ($pd["tiers"] as $tier): ?>
-                                    <tr class="tier-row source-<?php echo $tier["source"]; ?>">
+                                    <tr class="tier-row source-<?php echo $tier[
+                                        "source"
+                                    ]; ?>">
                                         <td>
-                                            <?php echo number_format($tier["volume_start"]); ?>
+                                            <?php echo number_format(
+                                                $tier["volume_start"],
+                                            ); ?>
                                             -
-                                            <?php echo $tier["volume_end"] ? number_format($tier["volume_end"]) : "Unlimited"; ?>
+                                            <?php echo $tier["volume_end"]
+                                                ? number_format(
+                                                    $tier["volume_end"],
+                                                )
+                                                : "Unlimited"; ?>
                                         </td>
                                         <td class="price-cell">
-                                            <strong>$<?php echo number_format($tier["price"], 4); ?></strong>
+                                            <strong>$<?php echo number_format(
+                                                $tier["price"],
+                                                4,
+                                            ); ?></strong>
                                         </td>
                                         <td class="price-cell" style="color: #2196f3;">
-                                            <?php echo $tier["default_price"] !== null ? "$" . number_format($tier["default_price"], 4) : "-"; ?>
+                                            <?php echo $tier[
+                                                "default_price"
+                                            ] !== null
+                                                ? "$" .
+                                                    number_format(
+                                                        $tier["default_price"],
+                                                        4,
+                                                    )
+                                                : "-"; ?>
                                         </td>
-                                        <?php if ($data["customer"]["discount_group_id"]): ?>
+                                        <?php if (
+                                            $data["customer"][
+                                                "discount_group_id"
+                                            ]
+                                        ): ?>
                                             <td class="price-cell" style="color: #ff9800;">
-                                                <?php echo $tier["group_price"] !== null ? "$" . number_format($tier["group_price"], 4) : "-"; ?>
+                                                <?php echo $tier[
+                                                    "group_price"
+                                                ] !== null
+                                                    ? "$" .
+                                                        number_format(
+                                                            $tier[
+                                                                "group_price"
+                                                            ],
+                                                            4,
+                                                        )
+                                                    : "-"; ?>
                                             </td>
                                         <?php endif; ?>
                                         <td class="price-cell" style="color: #4caf50;">
-                                            <?php echo $tier["customer_price"] !== null ? "$" . number_format($tier["customer_price"], 4) : "-"; ?>
+                                            <?php echo $tier[
+                                                "customer_price"
+                                            ] !== null
+                                                ? "$" .
+                                                    number_format(
+                                                        $tier["customer_price"],
+                                                        4,
+                                                    )
+                                                : "-"; ?>
                                         </td>
                                         <td>
-                                            <?php if ($tier["source"] === "default"): ?>
+                                            <?php if (
+                                                $tier["source"] === "default"
+                                            ): ?>
                                                 <span class="badge" style="background: #2196f3; color: white;">Default</span>
-                                            <?php elseif ($tier["source"] === "group"): ?>
+                                            <?php elseif (
+                                                $tier["source"] === "group"
+                                            ): ?>
                                                 <span class="badge" style="background: #ff9800; color: white;">Group</span>
                                             <?php else: ?>
                                                 <span class="badge" style="background: #4caf50; color: white;">Customer</span>
@@ -1548,16 +1934,21 @@ function render_customer_pricing($data)
     </div>
 
     <div style="margin-top: 20px;">
-        <a href="?action=pricing_customer_edit&id=<?php echo $data["customer"]["id"]; ?>" class="btn">Edit Pricing</a>
-        <a href="?action=pricing_customer_edit&id=<?php echo $data["customer"]["id"]; ?>&tab=settings" class="btn">Edit Settings</a>
-        <a href="?action=escalator_edit&customer_id=<?php echo $data["customer"]["id"]; ?>" class="btn">Edit Escalators</a>
+        <a href="?action=pricing_customer_edit&id=<?php echo $data["customer"][
+            "id"
+        ]; ?>" class="btn">Edit Pricing</a>
+        <a href="?action=pricing_customer_edit&id=<?php echo $data["customer"][
+            "id"
+        ]; ?>&tab=settings" class="btn">Edit Settings</a>
+        <a href="?action=escalator_edit&customer_id=<?php echo $data[
+            "customer"
+        ]["id"]; ?>" class="btn">Edit Escalators</a>
     </div>
 <?php
 }
 /**
  * Render monthly minimums overview
- */
-function render_minimums($data)
+ */ function render_minimums($data)
 {
     render_header("Monthly Minimums - Control Panel"); ?>
     <div class="card">
@@ -1566,15 +1957,23 @@ function render_minimums($data)
 
         <div style="display: flex; gap: 20px; margin: 20px 0;">
             <div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">
-                <div style="font-size: 24px; font-weight: bold;"><?php echo (int)$data["stats"]["count"]; ?></div>
+                <div style="font-size: 24px; font-weight: bold;"><?php echo (int) $data[
+                    "stats"
+                ]["count"]; ?></div>
                 <div style="color: #666; font-size: 13px;">Customers with Minimums</div>
             </div>
             <div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">
-                <div style="font-size: 24px; font-weight: bold;">$<?php echo number_format((float)$data["stats"]["total_minimums"], 2); ?></div>
+                <div style="font-size: 24px; font-weight: bold;">$<?php echo number_format(
+                    (float) $data["stats"]["total_minimums"],
+                    2,
+                ); ?></div>
                 <div style="color: #666; font-size: 13px;">Total Monthly Minimums</div>
             </div>
             <div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">
-                <div style="font-size: 24px; font-weight: bold;">$<?php echo number_format((float)$data["stats"]["avg_minimum"], 2); ?></div>
+                <div style="font-size: 24px; font-weight: bold;">$<?php echo number_format(
+                    (float) $data["stats"]["avg_minimum"],
+                    2,
+                ); ?></div>
                 <div style="color: #666; font-size: 13px;">Average Minimum</div>
             </div>
         </div>
@@ -1598,16 +1997,27 @@ function render_minimums($data)
                     <?php foreach ($data["customers"] as $customer): ?>
                     <tr>
                         <td><?php echo h($customer["name"]); ?></td>
-                        <td><?php echo h($customer["group_name"] ?: "-"); ?></td>
+                        <td><?php echo h(
+                            $customer["group_name"] ?: "-",
+                        ); ?></td>
                         <td>
-                            <span class="badge badge-<?php echo $customer["status"] === "active" ? "success" : "info"; ?>">
+                            <span class="badge badge-<?php echo $customer[
+                                "status"
+                            ] === "active"
+                                ? "success"
+                                : "info"; ?>">
                                 <?php echo h($customer["status"]); ?>
                             </span>
                         </td>
-                        <td class="text-right">$<?php echo number_format($customer["monthly_minimum"], 2); ?></td>
+                        <td class="text-right">$<?php echo number_format(
+                            $customer["monthly_minimum"],
+                            2,
+                        ); ?></td>
                         <td><?php echo h($customer["effective_date"]); ?></td>
                         <td class="text-right">
-                            <a href="?action=pricing_customer_edit&id=<?php echo $customer["id"]; ?>&tab=settings" class="btn btn-sm">Edit</a>
+                            <a href="?action=pricing_customer_edit&id=<?php echo $customer[
+                                "id"
+                            ]; ?>&tab=settings" class="btn btn-sm">Edit</a>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -1616,8 +2026,7 @@ function render_minimums($data)
         <?php endif; ?>
     </div>
 <?php
-}
-/**
+} /**
  * Render annualized tiers overview
  */
 function render_annualized($data)
@@ -1629,11 +2038,15 @@ function render_annualized($data)
 
         <div style="display: flex; gap: 20px; margin: 20px 0;">
             <div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">
-                <div style="font-size: 24px; font-weight: bold;"><?php echo (int)$data["stats"]["count"]; ?></div>
+                <div style="font-size: 24px; font-weight: bold;"><?php echo (int) $data[
+                    "stats"
+                ]["count"]; ?></div>
                 <div style="color: #666; font-size: 13px;">Annualized Customers</div>
             </div>
             <div style="flex: 1; background: #d4edda; padding: 15px; border-radius: 4px;">
-                <div style="font-size: 24px; font-weight: bold;"><?php echo count($data["upcoming_resets"]); ?></div>
+                <div style="font-size: 24px; font-weight: bold;"><?php echo count(
+                    $data["upcoming_resets"],
+                ); ?></div>
                 <div style="color: #155724; font-size: 13px;">Resets in Next 30 Days</div>
             </div>
         </div>
@@ -1643,7 +2056,9 @@ function render_annualized($data)
             <strong>Upcoming Resets:</strong>
             <ul style="margin: 10px 0 0 20px; padding: 0;">
                 <?php foreach ($data["upcoming_resets"] as $reset): ?>
-                <li><?php echo h($reset["customer_name"]); ?> - <?php echo h($reset["reset_date"]); ?></li>
+                <li><?php echo h($reset["customer_name"]); ?> - <?php echo h(
+     $reset["reset_date"],
+ ); ?></li>
                 <?php endforeach; ?>
             </ul>
         </div>
@@ -1669,27 +2084,47 @@ function render_annualized($data)
                     <?php foreach ($data["customers"] as $customer): ?>
                     <tr>
                         <td><?php echo h($customer["name"]); ?></td>
-                        <td><?php echo h($customer["group_name"] ?: "-"); ?></td>
+                        <td><?php echo h(
+                            $customer["group_name"] ?: "-",
+                        ); ?></td>
                         <td>
-                            <span class="badge badge-<?php echo $customer["status"] === "active" ? "success" : "info"; ?>">
+                            <span class="badge badge-<?php echo $customer[
+                                "status"
+                            ] === "active"
+                                ? "success"
+                                : "info"; ?>">
                                 <?php echo h($customer["status"]); ?>
                             </span>
                         </td>
-                        <td><?php echo h($customer["annualized_start_date"] ?: "Not set"); ?></td>
-                        <td><?php echo $customer["look_period_months"] ? $customer["look_period_months"] . " months" : "-"; ?></td>
+                        <td><?php echo h(
+                            $customer["annualized_start_date"] ?: "Not set",
+                        ); ?></td>
+                        <td><?php echo $customer["look_period_months"]
+                            ? $customer["look_period_months"] . " months"
+                            : "-"; ?></td>
                         <td>
                             <?php if ($customer["next_reset"]): ?>
                                 <?php
-                                $days_until = (strtotime($customer["next_reset"]) - time()) / 86400;
-                                $badge_class = $days_until <= 30 ? "badge-warning" : "badge-info";
+                                $days_until =
+                                    (strtotime($customer["next_reset"]) -
+                                        time()) /
+                                    86400;
+                                $badge_class =
+                                    $days_until <= 30
+                                        ? "badge-warning"
+                                        : "badge-info";
                                 ?>
-                                <span class="badge <?php echo $badge_class; ?>"><?php echo h($customer["next_reset"]); ?></span>
+                                <span class="badge <?php echo $badge_class; ?>"><?php echo h(
+    $customer["next_reset"],
+); ?></span>
                             <?php else: ?>
                                 -
                             <?php endif; ?>
                         </td>
                         <td class="text-right">
-                            <a href="?action=pricing_customer_edit&id=<?php echo $customer["id"]; ?>&tab=settings" class="btn btn-sm">Edit</a>
+                            <a href="?action=pricing_customer_edit&id=<?php echo $customer[
+                                "id"
+                            ]; ?>&tab=settings" class="btn btn-sm">Edit</a>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -1698,8 +2133,7 @@ function render_annualized($data)
         <?php endif; ?>
     </div>
 <?php
-}
-/**
+} /**
  * Render list pending configs
  */
 function render_list_pending($data)
@@ -1728,14 +2162,14 @@ function render_list_pending($data)
                         <td><?php echo format_filesize($file["size"]); ?></td>
                         <td><?php echo date(
                             "Y-m-d H:i:s",
-                            $file["modified"]
+                            $file["modified"],
                         ); ?></td>
                         <td class="text-right">
                             <a href="?action=view_config&file=<?php echo urlencode(
-                                $file["name"]
+                                $file["name"],
                             ); ?>&source=pending" class="btn btn-sm">View</a>
                             <a href="?action=download_config&file=<?php echo urlencode(
-                                $file["name"]
+                                $file["name"],
                             ); ?>&source=pending" class="btn btn-sm btn-success">Download</a>
                         </td>
                     </tr>
@@ -1745,10 +2179,10 @@ function render_list_pending($data)
         <?php endif; ?>
     </div>
 <?php
-} /**
+}
+/**
  * Render list archived configs
- */
-function render_list_archive($data)
+ */ function render_list_archive($data)
 {
     render_header("Archived Configs - Control Panel"); ?>
     <div class="card">
@@ -1774,14 +2208,14 @@ function render_list_archive($data)
                         <td><?php echo format_filesize($file["size"]); ?></td>
                         <td><?php echo date(
                             "Y-m-d H:i:s",
-                            $file["modified"]
+                            $file["modified"],
                         ); ?></td>
                         <td class="text-right">
                             <a href="?action=view_config&file=<?php echo urlencode(
-                                $file["name"]
+                                $file["name"],
                             ); ?>&source=archive" class="btn btn-sm">View</a>
                             <a href="?action=download_config&file=<?php echo urlencode(
-                                $file["name"]
+                                $file["name"],
                             ); ?>&source=archive" class="btn btn-sm btn-success">Download</a>
                         </td>
                     </tr>
@@ -1806,7 +2240,7 @@ function render_view_config($data)
             <?php echo h($data["filename"]); ?>
             <span class="text-muted" style="font-weight: normal; font-size: 12px;">(<?php echo $source_label; ?>)</span>
             <a href="?action=download_config&file=<?php echo urlencode(
-                $data["filename"]
+                $data["filename"],
             ); ?>&source=<?php echo $data["source"]; ?>" class="btn btn-sm btn-success" style="float: right;">Download</a>
         </h2>
         <p class="text-muted mb-20"><?php echo $data["count"]; ?> rows</p>
@@ -1828,12 +2262,12 @@ function render_view_config($data)
                         <tr>
                             <?php foreach ($data["headers"] as $header): ?>
                                 <td title="<?php echo h(
-                                    isset($row[$header]) ? $row[$header] : ""
+                                    isset($row[$header]) ? $row[$header] : "",
                                 ); ?>">
                                     <?php echo h(
                                         isset($row[$header])
                                             ? $row[$header]
-                                            : ""
+                                            : "",
                                     ); ?>
                                 </td>
                             <?php endforeach; ?>
@@ -1882,11 +2316,11 @@ function render_pricing_defaults($data)
                                     $service["tiers"][
                                         count($service["tiers"]) - 1
                                     ]["price_per_inquiry"],
-                                    2
+                                    2,
                                 ); ?>
                                 - $<?php echo number_format(
                                     $service["tiers"][0]["price_per_inquiry"],
-                                    2
+                                    2,
                                 ); ?>
                             </span>
                         <?php endif; ?>
@@ -1916,7 +2350,7 @@ function render_pricing_defaults($data)
                             <?php foreach ($service["tiers"] as $tier): ?>
                             <tr>
                                 <td style="padding: 6px 10px;"><?php echo number_format(
-                                    $tier["volume_start"]
+                                    $tier["volume_start"],
                                 ); ?></td>
                                 <td style="padding: 6px 10px;"><?php echo $tier[
                                     "volume_end"
@@ -1925,7 +2359,7 @@ function render_pricing_defaults($data)
                                     : "<em>Unlimited</em>"; ?></td>
                                 <td style="padding: 6px 10px;">$<?php echo number_format(
                                     $tier["price_per_inquiry"],
-                                    4
+                                    4,
                                 ); ?></td>
                             </tr>
                             <?php endforeach; ?>
@@ -1974,15 +2408,15 @@ function render_pricing_defaults($data)
     }
     </script>
 <?php
-} /**
+}
+/**
  * Render system defaults edit form
- */
-function render_pricing_defaults_edit($data)
+ */ function render_pricing_defaults_edit($data)
 {
     render_header("Edit Default Pricing - " . h($data["service"]["name"])); ?>
     <div class="card">
         <h2>Edit Default Pricing: <?php echo h(
-            $data["service"]["name"]
+            $data["service"]["name"],
         ); ?></h2>
         <p class="text-muted mb-20">Define volume-based pricing tiers. Leave "Volume End" empty for unlimited.</p>
 
@@ -2008,7 +2442,7 @@ function render_pricing_defaults_edit($data)
                         <?php foreach ($data["tiers"] as $tier): ?>
                         <tr class="tier-row">
                             <td><input type="number" name="volume_start[]" class="form-control" value="<?php echo h(
-                                $tier["volume_start"]
+                                $tier["volume_start"],
                             ); ?>" min="0" required></td>
                             <td><input type="number" name="volume_end[]" class="form-control" value="<?php echo $tier[
                                 "volume_end"
@@ -2016,7 +2450,7 @@ function render_pricing_defaults_edit($data)
                                 ? h($tier["volume_end"])
                                 : ""; ?>" placeholder="Unlimited" min="0"></td>
                             <td><input type="number" name="price_per_inquiry[]" class="form-control" value="<?php echo h(
-                                $tier["price_per_inquiry"]
+                                $tier["price_per_inquiry"],
                             ); ?>" step="0.01" min="0" required></td>
                             <td><button type="button" class="btn btn-sm" onclick="removeRow(this)">Remove</button></td>
                         </tr>
@@ -2068,10 +2502,10 @@ function render_pricing_defaults_edit($data)
 
     <div class="breadcrumb" style="margin-top: 20px;"><a href="?action=pricing_defaults">Default Pricing</a><span>/</span>Edit Tiers</div>
 <?php
-} /**
+}
+/**
  * Render discount groups list
- */
-function render_pricing_groups($data)
+ */ function render_pricing_groups($data)
 {
     render_header("Discount Groups - Pricing"); ?>
     <div class="card">
@@ -2094,7 +2528,7 @@ function render_pricing_groups($data)
                     <?php foreach ($data["groups"] as $group): ?>
                     <tr>
                         <td><strong><?php echo h(
-                            $group["name"]
+                            $group["name"],
                         ); ?></strong></td>
                         <td><?php echo $group["member_count"]; ?> customers</td>
                         <td><?php echo $group[
@@ -2146,11 +2580,11 @@ function render_pricing_group_services($data)
                                 $service["tiers"][count($service["tiers"]) - 1][
                                     "price_per_inquiry"
                                 ],
-                                2
+                                2,
                             ); ?>
                             - $<?php echo number_format(
                                 $service["tiers"][0]["price_per_inquiry"],
-                                2
+                                2,
                             ); ?>
                         </span>
                     <?php endif; ?>
@@ -2187,7 +2621,7 @@ function render_pricing_group_services($data)
                         <?php foreach ($service["tiers"] as $tier): ?>
                         <tr>
                             <td style="padding: 6px 10px;"><?php echo number_format(
-                                $tier["volume_start"]
+                                $tier["volume_start"],
                             ); ?></td>
                             <td style="padding: 6px 10px;"><?php echo $tier[
                                 "volume_end"
@@ -2196,7 +2630,7 @@ function render_pricing_group_services($data)
                                 : "<em>Unlimited</em>"; ?></td>
                             <td style="padding: 6px 10px;">$<?php echo number_format(
                                 $tier["price_per_inquiry"],
-                                4
+                                4,
                             ); ?></td>
                             <td style="padding: 6px 10px;">
                                 <?php if ($tier["source"] === "group"): ?>
@@ -2251,17 +2685,19 @@ function render_pricing_group_services($data)
     }
     </script>
 
-    <div class="breadcrumb"><a href="?action=pricing_groups">Groups</a><span>/</span><?php echo h($data["group"]["name"]); ?></div>
+    <div class="breadcrumb"><a href="?action=pricing_groups">Groups</a><span>/</span><?php echo h(
+        $data["group"]["name"],
+    ); ?></div>
 <?php
-}
-/**
+} /**
  * Render group tier edit form
- */ function render_pricing_group_edit($data)
+ */
+function render_pricing_group_edit($data)
 {
     render_header("Edit Group Pricing - " . h($data["group"]["name"])); ?>
     <div class="card">
         <h2><?php echo h(
-            $data["group"]["name"]
+            $data["group"]["name"],
         ); ?>: <?php echo h($data["service"]["name"]); ?></h2>
 
         <?php if ($data["has_override"]): ?>
@@ -2297,7 +2733,7 @@ function render_pricing_group_services($data)
                         <?php foreach ($data["tiers"] as $tier): ?>
                         <tr class="tier-row">
                             <td><input type="number" name="volume_start[]" class="form-control" value="<?php echo h(
-                                $tier["volume_start"]
+                                $tier["volume_start"],
                             ); ?>" min="0" required></td>
                             <td><input type="number" name="volume_end[]" class="form-control" value="<?php echo $tier[
                                 "volume_end"
@@ -2305,7 +2741,7 @@ function render_pricing_group_services($data)
                                 ? h($tier["volume_end"])
                                 : ""; ?>" placeholder="Unlimited" min="0"></td>
                             <td><input type="number" name="price_per_inquiry[]" class="form-control" value="<?php echo h(
-                                $tier["price_per_inquiry"]
+                                $tier["price_per_inquiry"],
                             ); ?>" step="0.01" min="0" required></td>
                             <td><button type="button" class="btn btn-sm" onclick="removeRow(this)">Remove</button></td>
                         </tr>
@@ -2385,11 +2821,11 @@ function render_pricing_customers($data)
                         "active" => "Active",
                         "paused" => "Paused",
                         "decommissioned" => "Decommissioned",
-                        "all" => "All Statuses"
+                        "all" => "All Statuses",
                     ],
-                    "current" => $data["status_filter"]
-                ]
-            ]
+                    "current" => $data["status_filter"],
+                ],
+            ],
         ]);
         ?>
 
@@ -2410,7 +2846,7 @@ function render_pricing_customers($data)
                     <?php foreach ($data["customers"] as $customer): ?>
                     <tr>
                         <td><strong><?php echo h(
-                            $customer["name"]
+                            $customer["name"],
                         ); ?></strong></td>
                         <td><?php echo $customer["group_name"]
                             ? h($customer["group_name"])
@@ -2427,7 +2863,7 @@ function render_pricing_customers($data)
                             }
                             ?>
                             <span style="<?php echo $status_class; ?>"><?php echo ucfirst(
-    $customer["status"]
+    $customer["status"],
 ); ?></span>
                         </td>
                         <td><?php echo $customer["contract_start_date"]
@@ -2451,17 +2887,19 @@ function render_pricing_customers($data)
             if (!empty($data["search"])) {
                 $pag_params["search"] = $data["search"];
             }
-            render_pagination($data["pagination"], "?action=pricing_customers", $pag_params);
+            render_pagination(
+                $data["pagination"],
+                "?action=pricing_customers",
+                $pag_params,
+            );
             ?>
         <?php endif; ?>
     </div>
 <?php
 }
-
 /**
  * Render customer services list (select which service to edit)
- */
-function render_pricing_customer_services($data)
+ */ function render_pricing_customer_services($data)
 {
     render_header("Customer Pricing - " . h($data["customer"]["name"])); ?>
     <div class="card">
@@ -2469,7 +2907,7 @@ function render_pricing_customer_services($data)
         <p class="text-muted mb-20">
             <?php if ($data["customer"]["group_name"]): ?>
                 Group: <strong><?php echo h(
-                    $data["customer"]["group_name"]
+                    $data["customer"]["group_name"],
                 ); ?></strong> |
             <?php else: ?>
                 <span style="color: #e67e22;">No discount group (inherits from defaults)</span> |
@@ -2488,7 +2926,7 @@ function render_pricing_customer_services($data)
             <span style="<?php echo $status_class; ?>"><?php echo ucfirst($data["customer"]["status"]); ?></span>
             <?php if ($data["customer"]["contract_start_date"]): ?>
                 | Contract: <?php echo h(
-                    $data["customer"]["contract_start_date"]
+                    $data["customer"]["contract_start_date"],
                 ); ?>
             <?php endif; ?>
         </p>
@@ -2553,11 +2991,11 @@ function render_pricing_customer_services($data)
                                 $service["tiers"][count($service["tiers"]) - 1][
                                     "price_per_inquiry"
                                 ],
-                                2
+                                2,
                             ); ?>
                             - $<?php echo number_format(
                                 $service["tiers"][0]["price_per_inquiry"],
-                                2
+                                2,
                             ); ?>
                         </span>
                     <?php endif; ?>
@@ -2594,7 +3032,7 @@ function render_pricing_customer_services($data)
                         <?php foreach ($service["tiers"] as $tier): ?>
                         <tr>
                             <td style="padding: 6px 10px;"><?php echo number_format(
-                                $tier["volume_start"]
+                                $tier["volume_start"],
                             ); ?></td>
                             <td style="padding: 6px 10px;"><?php echo $tier[
                                 "volume_end"
@@ -2603,7 +3041,7 @@ function render_pricing_customer_services($data)
                                 : "<em>Unlimited</em>"; ?></td>
                             <td style="padding: 6px 10px;">$<?php echo number_format(
                                 $tier["price_per_inquiry"],
-                                4
+                                4,
                             ); ?></td>
                             <td style="padding: 6px 10px;">
                                 <?php if ($tier["source"] === "customer"): ?>
@@ -2660,17 +3098,19 @@ function render_pricing_customer_services($data)
     }
     </script>
 
-    <div class="breadcrumb"><a href="?action=pricing_customers">Customers</a><span>/</span><?php echo h($data["customer"]["name"]); ?></div>
+    <div class="breadcrumb"><a href="?action=pricing_customers">Customers</a><span>/</span><?php echo h(
+        $data["customer"]["name"],
+    ); ?></div>
 <?php
-} /**
+}
+/**
  * Render customer tier edit form
- */
-function render_pricing_customer_edit($data)
+ */ function render_pricing_customer_edit($data)
 {
     render_header("Edit Customer Pricing - " . h($data["customer"]["name"])); ?>
     <div class="card">
         <h2><?php echo h(
-            $data["customer"]["name"]
+            $data["customer"]["name"],
         ); ?>: <?php echo h($data["service"]["name"]); ?></h2>
 
         <?php if ($data["has_override"]): ?>
@@ -2718,7 +3158,7 @@ function render_pricing_customer_edit($data)
                         <?php foreach ($data["tiers"] as $tier): ?>
                         <tr class="tier-row">
                             <td><input type="number" name="volume_start[]" class="form-control" value="<?php echo h(
-                                $tier["volume_start"]
+                                $tier["volume_start"],
                             ); ?>" min="0" required></td>
                             <td><input type="number" name="volume_end[]" class="form-control" value="<?php echo $tier[
                                 "volume_end"
@@ -2726,7 +3166,7 @@ function render_pricing_customer_edit($data)
                                 ? h($tier["volume_end"])
                                 : ""; ?>" placeholder="Unlimited" min="0"></td>
                             <td><input type="number" name="price_per_inquiry[]" class="form-control" value="<?php echo h(
-                                $tier["price_per_inquiry"]
+                                $tier["price_per_inquiry"],
                             ); ?>" step="0.01" min="0" required></td>
                             <td><button type="button" class="btn btn-sm" onclick="removeRow(this)">Remove</button></td>
                         </tr>
@@ -2800,7 +3240,7 @@ function render_pricing_customer_settings($data)
         <p class="text-muted mb-20">
             <?php if ($data["customer"]["group_name"]): ?>
                 Group: <strong><?php echo h(
-                    $data["customer"]["group_name"]
+                    $data["customer"]["group_name"],
                 ); ?></strong> |
             <?php else: ?>
                 <span style="color: #e67e22;">No discount group</span> |
@@ -2881,11 +3321,11 @@ function render_pricing_customer_settings($data)
                 <div style="margin-top: 8px; padding: 10px; background: #e8f4fd; border-radius: 4px; font-size: 13px;">
                     <strong>Current Minimum:</strong> $<?php echo number_format(
                         $data["settings"]["monthly_minimum"],
-                        2
+                        2,
                     ); ?>/month
                     <br><span class="text-muted">If monthly usage &lt; $<?php echo number_format(
                         $data["settings"]["monthly_minimum"],
-                        2
+                        2,
                     ); ?>, a gap line item will be added.</span>
                 </div>
                 <?php endif; ?>
@@ -2936,8 +3376,7 @@ function render_pricing_customer_settings($data)
 
     <div class="breadcrumb" style="margin-top: 20px;"><a href="?action=pricing_customers">Customers</a><span>/</span>Edit Tiers</div>
 <?php
-}
-/**
+} /**
  * Render escalators list (customers with escalators)
  */
 function render_escalators($data)
@@ -2951,7 +3390,7 @@ function render_escalators($data)
         $search_val = isset($data["search"]) ? $data["search"] : "";
         render_search_bar("escalators", [
             "search" => $search_val,
-            "placeholder" => "Search customers..."
+            "placeholder" => "Search customers...",
         ]);
         ?>
 
@@ -2973,7 +3412,7 @@ function render_escalators($data)
                     <?php foreach ($data["customers"] as $customer): ?>
                     <tr>
                         <td><strong><?php echo h(
-                            $customer["name"]
+                            $customer["name"],
                         ); ?></strong></td>
                         <td><?php echo $customer["group_name"]
                             ? h($customer["group_name"])
@@ -2999,7 +3438,11 @@ function render_escalators($data)
             if (!empty($data["search"])) {
                 $pag_params["search"] = $data["search"];
             }
-            render_pagination($data["pagination"], "?action=escalators", $pag_params);
+            render_pagination(
+                $data["pagination"],
+                "?action=escalators",
+                $pag_params,
+            );
             ?>
         <?php endif; ?>
     </div>
@@ -3010,10 +3453,10 @@ function render_escalators($data)
         <a href="?action=pricing_customers" class="btn">Go to Customers</a>
     </div>
 <?php
-} /**
+}
+/**
  * Render escalator edit form for a customer
- */
-function render_escalator_edit($data)
+ */ function render_escalator_edit($data)
 {
     render_header("Edit Escalators - " . h($data["customer"]["name"]));
     $start_date = "";
@@ -3061,13 +3504,13 @@ function render_escalator_edit($data)
                         <?php foreach ($data["escalators"] as $esc): ?>
                         <tr class="escalator-row">
                             <td><input type="number" name="year_number[]" class="form-control" value="<?php echo h(
-                                $esc["year_number"]
+                                $esc["year_number"],
                             ); ?>" min="1" required readonly style="width: 80px;"></td>
                             <td><input type="number" name="escalator_percentage[]" class="form-control" value="<?php echo h(
-                                $esc["escalator_percentage"]
+                                $esc["escalator_percentage"],
                             ); ?>" step="0.1" min="0"></td>
                             <td><input type="number" name="fixed_adjustment[]" class="form-control" value="<?php echo h(
-                                $esc["fixed_adjustment"]
+                                $esc["fixed_adjustment"],
                             ); ?>" step="0.01"></td>
                             <td>
                                 <?php if ($esc["total_delay"] > 0): ?>
@@ -3164,7 +3607,7 @@ function render_business_rules($data)
         $search_val = isset($data["search"]) ? $data["search"] : "";
         render_search_bar("business_rules", [
             "search" => $search_val,
-            "placeholder" => "Search customers..."
+            "placeholder" => "Search customers...",
         ]);
         ?>
 
@@ -3185,7 +3628,7 @@ function render_business_rules($data)
                     <?php foreach ($data["customers"] as $customer): ?>
                     <tr>
                         <td><strong><?php echo h(
-                            $customer["name"]
+                            $customer["name"],
                         ); ?></strong></td>
                         <td><?php echo $customer["group_name"]
                             ? h($customer["group_name"])
@@ -3215,14 +3658,16 @@ function render_business_rules($data)
             if (!empty($data["search"])) {
                 $pag_params["search"] = $data["search"];
             }
-            render_pagination($data["pagination"], "?action=business_rules", $pag_params);
+            render_pagination(
+                $data["pagination"],
+                "?action=business_rules",
+                $pag_params,
+            );
             ?>
         <?php endif; ?>
     </div>
 <?php
-}
-
-/**
+} /**
  * Render all business rules view
  */
 function render_business_rules_all($data)
@@ -3235,21 +3680,26 @@ function render_business_rules_all($data)
 
         <div style="display: flex; gap: 20px; margin-bottom: 20px;">
             <div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px; text-align: center;">
-                <div style="font-size: 24px; font-weight: bold;"><?php echo $data["stats"]["total_rules"]; ?></div>
+                <div style="font-size: 24px; font-weight: bold;"><?php echo $data[
+                    "stats"
+                ]["total_rules"]; ?></div>
                 <div style="color: #666; font-size: 13px;">Total Rules</div>
             </div>
             <div style="flex: 1; background: #fff3cd; padding: 15px; border-radius: 4px; text-align: center;">
-                <div style="font-size: 24px; font-weight: bold; color: #856404;"><?php echo $data["stats"]["masked_rules"]; ?></div>
+                <div style="font-size: 24px; font-weight: bold; color: #856404;"><?php echo $data[
+                    "stats"
+                ]["masked_rules"]; ?></div>
                 <div style="color: #666; font-size: 13px;">Masked Rules</div>
             </div>
             <div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px; text-align: center;">
-                <div style="font-size: 24px; font-weight: bold;"><?php echo $data["stats"]["customers_with_rules"]; ?></div>
+                <div style="font-size: 24px; font-weight: bold;"><?php echo $data[
+                    "stats"
+                ]["customers_with_rules"]; ?></div>
                 <div style="color: #666; font-size: 13px;">Customers</div>
             </div>
         </div>
 
-        <?php
-        render_search_bar("business_rules_all", [
+        <?php render_search_bar("business_rules_all", [
             "search" => $data["search"],
             "placeholder" => "Search rules or customers...",
             "filters" => [
@@ -3258,13 +3708,12 @@ function render_business_rules_all($data)
                     "options" => [
                         "" => "All Rules",
                         "1" => "Masked Only",
-                        "0" => "Unmasked Only"
+                        "0" => "Unmasked Only",
                     ],
-                    "current" => $data["filter_masked"]
-                ]
-            ]
-        ]);
-        ?>
+                    "current" => $data["filter_masked"],
+                ],
+            ],
+        ]); ?>
 
         <?php if (empty($data["rules"])): ?>
             <p class="text-muted">No rules found.</p>
@@ -3281,15 +3730,29 @@ function render_business_rules_all($data)
                 </thead>
                 <tbody>
                     <?php foreach ($data["rules"] as $rule): ?>
-                    <tr style="<?php echo $rule["is_masked"] ? "background: #fff3cd;" : ""; ?>">
+                    <tr style="<?php echo $rule["is_masked"]
+                        ? "background: #fff3cd;"
+                        : ""; ?>">
                         <td>
-                            <a href="?action=business_rule_edit&customer_id=<?php echo $rule["customer_id"]; ?>"><?php echo h($rule["customer_name"]); ?></a>
+                            <a href="?action=business_rule_edit&customer_id=<?php echo $rule[
+                                "customer_id"
+                            ]; ?>"><?php echo h($rule["customer_name"]); ?></a>
                             <?php if ($rule["customer_status"] !== "active"): ?>
-                                <span class="badge badge-<?php echo $rule["customer_status"] === "paused" ? "warning" : "default"; ?>"><?php echo $rule["customer_status"]; ?></span>
+                                <span class="badge badge-<?php echo $rule[
+                                    "customer_status"
+                                ] === "paused"
+                                    ? "warning"
+                                    : "default"; ?>"><?php echo $rule[
+    "customer_status"
+]; ?></span>
                             <?php endif; ?>
                         </td>
-                        <td><code style="font-size: 12px;"><?php echo h($rule["rule_name"]); ?></code></td>
-                        <td class="text-muted" style="font-size: 12px;"><?php echo h($rule["rule_description"] ?: "-"); ?></td>
+                        <td><code style="font-size: 12px;"><?php echo h(
+                            $rule["rule_name"],
+                        ); ?></code></td>
+                        <td class="text-muted" style="font-size: 12px;"><?php echo h(
+                            $rule["rule_description"] ?: "-",
+                        ); ?></td>
                         <td>
                             <?php if ($rule["is_masked"]): ?>
                                 <span class="badge badge-warning">Masked</span>
@@ -3298,8 +3761,14 @@ function render_business_rules_all($data)
                             <?php endif; ?>
                         </td>
                         <td class="text-right">
-                            <a href="?action=business_rule_toggle&customer_id=<?php echo $rule["customer_id"]; ?>&rule=<?php echo urlencode($rule["rule_name"]); ?>&return=all" class="btn btn-sm">
-                                <?php echo $rule["is_masked"] ? "Unmask" : "Mask"; ?>
+                            <a href="?action=business_rule_toggle&customer_id=<?php echo $rule[
+                                "customer_id"
+                            ]; ?>&rule=<?php echo urlencode(
+    $rule["rule_name"],
+); ?>&return=all" class="btn btn-sm">
+                                <?php echo $rule["is_masked"]
+                                    ? "Unmask"
+                                    : "Mask"; ?>
                             </a>
                         </td>
                     </tr>
@@ -3315,14 +3784,16 @@ function render_business_rules_all($data)
             if ($data["filter_masked"] !== null) {
                 $pag_params["masked"] = $data["filter_masked"];
             }
-            render_pagination($data["pagination"], "?action=business_rules_all", $pag_params);
+            render_pagination(
+                $data["pagination"],
+                "?action=business_rules_all",
+                $pag_params,
+            );
             ?>
         <?php endif; ?>
     </div>
 <?php
-}
-
-/**
+} /**
  * Render business rule edit for a customer
  */
 function render_business_rule_edit($data)
@@ -3350,7 +3821,7 @@ function render_business_rule_edit($data)
                     <?php foreach ($data["rules"] as $rule): ?>
                     <tr>
                         <td><strong><?php echo h(
-                            $rule["rule_name"]
+                            $rule["rule_name"],
                         ); ?></strong></td>
                         <td><?php echo $rule["rule_description"]
                             ? h($rule["rule_description"])
@@ -3367,7 +3838,7 @@ function render_business_rule_edit($data)
                                 <a href="?action=business_rule_toggle&customer_id=<?php echo $data[
                                     "customer"
                                 ]["id"]; ?>&rule_name=<?php echo urlencode(
-    $rule["rule_name"]
+    $rule["rule_name"],
 ); ?>&mask_action=unmask"
                                     class="btn btn-sm btn-success"
                                     onclick="return confirm('Unmask this rule? It will be included in billing.')">Unmask</a>
@@ -3375,7 +3846,7 @@ function render_business_rule_edit($data)
                                 <a href="?action=business_rule_toggle&customer_id=<?php echo $data[
                                     "customer"
                                 ]["id"]; ?>&rule_name=<?php echo urlencode(
-    $rule["rule_name"]
+    $rule["rule_name"],
 ); ?>&mask_action=mask"
                                     class="btn btn-sm"
                                     onclick="return confirm('Mask this rule? It will be excluded from billing.')">Mask</a>
@@ -3388,12 +3859,14 @@ function render_business_rule_edit($data)
         <?php endif; ?>
     </div>
 
-    <div class="breadcrumb"><a href="?action=business_rules">Rules</a><span>/</span><?php echo h($data["customer"]["name"]); ?></div>
+    <div class="breadcrumb"><a href="?action=business_rules">Rules</a><span>/</span><?php echo h(
+        $data["customer"]["name"],
+    ); ?></div>
 <?php
-}
-/**
+} /**
  * Render history/audit trail
- */ function render_history($data)
+ */
+function render_history($data)
 {
     render_header("History - Audit Trail"); ?>
     <div class="card">
@@ -3457,7 +3930,7 @@ function render_business_rule_edit($data)
                     <?php foreach ($data["history"] as $item): ?>
                     <tr>
                         <td style="white-space: nowrap;"><?php echo h(
-                            $item["date"]
+                            $item["date"],
                         ); ?></td>
                         <td>
                             <?php
@@ -3476,7 +3949,7 @@ function render_business_rule_edit($data)
                             </span>
                         </td>
                         <td style="white-space: nowrap;"><?php echo h(
-                            $item["effective_date"]
+                            $item["effective_date"],
                         ); ?></td>
                         <td><?php echo h($item["description"]); ?></td>
                     </tr>
@@ -3489,14 +3962,16 @@ function render_business_rule_edit($data)
             if ($data["customer_id"]) {
                 $pag_params["customer_id"] = $data["customer_id"];
             }
-            render_pagination($data["pagination"], "?action=history", $pag_params);
+            render_pagination(
+                $data["pagination"],
+                "?action=history",
+                $pag_params,
+            );
             ?>
         <?php endif; ?>
     </div>
 <?php render_footer();
-}
-
-/**
+} /**
  * Render billing calendar year view
  */
 function render_calendar($data)
@@ -3509,7 +3984,7 @@ function render_calendar($data)
                 <a href="?action=calendar&year=<?php echo $data["year"] -
                     1; ?>" class="btn btn-sm">&larr; <?php echo $data["year"] - 1; ?></a>
                 <a href="?action=calendar&year=<?php echo date(
-                    "Y"
+                    "Y",
                 ); ?>" class="btn btn-sm">Today</a>
                 <a href="?action=calendar&year=<?php echo $data["year"] +
                     1; ?>" class="btn btn-sm"><?php echo $data["year"] + 1; ?> &rarr;</a>
@@ -3613,8 +4088,8 @@ function render_calendar($data)
                         0,
                         $data["next_incomplete"]["month"],
                         1,
-                        $data["next_incomplete"]["year"]
-                    )
+                        $data["next_incomplete"]["year"],
+                    ),
                 ); ?>)
             </a>
         </div>
@@ -3636,7 +4111,7 @@ function render_calendar($data)
  */ function render_calendar_month($data)
 {
     render_header(
-        $data["month_name"] . " " . $data["year"] . " - Billing Checklist"
+        $data["month_name"] . " " . $data["year"] . " - Billing Checklist",
     ); ?>
     <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -3660,7 +4135,7 @@ function render_calendar($data)
                     "year"
                 ]; ?>&month=<?php echo $data["prev"]["month"]; ?>" class="btn btn-sm">&larr; Prev</a>
                 <a href="?action=calendar_month&year=<?php echo date(
-                    "Y"
+                    "Y",
                 ); ?>&month=<?php echo date("n"); ?>" class="btn btn-sm">Today</a>
                 <a href="?action=calendar_month&year=<?php echo $data["next"][
                     "year"
@@ -3679,7 +4154,7 @@ function render_calendar($data)
             <?php if (!empty($data["checklist"]["warnings"])): ?>
             <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; padding: 15px; margin-bottom: 20px;">
                 <h3 style="margin: 0 0 10px 0; color: #721c24;">&#9888; Warnings (<?php echo count(
-                    $data["checklist"]["warnings"]
+                    $data["checklist"]["warnings"],
                 ); ?>)</h3>
                 <ul style="margin: 0; padding-left: 20px;">
                     <?php foreach ($data["checklist"]["warnings"] as $item): ?>
@@ -3699,7 +4174,7 @@ function render_calendar($data)
             <?php if (!empty($data["checklist"]["whats_excluded"])): ?>
             <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; padding: 15px; margin-bottom: 20px;">
                 <h3 style="margin: 0 0 10px 0; color: #856404;">&#10007; What's Excluded (<?php echo count(
-                    $data["checklist"]["whats_excluded"]
+                    $data["checklist"]["whats_excluded"],
                 ); ?>)</h3>
                 <p style="margin: 0 0 10px 0; font-size: 12px; color: #856404;">These customers will NOT be billed this month:</p>
                 <ul style="margin: 0; padding-left: 20px;">
@@ -3721,7 +4196,7 @@ function render_calendar($data)
             <?php if (!empty($data["checklist"]["whats_new"])): ?>
             <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 5px; padding: 15px; margin-bottom: 20px;">
                 <h3 style="margin: 0 0 10px 0; color: #155724;">&#9733; What's New (<?php echo count(
-                    $data["checklist"]["whats_new"]
+                    $data["checklist"]["whats_new"],
                 ); ?>)</h3>
                 <p style="margin: 0 0 10px 0; font-size: 12px; color: #155724;">New customers added since last month - verify they are set up correctly:</p>
                 <ul style="margin: 0; padding-left: 20px;">
@@ -3740,7 +4215,7 @@ function render_calendar($data)
             <?php if (!empty($data["checklist"]["whats_changing"])): ?>
             <div style="background: #fff3cd; border: 1px solid #ffeeba; border-radius: 5px; padding: 15px; margin-bottom: 20px;">
                 <h3 style="margin: 0 0 10px 0; color: #856404;">&#8593; What's Changing (<?php echo count(
-                    $data["checklist"]["whats_changing"]
+                    $data["checklist"]["whats_changing"],
                 ); ?>)</h3>
                 <p style="margin: 0 0 10px 0; font-size: 12px; color: #856404;">Price changes taking effect this month:</p>
                 <table style="width: 100%; font-size: 13px;">
@@ -3782,7 +4257,7 @@ function render_calendar($data)
             <?php if (!empty($data["checklist"]["whats_different"])): ?>
             <div style="background: #e2e3e5; border: 1px solid #d6d8db; border-radius: 5px; padding: 15px; margin-bottom: 20px;">
                 <h3 style="margin: 0 0 10px 0; color: #383d41;">&#9881; Config Changes (<?php echo count(
-                    $data["checklist"]["whats_different"]
+                    $data["checklist"]["whats_different"],
                 ); ?>)</h3>
                 <p style="margin: 0 0 10px 0; font-size: 12px; color: #383d41;">Configuration changes made since last month:</p>
                 <ul style="margin: 0; padding-left: 20px; font-size: 13px;">
@@ -3790,14 +4265,14 @@ function render_calendar($data)
                         array_slice(
                             $data["checklist"]["whats_different"],
                             0,
-                            10
+                            10,
                         )
                         as $item
                     ): ?>
                         <li style="margin-bottom: 3px;">
                             <?php echo h($item["message"]); ?>
                             <span style="color: #999; font-size: 11px;">(<?php echo h(
-                                $item["date"]
+                                $item["date"],
                             ); ?>)</span>
                         </li>
                     <?php endforeach; ?>
@@ -3805,7 +4280,7 @@ function render_calendar($data)
                         count($data["checklist"]["whats_different"]) > 10
                     ): ?>
                         <li style="color: #666;">...and <?php echo count(
-                            $data["checklist"]["whats_different"]
+                            $data["checklist"]["whats_different"],
                         ) - 10; ?> more</li>
                     <?php endif; ?>
                 </ul>
@@ -3828,25 +4303,25 @@ function render_calendar($data)
         <p style="font-size: 12px; color: #666; margin: 10px 0 15px 0;">Based on <?php echo $data[
             "mtd"
         ]["report_count"]; ?> daily report(s), latest: <?php echo h(
-     $data["mtd"]["latest_date"]
+     $data["mtd"]["latest_date"],
  ); ?></p>
         <div style="display: flex; gap: 20px; flex-wrap: wrap;">
             <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; flex: 1; min-width: 120px;">
                 <div style="font-size: 24px; font-weight: bold;"><?php echo number_format(
-                    $data["mtd"]["customer_count"]
+                    $data["mtd"]["customer_count"],
                 ); ?></div>
                 <div style="color: #666; font-size: 12px;">Customers Billed</div>
             </div>
             <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; flex: 1; min-width: 120px;">
                 <div style="font-size: 24px; font-weight: bold;"><?php echo number_format(
-                    $data["mtd"]["total_transactions"]
+                    $data["mtd"]["total_transactions"],
                 ); ?></div>
                 <div style="color: #666; font-size: 12px;">Transactions</div>
             </div>
             <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; flex: 1; min-width: 120px;">
                 <div style="font-size: 24px; font-weight: bold;">$<?php echo number_format(
                     $data["mtd"]["total_revenue"],
-                    2
+                    2,
                 ); ?></div>
                 <div style="color: #666; font-size: 12px;">Revenue MTD</div>
             </div>
@@ -3860,13 +4335,13 @@ function render_calendar($data)
         <a href="?action=generation" class="btn btn-success">Go to Report Generation</a>
     </div>
 <?php render_footer();
-}
-/**
+} /**
  * Render Month-to-Date Dashboard
- */ function render_mtd_dashboard($data)
+ */
+function render_mtd_dashboard($data)
 {
     render_header(
-        "MTD Dashboard - " . $data["month_name"] . " " . $data["year"]
+        "MTD Dashboard - " . $data["month_name"] . " " . $data["year"],
     ); ?>
     <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -3895,7 +4370,7 @@ function render_calendar($data)
                     "year"
                 ]; ?>&month=<?php echo $data["prev"]["month"]; ?>" class="btn btn-sm">&larr; Prev</a>
                 <a href="?action=mtd_dashboard&year=<?php echo date(
-                    "Y"
+                    "Y",
                 ); ?>&month=<?php echo date("n"); ?>" class="btn btn-sm">Today</a>
                 <a href="?action=mtd_dashboard&year=<?php echo $data["next"][
                     "year"
@@ -3919,7 +4394,7 @@ function render_calendar($data)
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 28px; font-weight: bold; color: #28a745;">$<?php echo number_format(
                         $data["mtd"]["total_revenue"],
-                        2
+                        2,
                     ); ?></div>
                     <div style="color: #666; font-size: 12px; margin-top: 5px;">Revenue MTD</div>
                     <?php if ($data["prev_mtd"]["total_revenue"] > 0): ?>
@@ -3932,14 +4407,14 @@ function render_calendar($data)
                                 ? "&#9650;"
                                 : "&#9660;"; ?>
                             <?php echo abs(
-                                round($data["revenue_change"], 1)
+                                round($data["revenue_change"], 1),
                             ); ?>% vs last month
                         </div>
                     <?php endif; ?>
                 </div>
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 28px; font-weight: bold; color: #3498db;"><?php echo number_format(
-                        $data["mtd"]["total_transactions"]
+                        $data["mtd"]["total_transactions"],
                     ); ?></div>
                     <div style="color: #666; font-size: 12px; margin-top: 5px;">Transactions MTD</div>
                     <?php if ($data["prev_mtd"]["total_transactions"] > 0): ?>
@@ -3952,14 +4427,14 @@ function render_calendar($data)
                                 ? "&#9650;"
                                 : "&#9660;"; ?>
                             <?php echo abs(
-                                round($data["trans_change"], 1)
+                                round($data["trans_change"], 1),
                             ); ?>% vs last month
                         </div>
                     <?php endif; ?>
                 </div>
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 28px; font-weight: bold; color: #9b59b6;"><?php echo number_format(
-                        $data["mtd"]["customer_count"]
+                        $data["mtd"]["customer_count"],
                     ); ?></div>
                     <div style="color: #666; font-size: 12px; margin-top: 5px;">Active Customers</div>
                 </div>
@@ -3972,18 +4447,18 @@ function render_calendar($data)
                             : 0;
                     $days_in_month = date(
                         "t",
-                        mktime(0, 0, 0, $data["month"], 1, $data["year"])
+                        mktime(0, 0, 0, $data["month"], 1, $data["year"]),
                     );
                     $projected = $avg_per_day * $days_in_month;
                     ?>
                     <div style="font-size: 28px; font-weight: bold; color: #e67e22;">$<?php echo number_format(
                         $projected,
-                        2
+                        2,
                     ); ?></div>
                     <div style="color: #666; font-size: 12px; margin-top: 5px;">Projected Month End</div>
                     <div style="font-size: 11px; color: #999; margin-top: 5px;">Based on $<?php echo number_format(
                         $avg_per_day,
-                        2
+                        2,
                     ); ?>/day avg</div>
                 </div>
             </div>
@@ -4013,7 +4488,7 @@ function render_calendar($data)
                         <tr style="border-bottom: 1px solid #eee;">
                             <td style="padding: 5px;"><?php echo substr(
                                 $day["date"],
-                                5
+                                5,
                             ); ?></td>
                             <td style="padding: 5px;">
                                 <?php $bar_width =
@@ -4026,11 +4501,11 @@ function render_calendar($data)
                             </td>
                             <td style="text-align: right; padding: 5px;">$<?php echo number_format(
                                 $day["daily_revenue"],
-                                2
+                                2,
                             ); ?></td>
                             <td style="text-align: right; padding: 5px; color: #666;">$<?php echo number_format(
                                 $day["cumulative_revenue"],
-                                2
+                                2,
                             ); ?></td>
                         </tr>
                         <?php endforeach; ?>
@@ -4055,14 +4530,14 @@ function render_calendar($data)
                         <?php foreach ($data["services"] as $svc): ?>
                         <tr>
                             <td><?php echo h(
-                                $svc["service_name"] ?: "(Unknown)"
+                                $svc["service_name"] ?: "(Unknown)",
                             ); ?></td>
                             <td class="text-right"><?php echo number_format(
-                                $svc["transactions"]
+                                $svc["transactions"],
                             ); ?></td>
                             <td class="text-right">$<?php echo number_format(
                                 $svc["revenue"],
-                                2
+                                2,
                             ); ?></td>
                             <td class="text-right">
                                 <?php
@@ -4108,21 +4583,21 @@ function render_calendar($data)
                                     ]; ?>">
                                         <?php echo h(
                                             $cust["customer_name"] ?:
-                                            "Customer #" . $cust["customer_id"]
+                                            "Customer #" . $cust["customer_id"],
                                         ); ?>
                                     </a>
                                 <?php else: ?>
                                     <?php echo h(
-                                        $cust["customer_name"] ?: "(Unknown)"
+                                        $cust["customer_name"] ?: "(Unknown)",
                                     ); ?>
                                 <?php endif; ?>
                             </td>
                             <td class="text-right"><?php echo number_format(
-                                $cust["transactions"]
+                                $cust["transactions"],
                             ); ?></td>
                             <td class="text-right">$<?php echo number_format(
                                 $cust["revenue"],
-                                2
+                                2,
                             ); ?></td>
                             <td class="text-right">
                                 <?php
@@ -4160,10 +4635,10 @@ function render_calendar($data)
         <a href="?action=ingestion" class="btn">Manage Reports</a>
     </div>
 <?php render_footer();
-} /**
+}
+/**
  * Render export options page
- */
-function render_export()
+ */ function render_export()
 {
     render_header("Export Data"); ?>
     <div class="card">
