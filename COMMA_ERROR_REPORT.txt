@@ -1,0 +1,169 @@
+================================================================================
+COMMA ERROR REPORT - control_panel.php
+PHP 5.6 COMPATIBILITY ISSUES
+Generated: 2026-01-17
+================================================================================
+
+SUMMARY
+-------
+The file contains TRAILING COMMAS in function parameter definitions and function
+calls. PHP 5.6 does NOT support trailing commas in these contexts. This feature
+was added in PHP 7.3 (function calls) and PHP 8.0 (function definitions).
+
+================================================================================
+CATEGORY 1: TRAILING COMMAS IN FUNCTION PARAMETER DEFINITIONS
+================================================================================
+
+These are CRITICAL errors - they cause immediate parse failures in PHP 5.6.
+
+Pattern: The last parameter in a function definition has a trailing comma
+         before the closing parenthesis.
+
+LINE 529-530:
+    $per_page = ITEMS_PER_PAGE,
+) {
+    FUNCTION: sqlite_get_all_current()
+    FIX: Remove comma after "ITEMS_PER_PAGE"
+
+LINE 1095-1096:
+    $order = "desc",
+) {
+    FUNCTION: list_files()
+    FIX: Remove comma after '"desc"'
+
+LINE 2516-2517:
+    $effective_date = null,
+) {
+    FUNCTION: (check context - likely get_pricing_tiers or similar)
+    FIX: Remove comma after "null"
+
+LINE 2607-2608:
+    $effective_date = null,
+) {
+    FUNCTION: (check context)
+    FIX: Remove comma after "null"
+
+LINE 3969-3970:
+    $report_type = "monthly",
+) {
+    FUNCTION: (check context)
+    FIX: Remove comma after '"monthly"'
+
+LINE 4021-4022:
+    $service_id = null,
+) {
+    FUNCTION: (check context)
+    FIX: Remove comma after "null"
+
+LINE 4095-4096:
+    $group_id = null,
+) {
+    FUNCTION: (check context)
+    FIX: Remove comma after "null"
+
+LINE 4168-4169:
+    $effective_date = null,
+) {
+    FUNCTION: (check context)
+    FIX: Remove comma after "null"
+
+LINE 4203-4204:
+    $as_of_date = null,
+) {
+    FUNCTION: (check context)
+    FIX: Remove comma after "null"
+
+================================================================================
+CATEGORY 2: TRAILING COMMAS IN FUNCTION CALLS
+================================================================================
+
+These cause parse errors in PHP 5.6 and PHP 7.0-7.2.
+
+LINE 7504-7505:
+    $customer["status"],
+); ?></span>
+    CONTEXT: Inline PHP in HTML - function call with trailing comma
+    FIX: Remove comma after '$customer["status"]'
+
+LINE 8361-8362:
+    $rule["rule_name"],
+); ?>&mask_action=unmask"
+    CONTEXT: Inline PHP in HTML - function call with trailing comma
+    FIX: Remove comma after '$rule["rule_name"]'
+
+LINE 8369-8370:
+    $rule["rule_name"],
+); ?>&mask_action=mask"
+    CONTEXT: Inline PHP in HTML - function call with trailing comma
+    FIX: Remove comma after '$rule["rule_name"]'
+
+================================================================================
+CATEGORY 3: TRAILING COMMAS IN exec()/sqlite_execute() CALLS
+================================================================================
+
+These are within function calls, also problematic in PHP 5.6.
+
+LINE 464-465:
+    $_sqlite_db->exec(
+        "ALTER TABLE customers ADD COLUMN lms_id INTEGER REFERENCES lms(id)",
+    );
+    FIX: Remove comma after the SQL string
+
+LINE 479-480:
+    $_sqlite_db->exec(
+        "ALTER TABLE lms ADD COLUMN status TEXT DEFAULT 'active'",
+    );
+    FIX: Remove comma after the SQL string
+
+================================================================================
+HOW TO FIX
+================================================================================
+
+DO NOT USE SED OR AUTOMATED REPLACEMENT - as noted, there was a previous bad
+sed operation that caused issues.
+
+MANUAL FIX REQUIRED for each line listed above:
+1. Go to the specific line number
+2. Remove the trailing comma BEFORE the closing parenthesis
+3. Verify the fix doesn't break anything else
+
+Example fix for LINE 529:
+  BEFORE: $per_page = ITEMS_PER_PAGE,
+  AFTER:  $per_page = ITEMS_PER_PAGE
+
+================================================================================
+VERIFICATION COMMAND
+================================================================================
+
+After fixing, run:
+    php5.6 -l /home/user/dev/PHP/control_panel.php
+
+This will check for syntax errors without executing the file.
+
+================================================================================
+FULL LIST OF LINES TO FIX (for quick reference)
+================================================================================
+
+FUNCTION DEFINITIONS (remove trailing comma from last parameter):
+- Line 529
+- Line 1095
+- Line 2516
+- Line 2607
+- Line 3969
+- Line 4021
+- Line 4095
+- Line 4168
+- Line 4203
+
+FUNCTION CALLS (remove trailing comma from last argument):
+- Line 464
+- Line 479
+- Line 7504
+- Line 8361
+- Line 8369
+
+TOTAL: 14 lines need fixing
+
+================================================================================
+END OF REPORT
+================================================================================

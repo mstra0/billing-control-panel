@@ -1,0 +1,4 @@
+id,customer_name,email,status,amount,date
+0998,"Wayne Enterprises",accounts@wayne.com,approved,75000.00,2026-01-14
+0999,Oscorp,billing@oscorp.com,pending,18000.00,2026-01-14
+1000,LexCorp,finance@lexcorp.com,approved,22000.00,2026-01-14

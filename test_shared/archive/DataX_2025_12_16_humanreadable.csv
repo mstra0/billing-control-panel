@@ -1,0 +1,1206 @@
+y,m,cust_id,cust_name,hit_code,tran_displayname,actual_unit_cost,count,revenue,EFX_code,billing_id
+2025,12,2,"Maple Co",H,"Account Basic Err",0.1092,139,15.18,ACB_ERR,B2025121600001
+2025,12,2,"Maple Co",H,"Account Basic Hit",0.1104,162,17.88,ACB_HIT,B2025121600002
+2025,12,2,"Maple Co",H,"Account Basic Miss",0.1092,288,31.45,ACB_MISS,B2025121600003
+2025,12,2,"Maple Co",H,"Account Basic Null",0.114,200,22.8,ACB_NULL,B2025121600004
+2025,12,2,"Maple Co",E,"Account Standard Miss",0.196,128,25.09,ACS_MISS,B2025121600005
+2025,12,2,"Maple Co",H,"Bank Basic Err",0.171,156,26.68,BKB_ERR,B2025121600006
+2025,12,2,"Maple Co",H,"Bank Basic Hit",0.1305,423,55.2,BKB_HIT,B2025121600007
+2025,12,2,"Maple Co",H,"Bank Basic Miss",0.1545,168,25.96,BKB_MISS,B2025121600008
+2025,12,2,"Maple Co",H,"Bank Basic Null",0.1605,472,75.76,BKB_NULL,B2025121600009
+2025,12,2,"Maple Co",H,"Financial Core Hit",0.3328,161,53.58,FNC_HIT,B2025121600010
+2025,12,2,"Maple Co",H,"Financial Core Miss",0.2976,304,90.47,FNC_MISS,B2025121600011
+2025,12,2,"Maple Co",M,"Financial Core Null",0.3488,148,51.62,FNC_NULL,B2025121600012
+2025,12,2,"Maple Co",H,"Identity Standard Miss",0.3955,122,48.25,IDS_MISS,B2025121600013
+2025,12,2,"Maple Co",M,"Lending Check Err",0.089,79,7.03,LNK_ERR,B2025121600014
+2025,12,2,"Maple Co",M,"Lending Extended Miss",0.114,250,28.5,LNX_MISS,B2025121600015
+2025,12,2,"Maple Co",H,"Social Security Express Err",0.24,117,28.08,SSE_ERR,B2025121600016
+2025,12,2,"Maple Co",H,"Social Security Monitor Hit",0.333,280,93.24,SSM_HIT,B2025121600017
+2025,12,2,"Maple Co",H,"Verification Network Hit",0.113,133,15.03,VRN_HIT,B2025121600018
+2025,12,2,"Maple Co",H,"Verification Total Hit",0.099,382,37.82,VRT_HIT,B2025121600019
+2025,12,2,"Maple Co",H,"Verification Total Miss",0.108,56,6.05,VRT_MISS,B2025121600020
+2025,12,3,"Prosperity Consulting",E,"Account Basic Miss",0.126,267,33.64,ACB_MISS,B2025121600021
+2025,12,3,"Prosperity Consulting",H,"Bank Basic Err",0.156,255,39.78,BKB_ERR,B2025121600022
+2025,12,3,"Prosperity Consulting",H,"Bank Basic Hit",0.1575,562,88.52,BKB_HIT,B2025121600023
+2025,12,3,"Prosperity Consulting",H,"Bank Basic Null",0.129,140,18.06,BKB_NULL,B2025121600024
+2025,12,3,"Prosperity Consulting",H,"Financial Core Hit",0.2784,544,151.45,FNC_HIT,B2025121600025
+2025,12,3,"Prosperity Consulting",H,"Financial Core Miss",0.3552,4542,1613.32,FNC_MISS,B2025121600026
+2025,12,3,"Prosperity Consulting",H,"Financial Lookup Err",0.2856,228,65.12,FNL_ERR,B2025121600027
+2025,12,3,"Prosperity Consulting",H,"Financial Lookup Miss",0.3164,142,44.93,FNL_MISS,B2025121600028
+2025,12,3,"Prosperity Consulting",H,"Lending Check Miss",0.094,4195,394.33,LNK_MISS,B2025121600029
+2025,12,3,"Prosperity Consulting",M,"Lending Extended Miss",0.101,260,26.26,LNX_MISS,B2025121600030
+2025,12,3,"Prosperity Consulting",E,"Social Security Express Err",0.26,235,61.1,SSE_ERR,B2025121600031
+2025,12,3,"Prosperity Consulting",H,"Social Security Express Hit",0.2525,316,79.79,SSE_HIT,B2025121600032
+2025,12,3,"Prosperity Consulting",N,"Verification Total Hit",0.088,186,16.37,VRT_HIT,B2025121600033
+2025,12,4,"Ruby Securities",M,"Account Basic Hit",0.1176,361,42.45,ACB_HIT,B2025121600034
+2025,12,4,"Ruby Securities",H,"Account Basic Miss",0.138,3907,539.17,ACB_MISS,B2025121600035
+2025,12,4,"Ruby Securities",H,"Account Basic Null",0.1368,368,50.34,ACB_NULL,B2025121600036
+2025,12,4,"Ruby Securities",H,"Bank Basic Hit",0.159,217,34.5,BKB_HIT,B2025121600037
+2025,12,4,"Ruby Securities",H,"Bank Basic Null",0.1395,145,20.23,BKB_NULL,B2025121600038
+2025,12,4,"Ruby Securities",M,"Financial Core Err",0.2976,465,138.38,FNC_ERR,B2025121600039
+2025,12,4,"Ruby Securities",H,"Financial Core Hit",0.336,4381,1472.02,FNC_HIT,B2025121600040
+2025,12,4,"Ruby Securities",H,"Financial Core Miss",0.2784,164,45.66,FNC_MISS,B2025121600041
+2025,12,4,"Ruby Securities",H,"Financial Lookup Err",0.2716,2537,689.05,FNL_ERR,B2025121600042
+2025,12,4,"Ruby Securities",M,"Financial Lookup Miss",0.2996,50,14.98,FNL_MISS,B2025121600043
+2025,12,4,"Ruby Securities",H,"Identity Standard Err",0.3815,234,89.27,IDS_ERR,B2025121600044
+2025,12,4,"Ruby Securities",H,"Identity Standard Miss",0.364,398,144.87,IDS_MISS,B2025121600045
+2025,12,4,"Ruby Securities",H,"Lending Check Err",0.099,403,39.9,LNK_ERR,B2025121600046
+2025,12,4,"Ruby Securities",H,"Lending Extended Hit",0.108,272,29.38,LNX_HIT,B2025121600047
+2025,12,4,"Ruby Securities",H,"Lending Extended Miss",0.098,416,40.77,LNX_MISS,B2025121600048
+2025,12,4,"Ruby Securities",M,"Social Security Monitor Hit",0.315,206,64.89,SSM_HIT,B2025121600049
+2025,12,4,"Ruby Securities",H,"Verification Network Miss",0.098,385,37.73,VRN_MISS,B2025121600050
+2025,12,7,"Optimal Leasing",E,"Account Basic Err",0.108,349,37.69,ACB_ERR,B2025121600051
+2025,12,7,"Optimal Leasing",H,"Account Basic Hit",0.1248,348,43.43,ACB_HIT,B2025121600052
+2025,12,7,"Optimal Leasing",H,"Account Standard Miss",0.214,189,40.45,ACS_MISS,B2025121600053
+2025,12,7,"Optimal Leasing",M,"Bank Basic Null",0.1365,185,25.25,BKB_NULL,B2025121600054
+2025,12,7,"Optimal Leasing",M,"Financial Core Err",0.2912,559,162.78,FNC_ERR,B2025121600055
+2025,12,7,"Optimal Leasing",M,"Financial Core Null",0.3584,413,148.02,FNC_NULL,B2025121600056
+2025,12,7,"Optimal Leasing",M,"Financial Lookup Err",0.3164,494,156.3,FNL_ERR,B2025121600057
+2025,12,7,"Optimal Leasing",H,"Financial Lookup Hit",0.322,220,70.84,FNL_HIT,B2025121600058
+2025,12,7,"Optimal Leasing",N,"Identity Standard Hit",0.3185,454,144.6,IDS_HIT,B2025121600059
+2025,12,7,"Optimal Leasing",H,"Lending Check Err",0.101,214,21.61,LNK_ERR,B2025121600060
+2025,12,7,"Optimal Leasing",H,"Social Security Express Miss",0.235,415,97.53,SSE_MISS,B2025121600061
+2025,12,7,"Optimal Leasing",H,"Social Security Monitor Hit",0.303,135,40.91,SSM_HIT,B2025121600062
+2025,12,8,"Five Consulting",M,"Bank Basic Null",0.165,523,86.3,BKB_NULL,B2025121600063
+2025,12,8,"Five Consulting",H,"Financial Core Err",0.2976,321,95.53,FNC_ERR,B2025121600064
+2025,12,8,"Five Consulting",E,"Financial Core Hit",0.272,463,125.94,FNC_HIT,B2025121600065
+2025,12,8,"Five Consulting",H,"Financial Core Null",0.3232,323,104.39,FNC_NULL,B2025121600066
+2025,12,8,"Five Consulting",M,"Financial Lookup Miss",0.2856,359,102.53,FNL_MISS,B2025121600067
+2025,12,8,"Five Consulting",H,"Identity Standard Hit",0.392,2574,1009.01,IDS_HIT,B2025121600068
+2025,12,8,"Five Consulting",M,"Lending Check Err",0.111,491,54.5,LNK_ERR,B2025121600069
+2025,12,8,"Five Consulting",M,"Lending Check Miss",0.101,534,53.93,LNK_MISS,B2025121600070
+2025,12,8,"Five Consulting",E,"Lending Extended Miss",0.094,380,35.72,LNX_MISS,B2025121600071
+2025,12,8,"Five Consulting",H,"Social Security Monitor Miss",0.333,223,74.26,SSM_MISS,B2025121600072
+2025,12,8,"Five Consulting",H,"Verification Network Miss",0.113,347,39.21,VRN_MISS,B2025121600073
+2025,12,8,"Five Consulting",M,"Verification Total Hit",0.094,3980,374.12,VRT_HIT,B2025121600074
+2025,12,8,"Five Consulting",M,"Verification Total Miss",0.091,314,28.57,VRT_MISS,B2025121600075
+2025,12,9,"Legacy Holdings",H,"Account Basic Miss",0.102,505,51.51,ACB_MISS,B2025121600076
+2025,12,9,"Legacy Holdings",H,"Account Basic Null",0.1128,337,38.01,ACB_NULL,B2025121600077
+2025,12,9,"Legacy Holdings",M,"Account Standard Hit",0.22,169,37.18,ACS_HIT,B2025121600078
+2025,12,9,"Legacy Holdings",N,"Account Standard Miss",0.182,359,65.34,ACS_MISS,B2025121600079
+2025,12,9,"Legacy Holdings",H,"Bank Basic Miss",0.1545,276,42.64,BKB_MISS,B2025121600080
+2025,12,9,"Legacy Holdings",H,"Bank Basic Null",0.147,4960,729.12,BKB_NULL,B2025121600081
+2025,12,9,"Legacy Holdings",E,"Financial Lookup Hit",0.2856,307,87.68,FNL_HIT,B2025121600082
+2025,12,9,"Legacy Holdings",H,"Financial Lookup Miss",0.294,2554,750.88,FNL_MISS,B2025121600083
+2025,12,9,"Legacy Holdings",H,"Identity Standard Err",0.343,316,108.39,IDS_ERR,B2025121600084
+2025,12,9,"Legacy Holdings",H,"Identity Standard Hit",0.3255,39,12.69,IDS_HIT,B2025121600085
+2025,12,9,"Legacy Holdings",M,"Identity Standard Miss",0.3955,351,138.82,IDS_MISS,B2025121600086
+2025,12,9,"Legacy Holdings",E,"Social Security Express Hit",0.23,123,28.29,SSE_HIT,B2025121600087
+2025,12,9,"Legacy Holdings",H,"Social Security Express Miss",0.2525,419,105.8,SSE_MISS,B2025121600088
+2025,12,9,"Legacy Holdings",H,"Social Security Monitor Hit",0.27,129,34.83,SSM_HIT,B2025121600089
+2025,12,9,"Legacy Holdings",H,"Verification Total Hit",0.102,309,31.52,VRT_HIT,B2025121600090
+2025,12,10,"White Community",N,"Account Basic Hit",0.1224,156,19.09,ACB_HIT,B2025121600091
+2025,12,10,"White Community",H,"Account Basic Miss",0.1032,134,13.83,ACB_MISS,B2025121600092
+2025,12,10,"White Community",H,"Account Basic Null",0.1272,326,41.47,ACB_NULL,B2025121600093
+2025,12,10,"White Community",H,"Account Standard Miss",0.206,4800,988.8,ACS_MISS,B2025121600094
+2025,12,10,"White Community",H,"Bank Basic Hit",0.165,69,11.39,BKB_HIT,B2025121600095
+2025,12,10,"White Community",H,"Bank Basic Null",0.159,343,54.54,BKB_NULL,B2025121600096
+2025,12,10,"White Community",M,"Financial Core Err",0.32,3586,1147.52,FNC_ERR,B2025121600097
+2025,12,10,"White Community",N,"Financial Core Hit",0.2784,174,48.44,FNC_HIT,B2025121600098
+2025,12,10,"White Community",H,"Financial Lookup Err",0.3136,500,156.8,FNL_ERR,B2025121600099
+2025,12,10,"White Community",N,"Financial Lookup Hit",0.2464,110,27.1,FNL_HIT,B2025121600100
+2025,12,10,"White Community",H,"Financial Lookup Miss",0.2688,330,88.7,FNL_MISS,B2025121600101
+2025,12,10,"White Community",H,"Identity Standard Err",0.385,340,130.9,IDS_ERR,B2025121600102
+2025,12,10,"White Community",H,"Identity Standard Miss",0.301,4248,1278.65,IDS_MISS,B2025121600103
+2025,12,10,"White Community",M,"Lending Check Err",0.094,159,14.95,LNK_ERR,B2025121600104
+2025,12,10,"White Community",M,"Lending Extended Miss",0.108,2608,281.66,LNX_MISS,B2025121600105
+2025,12,10,"White Community",H,"Social Security Express Miss",0.2425,41,9.94,SSE_MISS,B2025121600106
+2025,12,10,"White Community",H,"Social Security Monitor Hit",0.294,56,16.46,SSM_HIT,B2025121600107
+2025,12,10,"White Community",H,"Verification Network Hit",0.102,354,36.11,VRN_HIT,B2025121600108
+2025,12,10,"White Community",H,"Verification Total Miss",0.088,4515,397.32,VRT_MISS,B2025121600109
+2025,12,11,"Cedar Holdings",H,"Account Basic Err",0.108,210,22.68,ACB_ERR,B2025121600110
+2025,12,11,"Cedar Holdings",M,"Account Basic Hit",0.1272,1386,176.3,ACB_HIT,B2025121600111
+2025,12,11,"Cedar Holdings",M,"Account Basic Miss",0.1104,270,29.81,ACB_MISS,B2025121600112
+2025,12,11,"Cedar Holdings",H,"Account Basic Null",0.114,392,44.69,ACB_NULL,B2025121600113
+2025,12,11,"Cedar Holdings",M,"Account Standard Miss",0.202,260,52.52,ACS_MISS,B2025121600114
+2025,12,11,"Cedar Holdings",M,"Bank Basic Err",0.147,42,6.17,BKB_ERR,B2025121600115
+2025,12,11,"Cedar Holdings",N,"Bank Basic Hit",0.1275,2647,337.49,BKB_HIT,B2025121600116
+2025,12,11,"Cedar Holdings",H,"Bank Basic Miss",0.1425,448,63.84,BKB_MISS,B2025121600117
+2025,12,11,"Cedar Holdings",H,"Financial Core Hit",0.3616,307,111.01,FNC_HIT,B2025121600118
+2025,12,11,"Cedar Holdings",H,"Financial Core Miss",0.2944,120,35.33,FNC_MISS,B2025121600119
+2025,12,11,"Cedar Holdings",H,"Financial Core Null",0.32,276,88.32,FNC_NULL,B2025121600120
+2025,12,11,"Cedar Holdings",H,"Financial Lookup Err",0.3136,117,36.69,FNL_ERR,B2025121600121
+2025,12,11,"Cedar Holdings",H,"Identity Standard Err",0.357,182,64.97,IDS_ERR,B2025121600122
+2025,12,11,"Cedar Holdings",H,"Lending Extended Hit",0.112,454,50.85,LNX_HIT,B2025121600123
+2025,12,11,"Cedar Holdings",H,"Social Security Monitor Hit",0.294,304,89.38,SSM_HIT,B2025121600124
+2025,12,11,"Cedar Holdings",H,"Verification Network Hit",0.109,178,19.4,VRN_HIT,B2025121600125
+2025,12,11,"Cedar Holdings",H,"Verification Network Miss",0.093,497,46.22,VRN_MISS,B2025121600126
+2025,12,11,"Cedar Holdings",H,"Verification Total Hit",0.091,444,40.4,VRT_HIT,B2025121600127
+2025,12,11,"Cedar Holdings",M,"Verification Total Miss",0.108,546,58.97,VRT_MISS,B2025121600128
+2025,12,13,"Hub LLC",E,"Account Basic Hit",0.1332,575,76.59,ACB_HIT,B2025121600129
+2025,12,13,"Hub LLC",H,"Bank Basic Hit",0.159,244,38.8,BKB_HIT,B2025121600130
+2025,12,13,"Hub LLC",M,"Financial Core Hit",0.3168,3759,1190.85,FNC_HIT,B2025121600131
+2025,12,13,"Hub LLC",H,"Financial Lookup Err",0.2996,53,15.88,FNL_ERR,B2025121600132
+2025,12,13,"Hub LLC",H,"Financial Lookup Hit",0.2912,208,60.57,FNL_HIT,B2025121600133
+2025,12,13,"Hub LLC",H,"Identity Standard Hit",0.364,310,112.84,IDS_HIT,B2025121600134
+2025,12,13,"Hub LLC",H,"Identity Standard Miss",0.3605,174,62.73,IDS_MISS,B2025121600135
+2025,12,13,"Hub LLC",E,"Lending Check Miss",0.103,241,24.82,LNK_MISS,B2025121600136
+2025,12,13,"Hub LLC",H,"Lending Extended Hit",0.098,2436,238.73,LNX_HIT,B2025121600137
+2025,12,13,"Hub LLC",H,"Social Security Express Err",0.2275,104,23.66,SSE_ERR,B2025121600138
+2025,12,13,"Hub LLC",H,"Social Security Express Hit",0.2625,77,20.21,SSE_HIT,B2025121600139
+2025,12,13,"Hub LLC",H,"Social Security Monitor Hit",0.315,164,51.66,SSM_HIT,B2025121600140
+2025,12,13,"Hub LLC",H,"Social Security Monitor Miss",0.276,285,78.66,SSM_MISS,B2025121600141
+2025,12,13,"Hub LLC",H,"Verification Network Hit",0.1,338,33.8,VRN_HIT,B2025121600142
+2025,12,13,"Hub LLC",H,"Verification Total Hit",0.103,504,51.91,VRT_HIT,B2025121600143
+2025,12,14,"Honor LLC",M,"Account Basic Err",0.1284,321,41.22,ACB_ERR,B2025121600144
+2025,12,14,"Honor LLC",M,"Account Basic Hit",0.1272,91,11.58,ACB_HIT,B2025121600145
+2025,12,14,"Honor LLC",H,"Account Standard Miss",0.22,35,7.7,ACS_MISS,B2025121600146
+2025,12,14,"Honor LLC",N,"Bank Basic Err",0.147,2503,367.94,BKB_ERR,B2025121600147
+2025,12,14,"Honor LLC",H,"Financial Lookup Err",0.266,534,142.04,FNL_ERR,B2025121600148
+2025,12,14,"Honor LLC",M,"Financial Lookup Miss",0.3192,244,77.88,FNL_MISS,B2025121600149
+2025,12,14,"Honor LLC",H,"Identity Standard Err",0.392,96,37.63,IDS_ERR,B2025121600150
+2025,12,14,"Honor LLC",H,"Identity Standard Hit",0.308,337,103.8,IDS_HIT,B2025121600151
+2025,12,14,"Honor LLC",H,"Identity Standard Miss",0.399,355,141.65,IDS_MISS,B2025121600152
+2025,12,14,"Honor LLC",H,"Lending Check Miss",0.102,284,28.97,LNK_MISS,B2025121600153
+2025,12,14,"Honor LLC",H,"Lending Extended Miss",0.086,216,18.58,LNX_MISS,B2025121600154
+2025,12,14,"Honor LLC",H,"Social Security Express Hit",0.2525,391,98.73,SSE_HIT,B2025121600155
+2025,12,14,"Honor LLC",H,"Social Security Express Miss",0.2625,409,107.36,SSE_MISS,B2025121600156
+2025,12,14,"Honor LLC",M,"Social Security Monitor Hit",0.336,231,77.62,SSM_HIT,B2025121600157
+2025,12,14,"Honor LLC",M,"Verification Network Hit",0.104,174,18.1,VRN_HIT,B2025121600158
+2025,12,14,"Honor LLC",H,"Verification Network Miss",0.106,144,15.26,VRN_MISS,B2025121600159
+2025,12,14,"Honor LLC",H,"Verification Total Hit",0.092,256,23.55,VRT_HIT,B2025121600160
+2025,12,15,"Hub Holdings",H,"Account Basic Hit",0.1164,490,57.04,ACB_HIT,B2025121600161
+2025,12,15,"Hub Holdings",H,"Account Basic Miss",0.1284,469,60.22,ACB_MISS,B2025121600162
+2025,12,15,"Hub Holdings",H,"Account Standard Hit",0.176,243,42.77,ACS_HIT,B2025121600163
+2025,12,15,"Hub Holdings",E,"Financial Core Miss",0.272,310,84.32,FNC_MISS,B2025121600164
+2025,12,15,"Hub Holdings",M,"Financial Core Null",0.3424,243,83.2,FNC_NULL,B2025121600165
+2025,12,15,"Hub Holdings",H,"Financial Lookup Hit",0.2716,274,74.42,FNL_HIT,B2025121600166
+2025,12,15,"Hub Holdings",H,"Identity Standard Err",0.3535,117,41.36,IDS_ERR,B2025121600167
+2025,12,15,"Hub Holdings",M,"Lending Check Err",0.1,499,49.9,LNK_ERR,B2025121600168
+2025,12,15,"Hub Holdings",H,"Lending Extended Hit",0.11,416,45.76,LNX_HIT,B2025121600169
+2025,12,15,"Hub Holdings",H,"Lending Extended Miss",0.099,348,34.45,LNX_MISS,B2025121600170
+2025,12,15,"Hub Holdings",E,"Social Security Express Hit",0.215,274,58.91,SSE_HIT,B2025121600171
+2025,12,15,"Hub Holdings",N,"Social Security Express Miss",0.275,406,111.65,SSE_MISS,B2025121600172
+2025,12,15,"Hub Holdings",M,"Verification Network Hit",0.094,243,22.84,VRN_HIT,B2025121600173
+2025,12,15,"Hub Holdings",H,"Verification Total Hit",0.106,262,27.77,VRT_HIT,B2025121600174
+2025,12,16,"True Funding",H,"Account Basic Err",0.1068,587,62.69,ACB_ERR,B2025121600175
+2025,12,16,"True Funding",H,"Account Basic Miss",0.1296,300,38.88,ACB_MISS,B2025121600176
+2025,12,16,"True Funding",H,"Account Basic Null",0.1032,345,35.6,ACB_NULL,B2025121600177
+2025,12,16,"True Funding",N,"Account Standard Hit",0.19,4230,803.7,ACS_HIT,B2025121600178
+2025,12,16,"True Funding",H,"Bank Basic Null",0.1575,179,28.19,BKB_NULL,B2025121600179
+2025,12,16,"True Funding",H,"Financial Core Hit",0.3616,472,170.68,FNC_HIT,B2025121600180
+2025,12,16,"True Funding",M,"Financial Core Miss",0.2976,198,58.92,FNC_MISS,B2025121600181
+2025,12,16,"True Funding",H,"Financial Core Null",0.3168,276,87.44,FNC_NULL,B2025121600182
+2025,12,16,"True Funding",M,"Financial Lookup Err",0.322,244,78.57,FNL_ERR,B2025121600183
+2025,12,16,"True Funding",H,"Financial Lookup Miss",0.2688,374,100.53,FNL_MISS,B2025121600184
+2025,12,16,"True Funding",N,"Identity Standard Err",0.343,225,77.18,IDS_ERR,B2025121600185
+2025,12,16,"True Funding",H,"Identity Standard Hit",0.378,297,112.27,IDS_HIT,B2025121600186
+2025,12,16,"True Funding",H,"Lending Check Err",0.1,145,14.5,LNK_ERR,B2025121600187
+2025,12,16,"True Funding",H,"Lending Check Miss",0.095,152,14.44,LNK_MISS,B2025121600188
+2025,12,16,"True Funding",H,"Social Security Express Err",0.2275,603,137.18,SSE_ERR,B2025121600189
+2025,12,16,"True Funding",H,"Social Security Express Hit",0.23,334,76.82,SSE_HIT,B2025121600190
+2025,12,16,"True Funding",H,"Social Security Express Miss",0.235,577,135.6,SSE_MISS,B2025121600191
+2025,12,16,"True Funding",H,"Social Security Monitor Hit",0.258,300,77.4,SSM_HIT,B2025121600192
+2025,12,16,"True Funding",H,"Verification Network Hit",0.091,228,20.75,VRN_HIT,B2025121600193
+2025,12,16,"True Funding",H,"Verification Total Miss",0.098,366,35.87,VRT_MISS,B2025121600194
+2025,12,18,"Pulse Global",H,"Account Basic Err",0.132,355,46.86,ACB_ERR,B2025121600195
+2025,12,18,"Pulse Global",H,"Account Basic Hit",0.1188,479,56.91,ACB_HIT,B2025121600196
+2025,12,18,"Pulse Global",H,"Account Standard Hit",0.182,134,24.39,ACS_HIT,B2025121600197
+2025,12,18,"Pulse Global",H,"Account Standard Miss",0.198,101,20,ACS_MISS,B2025121600198
+2025,12,18,"Pulse Global",H,"Bank Basic Err",0.1635,346,56.57,BKB_ERR,B2025121600199
+2025,12,18,"Pulse Global",H,"Bank Basic Null",0.1335,3649,487.14,BKB_NULL,B2025121600200
+2025,12,18,"Pulse Global",N,"Financial Core Miss",0.2848,123,35.03,FNC_MISS,B2025121600201
+2025,12,18,"Pulse Global",M,"Financial Lookup Hit",0.3192,520,165.98,FNL_HIT,B2025121600202
+2025,12,18,"Pulse Global",H,"Identity Standard Hit",0.35,344,120.4,IDS_HIT,B2025121600203
+2025,12,18,"Pulse Global",M,"Lending Extended Hit",0.099,527,52.17,LNX_HIT,B2025121600204
+2025,12,18,"Pulse Global",H,"Social Security Express Hit",0.215,3048,655.32,SSE_HIT,B2025121600205
+2025,12,18,"Pulse Global",H,"Social Security Monitor Hit",0.285,558,159.03,SSM_HIT,B2025121600206
+2025,12,18,"Pulse Global",H,"Social Security Monitor Miss",0.33,80,26.4,SSM_MISS,B2025121600207
+2025,12,18,"Pulse Global",H,"Verification Network Miss",0.085,241,20.49,VRN_MISS,B2025121600208
+2025,12,18,"Pulse Global",N,"Verification Total Miss",0.085,137,11.65,VRT_MISS,B2025121600209
+2025,12,20,"Red Holdings",H,"Account Basic Err",0.108,334,36.07,ACB_ERR,B2025121600210
+2025,12,20,"Red Holdings",N,"Account Basic Miss",0.1212,288,34.91,ACB_MISS,B2025121600211
+2025,12,20,"Red Holdings",H,"Account Basic Null",0.108,61,6.59,ACB_NULL,B2025121600212
+2025,12,20,"Red Holdings",H,"Account Standard Hit",0.182,83,15.11,ACS_HIT,B2025121600213
+2025,12,20,"Red Holdings",H,"Bank Basic Miss",0.15,82,12.3,BKB_MISS,B2025121600214
+2025,12,20,"Red Holdings",H,"Bank Basic Null",0.1665,69,11.49,BKB_NULL,B2025121600215
+2025,12,20,"Red Holdings",H,"Financial Core Err",0.3648,114,41.59,FNC_ERR,B2025121600216
+2025,12,20,"Red Holdings",H,"Financial Core Miss",0.3648,4789,1747.03,FNC_MISS,B2025121600217
+2025,12,20,"Red Holdings",H,"Financial Lookup Hit",0.3052,287,87.59,FNL_HIT,B2025121600218
+2025,12,20,"Red Holdings",H,"Identity Standard Err",0.378,433,163.67,IDS_ERR,B2025121600219
+2025,12,20,"Red Holdings",H,"Identity Standard Hit",0.322,115,37.03,IDS_HIT,B2025121600220
+2025,12,20,"Red Holdings",M,"Lending Check Miss",0.104,54,5.62,LNK_MISS,B2025121600221
+2025,12,20,"Red Holdings",M,"Lending Extended Hit",0.098,391,38.32,LNX_HIT,B2025121600222
+2025,12,20,"Red Holdings",H,"Social Security Monitor Hit",0.3,2584,775.2,SSM_HIT,B2025121600223
+2025,12,20,"Red Holdings",H,"Verification Total Hit",0.115,242,27.83,VRT_HIT,B2025121600224
+2025,12,20,"Red Holdings",H,"Verification Total Miss",0.097,246,23.86,VRT_MISS,B2025121600225
+2025,12,21,"Ivy Lending",M,"Bank Basic Err",0.165,574,94.71,BKB_ERR,B2025121600226
+2025,12,21,"Ivy Lending",H,"Bank Basic Hit",0.144,154,22.18,BKB_HIT,B2025121600227
+2025,12,21,"Ivy Lending",H,"Financial Core Hit",0.3232,116,37.49,FNC_HIT,B2025121600228
+2025,12,21,"Ivy Lending",H,"Financial Core Null",0.2912,375,109.2,FNC_NULL,B2025121600229
+2025,12,21,"Ivy Lending",H,"Financial Lookup Hit",0.2548,189,48.16,FNL_HIT,B2025121600230
+2025,12,21,"Ivy Lending",H,"Financial Lookup Miss",0.2408,4551,1095.88,FNL_MISS,B2025121600231
+2025,12,21,"Ivy Lending",M,"Identity Standard Err",0.3955,2983,1179.78,IDS_ERR,B2025121600232
+2025,12,21,"Ivy Lending",H,"Social Security Express Err",0.2325,421,97.88,SSE_ERR,B2025121600233
+2025,12,21,"Ivy Lending",M,"Social Security Express Miss",0.2775,394,109.34,SSE_MISS,B2025121600234
+2025,12,21,"Ivy Lending",H,"Verification Network Hit",0.087,189,16.44,VRN_HIT,B2025121600235
+2025,12,21,"Ivy Lending",H,"Verification Network Miss",0.096,279,26.78,VRN_MISS,B2025121600236
+2025,12,21,"Ivy Lending",H,"Verification Total Hit",0.094,207,19.46,VRT_HIT,B2025121600237
+2025,12,21,"Ivy Lending",H,"Verification Total Miss",0.086,61,5.25,VRT_MISS,B2025121600238
+2025,12,22,"Sequoia United",H,"Account Basic Err",0.108,183,19.76,ACB_ERR,B2025121600239
+2025,12,22,"Sequoia United",E,"Account Standard Hit",0.228,3557,811,ACS_HIT,B2025121600240
+2025,12,22,"Sequoia United",H,"Bank Basic Err",0.135,143,19.31,BKB_ERR,B2025121600241
+2025,12,22,"Sequoia United",H,"Financial Lookup Miss",0.2576,3886,1001.03,FNL_MISS,B2025121600242
+2025,12,22,"Sequoia United",H,"Identity Standard Miss",0.3325,540,179.55,IDS_MISS,B2025121600243
+2025,12,22,"Sequoia United",H,"Lending Check Err",0.093,123,11.44,LNK_ERR,B2025121600244
+2025,12,22,"Sequoia United",N,"Lending Check Miss",0.115,464,53.36,LNK_MISS,B2025121600245
+2025,12,22,"Sequoia United",M,"Social Security Express Hit",0.28,53,14.84,SSE_HIT,B2025121600246
+2025,12,22,"Sequoia United",M,"Social Security Express Miss",0.27,214,57.78,SSE_MISS,B2025121600247
+2025,12,22,"Sequoia United",M,"Social Security Monitor Hit",0.291,119,34.63,SSM_HIT,B2025121600248
+2025,12,22,"Sequoia United",M,"Social Security Monitor Miss",0.345,55,18.98,SSM_MISS,B2025121600249
+2025,12,22,"Sequoia United",H,"Verification Network Hit",0.111,2457,272.73,VRN_HIT,B2025121600250
+2025,12,22,"Sequoia United",H,"Verification Total Hit",0.112,432,48.38,VRT_HIT,B2025121600251
+2025,12,22,"Sequoia United",H,"Verification Total Miss",0.111,277,30.75,VRT_MISS,B2025121600252
+2025,12,23,"Yellow Pro",H,"Account Basic Hit",0.1284,234,30.05,ACB_HIT,B2025121600253
+2025,12,23,"Yellow Pro",H,"Bank Basic Err",0.153,368,56.3,BKB_ERR,B2025121600254
+2025,12,23,"Yellow Pro",M,"Bank Basic Miss",0.1275,322,41.06,BKB_MISS,B2025121600255
+2025,12,23,"Yellow Pro",H,"Financial Core Err",0.336,273,91.73,FNC_ERR,B2025121600256
+2025,12,23,"Yellow Pro",M,"Financial Core Hit",0.3456,287,99.19,FNC_HIT,B2025121600257
+2025,12,23,"Yellow Pro",H,"Financial Core Miss",0.2976,2628,782.09,FNC_MISS,B2025121600258
+2025,12,23,"Yellow Pro",M,"Financial Lookup Hit",0.2688,557,149.72,FNL_HIT,B2025121600259
+2025,12,23,"Yellow Pro",H,"Financial Lookup Miss",0.266,424,112.78,FNL_MISS,B2025121600260
+2025,12,23,"Yellow Pro",H,"Identity Standard Hit",0.4025,339,136.45,IDS_HIT,B2025121600261
+2025,12,23,"Yellow Pro",N,"Identity Standard Miss",0.336,479,160.94,IDS_MISS,B2025121600262
+2025,12,23,"Yellow Pro",H,"Lending Check Err",0.088,145,12.76,LNK_ERR,B2025121600263
+2025,12,23,"Yellow Pro",M,"Lending Check Miss",0.097,413,40.06,LNK_MISS,B2025121600264
+2025,12,23,"Yellow Pro",H,"Lending Extended Hit",0.095,3308,314.26,LNX_HIT,B2025121600265
+2025,12,23,"Yellow Pro",H,"Lending Extended Miss",0.097,348,33.76,LNX_MISS,B2025121600266
+2025,12,23,"Yellow Pro",H,"Social Security Express Err",0.2575,314,80.86,SSE_ERR,B2025121600267
+2025,12,23,"Yellow Pro",H,"Social Security Express Hit",0.2175,318,69.17,SSE_HIT,B2025121600268
+2025,12,23,"Yellow Pro",H,"Social Security Monitor Miss",0.309,120,37.08,SSM_MISS,B2025121600269
+2025,12,23,"Yellow Pro",H,"Verification Network Hit",0.094,623,58.56,VRN_HIT,B2025121600270
+2025,12,23,"Yellow Pro",H,"Verification Total Hit",0.099,196,19.4,VRT_HIT,B2025121600271
+2025,12,24,"Midwest Express",H,"Account Basic Err",0.1104,490,54.1,ACB_ERR,B2025121600272
+2025,12,24,"Midwest Express",H,"Account Basic Miss",0.1116,257,28.68,ACB_MISS,B2025121600273
+2025,12,24,"Midwest Express",M,"Bank Basic Hit",0.1305,232,30.28,BKB_HIT,B2025121600274
+2025,12,24,"Midwest Express",H,"Bank Basic Null",0.171,511,87.38,BKB_NULL,B2025121600275
+2025,12,24,"Midwest Express",M,"Financial Core Err",0.272,215,58.48,FNC_ERR,B2025121600276
+2025,12,24,"Midwest Express",H,"Financial Core Hit",0.3008,592,178.07,FNC_HIT,B2025121600277
+2025,12,24,"Midwest Express",N,"Financial Core Miss",0.3328,200,66.56,FNC_MISS,B2025121600278
+2025,12,24,"Midwest Express",N,"Financial Lookup Miss",0.238,237,56.41,FNL_MISS,B2025121600279
+2025,12,24,"Midwest Express",M,"Identity Standard Err",0.3675,290,106.58,IDS_ERR,B2025121600280
+2025,12,24,"Midwest Express",H,"Identity Standard Hit",0.3115,245,76.32,IDS_HIT,B2025121600281
+2025,12,24,"Midwest Express",H,"Identity Standard Miss",0.378,99,37.42,IDS_MISS,B2025121600282
+2025,12,24,"Midwest Express",E,"Lending Extended Hit",0.102,230,23.46,LNX_HIT,B2025121600283
+2025,12,24,"Midwest Express",M,"Lending Extended Miss",0.092,245,22.54,LNX_MISS,B2025121600284
+2025,12,24,"Midwest Express",E,"Social Security Express Err",0.24,401,96.24,SSE_ERR,B2025121600285
+2025,12,24,"Midwest Express",H,"Social Security Express Hit",0.285,236,67.26,SSE_HIT,B2025121600286
+2025,12,24,"Midwest Express",H,"Social Security Monitor Miss",0.288,208,59.9,SSM_MISS,B2025121600287
+2025,12,24,"Midwest Express",H,"Verification Total Miss",0.094,409,38.45,VRT_MISS,B2025121600288
+2025,12,25,"Wise Corp",H,"Account Basic Err",0.1092,422,46.08,ACB_ERR,B2025121600289
+2025,12,25,"Wise Corp",H,"Bank Basic Hit",0.153,305,46.67,BKB_HIT,B2025121600290
+2025,12,25,"Wise Corp",H,"Financial Core Err",0.3424,557,190.72,FNC_ERR,B2025121600291
+2025,12,25,"Wise Corp",H,"Financial Lookup Hit",0.238,293,69.73,FNL_HIT,B2025121600292
+2025,12,25,"Wise Corp",H,"Financial Lookup Miss",0.3052,120,36.62,FNL_MISS,B2025121600293
+2025,12,25,"Wise Corp",H,"Lending Check Miss",0.093,312,29.02,LNK_MISS,B2025121600294
+2025,12,25,"Wise Corp",H,"Lending Extended Hit",0.096,282,27.07,LNX_HIT,B2025121600295
+2025,12,25,"Wise Corp",H,"Lending Extended Miss",0.085,540,45.9,LNX_MISS,B2025121600296
+2025,12,25,"Wise Corp",H,"Social Security Express Miss",0.2475,346,85.64,SSE_MISS,B2025121600297
+2025,12,25,"Wise Corp",N,"Social Security Monitor Miss",0.279,166,46.31,SSM_MISS,B2025121600298
+2025,12,25,"Wise Corp",H,"Verification Network Hit",0.088,2610,229.68,VRN_HIT,B2025121600299
+2025,12,25,"Wise Corp",N,"Verification Network Miss",0.115,216,24.84,VRN_MISS,B2025121600300
+2025,12,25,"Wise Corp",N,"Verification Total Miss",0.11,5231,575.41,VRT_MISS,B2025121600301
+2025,12,26,"Crown International",H,"Account Basic Err",0.138,45,6.21,ACB_ERR,B2025121600302
+2025,12,26,"Crown International",E,"Account Basic Hit",0.1188,97,11.52,ACB_HIT,B2025121600303
+2025,12,26,"Crown International",H,"Account Basic Null",0.1296,327,42.38,ACB_NULL,B2025121600304
+2025,12,26,"Crown International",H,"Account Standard Hit",0.194,379,73.53,ACS_HIT,B2025121600305
+2025,12,26,"Crown International",H,"Account Standard Miss",0.17,246,41.82,ACS_MISS,B2025121600306
+2025,12,26,"Crown International",H,"Bank Basic Err",0.1575,153,24.1,BKB_ERR,B2025121600307
+2025,12,26,"Crown International",H,"Bank Basic Hit",0.1605,53,8.51,BKB_HIT,B2025121600308
+2025,12,26,"Crown International",H,"Bank Basic Miss",0.1275,222,28.31,BKB_MISS,B2025121600309
+2025,12,26,"Crown International",H,"Financial Core Err",0.3328,567,188.7,FNC_ERR,B2025121600310
+2025,12,26,"Crown International",H,"Financial Core Hit",0.2912,214,62.32,FNC_HIT,B2025121600311
+2025,12,26,"Crown International",H,"Identity Standard Hit",0.315,300,94.5,IDS_HIT,B2025121600312
+2025,12,26,"Crown International",H,"Identity Standard Miss",0.3045,438,133.37,IDS_MISS,B2025121600313
+2025,12,26,"Crown International",H,"Lending Check Miss",0.113,346,39.1,LNK_MISS,B2025121600314
+2025,12,26,"Crown International",H,"Verification Total Miss",0.104,88,9.15,VRT_MISS,B2025121600315
+2025,12,28,"Latitude Consulting",H,"Account Basic Err",0.1104,276,30.47,ACB_ERR,B2025121600316
+2025,12,28,"Latitude Consulting",H,"Bank Basic Hit",0.1725,64,11.04,BKB_HIT,B2025121600317
+2025,12,28,"Latitude Consulting",H,"Financial Core Err",0.2848,468,133.29,FNC_ERR,B2025121600318
+2025,12,28,"Latitude Consulting",H,"Financial Core Hit",0.3584,483,173.11,FNC_HIT,B2025121600319
+2025,12,28,"Latitude Consulting",H,"Financial Core Null",0.272,130,35.36,FNC_NULL,B2025121600320
+2025,12,28,"Latitude Consulting",M,"Identity Standard Err",0.3325,451,149.96,IDS_ERR,B2025121600321
+2025,12,28,"Latitude Consulting",M,"Identity Standard Hit",0.3675,274,100.7,IDS_HIT,B2025121600322
+2025,12,28,"Latitude Consulting",H,"Identity Standard Miss",0.308,117,36.04,IDS_MISS,B2025121600323
+2025,12,28,"Latitude Consulting",H,"Lending Extended Miss",0.113,464,52.43,LNX_MISS,B2025121600324
+2025,12,28,"Latitude Consulting",H,"Social Security Express Err",0.2875,478,137.43,SSE_ERR,B2025121600325
+2025,12,28,"Latitude Consulting",H,"Social Security Express Miss",0.2425,177,42.92,SSE_MISS,B2025121600326
+2025,12,28,"Latitude Consulting",H,"Verification Network Miss",0.086,225,19.35,VRN_MISS,B2025121600327
+2025,12,29,"Journey Credit",H,"Account Basic Err",0.1272,188,23.91,ACB_ERR,B2025121600328
+2025,12,29,"Journey Credit",H,"Bank Basic Err",0.1545,486,75.09,BKB_ERR,B2025121600329
+2025,12,29,"Journey Credit",N,"Bank Basic Hit",0.144,471,67.82,BKB_HIT,B2025121600330
+2025,12,29,"Journey Credit",H,"Bank Basic Miss",0.1455,371,53.98,BKB_MISS,B2025121600331
+2025,12,29,"Journey Credit",N,"Financial Core Miss",0.3136,410,128.58,FNC_MISS,B2025121600332
+2025,12,29,"Journey Credit",H,"Financial Core Null",0.3424,556,190.37,FNC_NULL,B2025121600333
+2025,12,29,"Journey Credit",H,"Financial Lookup Miss",0.3108,171,53.15,FNL_MISS,B2025121600334
+2025,12,29,"Journey Credit",H,"Identity Standard Hit",0.357,158,56.41,IDS_HIT,B2025121600335
+2025,12,29,"Journey Credit",H,"Lending Check Miss",0.101,155,15.66,LNK_MISS,B2025121600336
+2025,12,29,"Journey Credit",M,"Lending Extended Hit",0.109,1524,166.12,LNX_HIT,B2025121600337
+2025,12,29,"Journey Credit",H,"Lending Extended Miss",0.091,116,10.56,LNX_MISS,B2025121600338
+2025,12,29,"Journey Credit",M,"Social Security Express Miss",0.24,299,71.76,SSE_MISS,B2025121600339
+2025,12,29,"Journey Credit",H,"Social Security Monitor Miss",0.267,97,25.9,SSM_MISS,B2025121600340
+2025,12,29,"Journey Credit",M,"Verification Network Hit",0.112,355,39.76,VRN_HIT,B2025121600341
+2025,12,29,"Journey Credit",H,"Verification Network Miss",0.112,357,39.98,VRN_MISS,B2025121600342
+2025,12,30,"Rocky Pro",H,"Bank Basic Err",0.1695,107,18.14,BKB_ERR,B2025121600343
+2025,12,30,"Rocky Pro",H,"Bank Basic Hit",0.1275,212,27.03,BKB_HIT,B2025121600344
+2025,12,30,"Rocky Pro",H,"Bank Basic Miss",0.159,246,39.11,BKB_MISS,B2025121600345
+2025,12,30,"Rocky Pro",H,"Financial Core Null",0.288,374,107.71,FNC_NULL,B2025121600346
+2025,12,30,"Rocky Pro",H,"Financial Lookup Hit",0.322,68,21.9,FNL_HIT,B2025121600347
+2025,12,30,"Rocky Pro",H,"Identity Standard Miss",0.3885,64,24.86,IDS_MISS,B2025121600348
+2025,12,30,"Rocky Pro",H,"Lending Extended Hit",0.099,528,52.27,LNX_HIT,B2025121600349
+2025,12,30,"Rocky Pro",H,"Social Security Express Hit",0.23,78,17.94,SSE_HIT,B2025121600350
+2025,12,30,"Rocky Pro",M,"Social Security Express Miss",0.2325,289,67.19,SSE_MISS,B2025121600351
+2025,12,30,"Rocky Pro",E,"Social Security Monitor Hit",0.27,334,90.18,SSM_HIT,B2025121600352
+2025,12,30,"Rocky Pro",M,"Verification Network Hit",0.093,248,23.06,VRN_HIT,B2025121600353
+2025,12,30,"Rocky Pro",H,"Verification Network Miss",0.11,310,34.1,VRN_MISS,B2025121600354
+2025,12,31,"Next Partners",M,"Account Basic Err",0.126,231,29.11,ACB_ERR,B2025121600355
+2025,12,31,"Next Partners",H,"Account Basic Miss",0.1032,250,25.8,ACB_MISS,B2025121600356
+2025,12,31,"Next Partners",H,"Account Basic Null",0.1272,298,37.91,ACB_NULL,B2025121600357
+2025,12,31,"Next Partners",M,"Account Standard Miss",0.218,119,25.94,ACS_MISS,B2025121600358
+2025,12,31,"Next Partners",H,"Bank Basic Null",0.1455,321,46.71,BKB_NULL,B2025121600359
+2025,12,31,"Next Partners",M,"Financial Core Null",0.368,519,190.99,FNC_NULL,B2025121600360
+2025,12,31,"Next Partners",N,"Financial Lookup Err",0.2492,601,149.77,FNL_ERR,B2025121600361
+2025,12,31,"Next Partners",H,"Financial Lookup Hit",0.3164,312,98.72,FNL_HIT,B2025121600362
+2025,12,31,"Next Partners",N,"Identity Standard Miss",0.371,480,178.08,IDS_MISS,B2025121600363
+2025,12,31,"Next Partners",H,"Lending Check Err",0.115,80,9.2,LNK_ERR,B2025121600364
+2025,12,31,"Next Partners",M,"Lending Extended Hit",0.094,390,36.66,LNX_HIT,B2025121600365
+2025,12,31,"Next Partners",H,"Social Security Express Err",0.23,253,58.19,SSE_ERR,B2025121600366
+2025,12,31,"Next Partners",M,"Social Security Monitor Hit",0.255,533,135.92,SSM_HIT,B2025121600367
+2025,12,32,"Signal Online",H,"Account Basic Hit",0.1212,307,37.21,ACB_HIT,B2025121600368
+2025,12,32,"Signal Online",H,"Account Basic Miss",0.1236,317,39.18,ACB_MISS,B2025121600369
+2025,12,32,"Signal Online",H,"Account Basic Null",0.1176,96,11.29,ACB_NULL,B2025121600370
+2025,12,32,"Signal Online",H,"Bank Basic Null",0.162,114,18.47,BKB_NULL,B2025121600371
+2025,12,32,"Signal Online",H,"Financial Core Hit",0.3264,68,22.2,FNC_HIT,B2025121600372
+2025,12,32,"Signal Online",H,"Financial Core Miss",0.3168,82,25.98,FNC_MISS,B2025121600373
+2025,12,32,"Signal Online",H,"Financial Lookup Hit",0.2856,88,25.13,FNL_HIT,B2025121600374
+2025,12,32,"Signal Online",M,"Identity Standard Hit",0.385,54,20.79,IDS_HIT,B2025121600375
+2025,12,32,"Signal Online",E,"Identity Standard Miss",0.308,333,102.56,IDS_MISS,B2025121600376
+2025,12,32,"Signal Online",H,"Lending Check Miss",0.107,2000,214,LNK_MISS,B2025121600377
+2025,12,32,"Signal Online",H,"Lending Extended Hit",0.106,264,27.98,LNX_HIT,B2025121600378
+2025,12,32,"Signal Online",H,"Lending Extended Miss",0.109,124,13.52,LNX_MISS,B2025121600379
+2025,12,32,"Signal Online",H,"Social Security Monitor Hit",0.309,274,84.67,SSM_HIT,B2025121600380
+2025,12,32,"Signal Online",H,"Social Security Monitor Miss",0.297,1108,329.08,SSM_MISS,B2025121600381
+2025,12,32,"Signal Online",H,"Verification Network Hit",0.101,154,15.55,VRN_HIT,B2025121600382
+2025,12,32,"Signal Online",M,"Verification Network Miss",0.089,445,39.61,VRN_MISS,B2025121600383
+2025,12,32,"Signal Online",M,"Verification Total Hit",0.108,335,36.18,VRT_HIT,B2025121600384
+2025,12,33,"Timber Regional",H,"Account Basic Err",0.1296,2956,383.1,ACB_ERR,B2025121600385
+2025,12,33,"Timber Regional",M,"Account Basic Null",0.1044,551,57.52,ACB_NULL,B2025121600386
+2025,12,33,"Timber Regional",H,"Account Standard Hit",0.198,378,74.84,ACS_HIT,B2025121600387
+2025,12,33,"Timber Regional",H,"Bank Basic Null",0.171,986,168.61,BKB_NULL,B2025121600388
+2025,12,33,"Timber Regional",M,"Financial Core Hit",0.368,384,141.31,FNC_HIT,B2025121600389
+2025,12,33,"Timber Regional",H,"Financial Core Null",0.2784,85,23.66,FNC_NULL,B2025121600390
+2025,12,33,"Timber Regional",H,"Financial Lookup Miss",0.2688,198,53.22,FNL_MISS,B2025121600391
+2025,12,33,"Timber Regional",H,"Identity Standard Err",0.329,327,107.58,IDS_ERR,B2025121600392
+2025,12,33,"Timber Regional",H,"Identity Standard Hit",0.3675,322,118.34,IDS_HIT,B2025121600393
+2025,12,33,"Timber Regional",M,"Identity Standard Miss",0.3465,374,129.59,IDS_MISS,B2025121600394
+2025,12,33,"Timber Regional",H,"Lending Extended Hit",0.114,484,55.18,LNX_HIT,B2025121600395
+2025,12,33,"Timber Regional",H,"Lending Extended Miss",0.096,306,29.38,LNX_MISS,B2025121600396
+2025,12,33,"Timber Regional",H,"Social Security Express Err",0.28,483,135.24,SSE_ERR,B2025121600397
+2025,12,33,"Timber Regional",E,"Social Security Express Hit",0.2625,352,92.4,SSE_HIT,B2025121600398
+2025,12,33,"Timber Regional",H,"Verification Network Miss",0.088,306,26.93,VRN_MISS,B2025121600399
+2025,12,33,"Timber Regional",M,"Verification Total Hit",0.11,319,35.09,VRT_HIT,B2025121600400
+2025,12,33,"Timber Regional",H,"Verification Total Miss",0.112,70,7.84,VRT_MISS,B2025121600401
+2025,12,35,"Solid Financial",H,"Account Basic Hit",0.12,141,16.92,ACB_HIT,B2025121600402
+2025,12,35,"Solid Financial",H,"Account Basic Miss",0.1068,413,44.11,ACB_MISS,B2025121600403
+2025,12,35,"Solid Financial",H,"Account Basic Null",0.132,143,18.88,ACB_NULL,B2025121600404
+2025,12,35,"Solid Financial",H,"Account Standard Miss",0.198,393,77.81,ACS_MISS,B2025121600405
+2025,12,35,"Solid Financial",H,"Financial Core Err",0.2752,1157,318.41,FNC_ERR,B2025121600406
+2025,12,35,"Solid Financial",H,"Financial Core Miss",0.3616,355,128.37,FNC_MISS,B2025121600407
+2025,12,35,"Solid Financial",H,"Financial Core Null",0.336,98,32.93,FNC_NULL,B2025121600408
+2025,12,35,"Solid Financial",H,"Financial Lookup Err",0.2968,405,120.2,FNL_ERR,B2025121600409
+2025,12,35,"Solid Financial",H,"Financial Lookup Miss",0.266,2397,637.6,FNL_MISS,B2025121600410
+2025,12,35,"Solid Financial",H,"Identity Standard Miss",0.3185,145,46.18,IDS_MISS,B2025121600411
+2025,12,35,"Solid Financial",H,"Lending Check Err",0.114,451,51.41,LNK_ERR,B2025121600412
+2025,12,35,"Solid Financial",H,"Lending Check Miss",0.093,399,37.11,LNK_MISS,B2025121600413
+2025,12,35,"Solid Financial",M,"Social Security Express Err",0.2575,1071,275.78,SSE_ERR,B2025121600414
+2025,12,35,"Solid Financial",H,"Social Security Express Hit",0.245,76,18.62,SSE_HIT,B2025121600415
+2025,12,35,"Solid Financial",M,"Social Security Monitor Miss",0.273,328,89.54,SSM_MISS,B2025121600416
+2025,12,35,"Solid Financial",H,"Verification Network Hit",0.115,217,24.96,VRN_HIT,B2025121600417
+2025,12,35,"Solid Financial",H,"Verification Network Miss",0.096,272,26.11,VRN_MISS,B2025121600418
+2025,12,35,"Solid Financial",H,"Verification Total Hit",0.107,265,28.36,VRT_HIT,B2025121600419
+2025,12,35,"Solid Financial",M,"Verification Total Miss",0.107,76,8.13,VRT_MISS,B2025121600420
+2025,12,36,"South Express",H,"Account Basic Miss",0.1128,260,29.33,ACB_MISS,B2025121600421
+2025,12,36,"South Express",H,"Account Standard Miss",0.22,286,62.92,ACS_MISS,B2025121600422
+2025,12,36,"South Express",M,"Bank Basic Err",0.168,149,25.03,BKB_ERR,B2025121600423
+2025,12,36,"South Express",H,"Bank Basic Hit",0.147,209,30.72,BKB_HIT,B2025121600424
+2025,12,36,"South Express",M,"Bank Basic Null",0.129,211,27.22,BKB_NULL,B2025121600425
+2025,12,36,"South Express",H,"Financial Core Hit",0.272,596,162.11,FNC_HIT,B2025121600426
+2025,12,36,"South Express",M,"Financial Core Miss",0.3552,197,69.97,FNC_MISS,B2025121600427
+2025,12,36,"South Express",H,"Financial Lookup Miss",0.3136,398,124.81,FNL_MISS,B2025121600428
+2025,12,36,"South Express",M,"Identity Standard Err",0.3255,325,105.79,IDS_ERR,B2025121600429
+2025,12,36,"South Express",H,"Lending Check Err",0.094,468,43.99,LNK_ERR,B2025121600430
+2025,12,36,"South Express",E,"Social Security Express Miss",0.24,294,70.56,SSE_MISS,B2025121600431
+2025,12,36,"South Express",H,"Social Security Monitor Hit",0.321,146,46.87,SSM_HIT,B2025121600432
+2025,12,36,"South Express",H,"Social Security Monitor Miss",0.324,282,91.37,SSM_MISS,B2025121600433
+2025,12,36,"South Express",H,"Verification Network Hit",0.097,71,6.89,VRN_HIT,B2025121600434
+2025,12,36,"South Express",H,"Verification Total Miss",0.089,130,11.57,VRT_MISS,B2025121600435
+2025,12,37,"Red Finance",H,"Account Basic Err",0.1272,181,23.02,ACB_ERR,B2025121600436
+2025,12,37,"Red Finance",H,"Account Basic Null",0.1236,538,66.5,ACB_NULL,B2025121600437
+2025,12,37,"Red Finance",M,"Account Standard Hit",0.178,518,92.2,ACS_HIT,B2025121600438
+2025,12,37,"Red Finance",H,"Bank Basic Err",0.15,176,26.4,BKB_ERR,B2025121600439
+2025,12,37,"Red Finance",H,"Bank Basic Miss",0.1665,374,62.27,BKB_MISS,B2025121600440
+2025,12,37,"Red Finance",H,"Financial Core Err",0.2816,286,80.54,FNC_ERR,B2025121600441
+2025,12,37,"Red Finance",H,"Financial Core Hit",0.272,114,31.01,FNC_HIT,B2025121600442
+2025,12,37,"Red Finance",N,"Financial Core Miss",0.3424,180,61.63,FNC_MISS,B2025121600443
+2025,12,37,"Red Finance",H,"Financial Lookup Hit",0.3024,4062,1228.35,FNL_HIT,B2025121600444
+2025,12,37,"Red Finance",M,"Financial Lookup Miss",0.2492,379,94.45,FNL_MISS,B2025121600445
+2025,12,37,"Red Finance",N,"Identity Standard Hit",0.3605,104,37.49,IDS_HIT,B2025121600446
+2025,12,37,"Red Finance",H,"Lending Check Err",0.102,417,42.53,LNK_ERR,B2025121600447
+2025,12,37,"Red Finance",H,"Social Security Monitor Hit",0.255,179,45.65,SSM_HIT,B2025121600448
+2025,12,37,"Red Finance",H,"Social Security Monitor Miss",0.339,143,48.48,SSM_MISS,B2025121600449
+2025,12,37,"Red Finance",E,"Verification Network Hit",0.108,143,15.44,VRN_HIT,B2025121600450
+2025,12,37,"Red Finance",H,"Verification Network Miss",0.092,1089,100.19,VRN_MISS,B2025121600451
+2025,12,37,"Red Finance",H,"Verification Total Miss",0.089,424,37.74,VRT_MISS,B2025121600452
+2025,12,38,"Universal Securities",H,"Account Basic Err",0.1116,231,25.78,ACB_ERR,B2025121600453
+2025,12,38,"Universal Securities",M,"Account Standard Hit",0.174,326,56.72,ACS_HIT,B2025121600454
+2025,12,38,"Universal Securities",H,"Account Standard Miss",0.194,318,61.69,ACS_MISS,B2025121600455
+2025,12,38,"Universal Securities",H,"Bank Basic Err",0.1485,2046,303.83,BKB_ERR,B2025121600456
+2025,12,38,"Universal Securities",H,"Financial Core Err",0.3456,220,76.03,FNC_ERR,B2025121600457
+2025,12,38,"Universal Securities",M,"Financial Core Hit",0.336,226,75.94,FNC_HIT,B2025121600458
+2025,12,38,"Universal Securities",H,"Financial Core Miss",0.3424,351,120.18,FNC_MISS,B2025121600459
+2025,12,38,"Universal Securities",M,"Financial Lookup Err",0.2856,287,81.97,FNL_ERR,B2025121600460
+2025,12,38,"Universal Securities",H,"Financial Lookup Miss",0.3192,337,107.57,FNL_MISS,B2025121600461
+2025,12,38,"Universal Securities",E,"Identity Standard Miss",0.3745,441,165.15,IDS_MISS,B2025121600462
+2025,12,38,"Universal Securities",H,"Lending Check Err",0.1,281,28.1,LNK_ERR,B2025121600463
+2025,12,38,"Universal Securities",H,"Lending Extended Miss",0.091,119,10.83,LNX_MISS,B2025121600464
+2025,12,38,"Universal Securities",M,"Social Security Express Hit",0.2725,123,33.52,SSE_HIT,B2025121600465
+2025,12,38,"Universal Securities",M,"Social Security Express Miss",0.2875,356,102.35,SSE_MISS,B2025121600466
+2025,12,38,"Universal Securities",H,"Social Security Monitor Miss",0.321,228,73.19,SSM_MISS,B2025121600467
+2025,12,38,"Universal Securities",M,"Verification Network Hit",0.096,176,16.9,VRN_HIT,B2025121600468
+2025,12,38,"Universal Securities",H,"Verification Network Miss",0.099,169,16.73,VRN_MISS,B2025121600469
+2025,12,38,"Universal Securities",H,"Verification Total Hit",0.086,350,30.1,VRT_HIT,B2025121600470
+2025,12,39,"Open Savings",H,"Account Basic Miss",0.1344,534,71.77,ACB_MISS,B2025121600471
+2025,12,39,"Open Savings",H,"Account Basic Null",0.1176,355,41.75,ACB_NULL,B2025121600472
+2025,12,39,"Open Savings",H,"Account Standard Hit",0.17,117,19.89,ACS_HIT,B2025121600473
+2025,12,39,"Open Savings",M,"Account Standard Miss",0.192,77,14.78,ACS_MISS,B2025121600474
+2025,12,39,"Open Savings",H,"Bank Basic Err",0.1275,2536,323.34,BKB_ERR,B2025121600475
+2025,12,39,"Open Savings",H,"Bank Basic Hit",0.138,236,32.57,BKB_HIT,B2025121600476
+2025,12,39,"Open Savings",H,"Bank Basic Miss",0.1635,60,9.81,BKB_MISS,B2025121600477
+2025,12,39,"Open Savings",H,"Financial Core Hit",0.2752,106,29.17,FNC_HIT,B2025121600478
+2025,12,39,"Open Savings",M,"Financial Core Null",0.2816,387,108.98,FNC_NULL,B2025121600479
+2025,12,39,"Open Savings",H,"Financial Lookup Err",0.3136,40,12.54,FNL_ERR,B2025121600480
+2025,12,39,"Open Savings",N,"Identity Standard Err",0.3535,420,148.47,IDS_ERR,B2025121600481
+2025,12,39,"Open Savings",H,"Lending Extended Miss",0.101,283,28.58,LNX_MISS,B2025121600482
+2025,12,39,"Open Savings",E,"Social Security Express Hit",0.2125,452,96.05,SSE_HIT,B2025121600483
+2025,12,39,"Open Savings",H,"Social Security Express Miss",0.24,274,65.76,SSE_MISS,B2025121600484
+2025,12,39,"Open Savings",H,"Social Security Monitor Hit",0.267,319,85.17,SSM_HIT,B2025121600485
+2025,12,39,"Open Savings",H,"Social Security Monitor Miss",0.291,523,152.19,SSM_MISS,B2025121600486
+2025,12,39,"Open Savings",M,"Verification Network Miss",0.111,358,39.74,VRN_MISS,B2025121600487
+2025,12,39,"Open Savings",M,"Verification Total Hit",0.102,249,25.4,VRT_HIT,B2025121600488
+2025,12,39,"Open Savings",H,"Verification Total Miss",0.095,184,17.48,VRT_MISS,B2025121600489
+2025,12,40,"Steel Advisors",H,"Account Basic Err",0.12,403,48.36,ACB_ERR,B2025121600490
+2025,12,40,"Steel Advisors",H,"Account Basic Hit",0.138,424,58.51,ACB_HIT,B2025121600491
+2025,12,40,"Steel Advisors",H,"Account Basic Miss",0.1356,102,13.83,ACB_MISS,B2025121600492
+2025,12,40,"Steel Advisors",H,"Account Standard Miss",0.226,101,22.83,ACS_MISS,B2025121600493
+2025,12,40,"Steel Advisors",H,"Bank Basic Err",0.135,1954,263.79,BKB_ERR,B2025121600494
+2025,12,40,"Steel Advisors",M,"Financial Lookup Err",0.3192,195,62.24,FNL_ERR,B2025121600495
+2025,12,40,"Steel Advisors",M,"Financial Lookup Hit",0.2856,363,103.67,FNL_HIT,B2025121600496
+2025,12,40,"Steel Advisors",H,"Lending Check Miss",0.105,145,15.23,LNK_MISS,B2025121600497
+2025,12,40,"Steel Advisors",H,"Social Security Monitor Hit",0.33,410,135.3,SSM_HIT,B2025121600498
+2025,12,40,"Steel Advisors",H,"Social Security Monitor Miss",0.333,591,196.8,SSM_MISS,B2025121600499
+2025,12,40,"Steel Advisors",E,"Verification Total Hit",0.107,202,21.61,VRT_HIT,B2025121600500
+2025,12,40,"Steel Advisors",E,"Verification Total Miss",0.105,399,41.9,VRT_MISS,B2025121600501
+2025,12,41,"Vivid Direct",M,"Account Basic Null",0.1152,414,47.69,ACB_NULL,B2025121600502
+2025,12,41,"Vivid Direct",H,"Account Standard Hit",0.226,2782,628.73,ACS_HIT,B2025121600503
+2025,12,41,"Vivid Direct",E,"Bank Basic Err",0.1545,428,66.13,BKB_ERR,B2025121600504
+2025,12,41,"Vivid Direct",H,"Bank Basic Miss",0.1575,312,49.14,BKB_MISS,B2025121600505
+2025,12,41,"Vivid Direct",M,"Financial Core Hit",0.272,393,106.9,FNC_HIT,B2025121600506
+2025,12,41,"Vivid Direct",H,"Financial Lookup Err",0.2464,450,110.88,FNL_ERR,B2025121600507
+2025,12,41,"Vivid Direct",H,"Financial Lookup Miss",0.3136,323,101.29,FNL_MISS,B2025121600508
+2025,12,41,"Vivid Direct",H,"Identity Standard Err",0.364,417,151.79,IDS_ERR,B2025121600509
+2025,12,41,"Vivid Direct",H,"Identity Standard Hit",0.301,229,68.93,IDS_HIT,B2025121600510
+2025,12,41,"Vivid Direct",H,"Identity Standard Miss",0.35,212,74.2,IDS_MISS,B2025121600511
+2025,12,41,"Vivid Direct",M,"Lending Check Miss",0.089,161,14.33,LNK_MISS,B2025121600512
+2025,12,41,"Vivid Direct",H,"Lending Extended Hit",0.101,258,26.06,LNX_HIT,B2025121600513
+2025,12,41,"Vivid Direct",H,"Lending Extended Miss",0.111,413,45.84,LNX_MISS,B2025121600514
+2025,12,41,"Vivid Direct",H,"Social Security Express Hit",0.2825,382,107.92,SSE_HIT,B2025121600515
+2025,12,41,"Vivid Direct",M,"Social Security Express Miss",0.22,321,70.62,SSE_MISS,B2025121600516
+2025,12,41,"Vivid Direct",H,"Social Security Monitor Hit",0.309,62,19.16,SSM_HIT,B2025121600517
+2025,12,41,"Vivid Direct",H,"Verification Network Miss",0.093,560,52.08,VRN_MISS,B2025121600518
+2025,12,41,"Vivid Direct",M,"Verification Total Miss",0.1,224,22.4,VRT_MISS,B2025121600519
+2025,12,42,"Empire Financial",H,"Account Basic Hit",0.1332,350,46.62,ACB_HIT,B2025121600520
+2025,12,42,"Empire Financial",H,"Account Standard Miss",0.224,308,68.99,ACS_MISS,B2025121600521
+2025,12,42,"Empire Financial",M,"Bank Basic Err",0.135,133,17.96,BKB_ERR,B2025121600522
+2025,12,42,"Empire Financial",H,"Bank Basic Hit",0.15,275,41.25,BKB_HIT,B2025121600523
+2025,12,42,"Empire Financial",H,"Bank Basic Miss",0.153,182,27.85,BKB_MISS,B2025121600524
+2025,12,42,"Empire Financial",H,"Bank Basic Null",0.1515,1311,198.62,BKB_NULL,B2025121600525
+2025,12,42,"Empire Financial",E,"Financial Core Err",0.3552,56,19.89,FNC_ERR,B2025121600526
+2025,12,42,"Empire Financial",H,"Financial Core Hit",0.2848,98,27.91,FNC_HIT,B2025121600527
+2025,12,42,"Empire Financial",E,"Financial Lookup Hit",0.2856,232,66.26,FNL_HIT,B2025121600528
+2025,12,42,"Empire Financial",H,"Financial Lookup Miss",0.2856,210,59.98,FNL_MISS,B2025121600529
+2025,12,42,"Empire Financial",H,"Identity Standard Err",0.35,123,43.05,IDS_ERR,B2025121600530
+2025,12,42,"Empire Financial",M,"Identity Standard Miss",0.378,72,27.22,IDS_MISS,B2025121600531
+2025,12,42,"Empire Financial",H,"Lending Extended Miss",0.099,77,7.62,LNX_MISS,B2025121600532
+2025,12,42,"Empire Financial",H,"Social Security Express Err",0.255,305,77.78,SSE_ERR,B2025121600533
+2025,12,42,"Empire Financial",H,"Social Security Express Hit",0.255,378,96.39,SSE_HIT,B2025121600534
+2025,12,42,"Empire Financial",H,"Social Security Express Miss",0.255,461,117.56,SSE_MISS,B2025121600535
+2025,12,42,"Empire Financial",H,"Social Security Monitor Hit",0.309,5411,1672,SSM_HIT,B2025121600536
+2025,12,42,"Empire Financial",H,"Social Security Monitor Miss",0.255,291,74.21,SSM_MISS,B2025121600537
+2025,12,43,"Sea American",N,"Account Basic Hit",0.132,5167,682.04,ACB_HIT,B2025121600538
+2025,12,43,"Sea American",H,"Account Basic Miss",0.1116,154,17.19,ACB_MISS,B2025121600539
+2025,12,43,"Sea American",H,"Bank Basic Err",0.159,340,54.06,BKB_ERR,B2025121600540
+2025,12,43,"Sea American",H,"Financial Lookup Err",0.2996,125,37.45,FNL_ERR,B2025121600541
+2025,12,43,"Sea American",M,"Identity Standard Err",0.336,482,161.95,IDS_ERR,B2025121600542
+2025,12,43,"Sea American",H,"Identity Standard Hit",0.301,271,81.57,IDS_HIT,B2025121600543
+2025,12,43,"Sea American",H,"Lending Check Err",0.097,2422,234.93,LNK_ERR,B2025121600544
+2025,12,43,"Sea American",H,"Lending Check Miss",0.092,131,12.05,LNK_MISS,B2025121600545
+2025,12,43,"Sea American",H,"Lending Extended Hit",0.111,2732,303.25,LNX_HIT,B2025121600546
+2025,12,43,"Sea American",M,"Lending Extended Miss",0.096,367,35.23,LNX_MISS,B2025121600547
+2025,12,43,"Sea American",H,"Social Security Express Hit",0.25,203,50.75,SSE_HIT,B2025121600548
+2025,12,43,"Sea American",H,"Social Security Monitor Hit",0.261,370,96.57,SSM_HIT,B2025121600549
+2025,12,43,"Sea American",H,"Social Security Monitor Miss",0.255,408,104.04,SSM_MISS,B2025121600550
+2025,12,43,"Sea American",E,"Verification Network Hit",0.11,61,6.71,VRN_HIT,B2025121600551
+2025,12,44,"Network LLC",H,"Account Basic Hit",0.1224,273,33.42,ACB_HIT,B2025121600552
+2025,12,44,"Network LLC",H,"Account Standard Hit",0.202,92,18.58,ACS_HIT,B2025121600553
+2025,12,44,"Network LLC",H,"Bank Basic Err",0.1485,490,72.77,BKB_ERR,B2025121600554
+2025,12,44,"Network LLC",H,"Financial Core Hit",0.3264,194,63.32,FNC_HIT,B2025121600555
+2025,12,44,"Network LLC",H,"Financial Core Null",0.2752,291,80.08,FNC_NULL,B2025121600556
+2025,12,44,"Network LLC",H,"Financial Lookup Err",0.2632,1709,449.81,FNL_ERR,B2025121600557
+2025,12,44,"Network LLC",H,"Financial Lookup Miss",0.2912,402,117.06,FNL_MISS,B2025121600558
+2025,12,44,"Network LLC",M,"Identity Standard Err",0.357,51,18.21,IDS_ERR,B2025121600559
+2025,12,44,"Network LLC",H,"Identity Standard Hit",0.3535,155,54.79,IDS_HIT,B2025121600560
+2025,12,44,"Network LLC",M,"Identity Standard Miss",0.322,340,109.48,IDS_MISS,B2025121600561
+2025,12,44,"Network LLC",H,"Lending Check Err",0.103,77,7.93,LNK_ERR,B2025121600562
+2025,12,44,"Network LLC",M,"Lending Extended Miss",0.094,103,9.68,LNX_MISS,B2025121600563
+2025,12,44,"Network LLC",H,"Social Security Express Hit",0.2175,626,136.16,SSE_HIT,B2025121600564
+2025,12,44,"Network LLC",N,"Social Security Express Miss",0.2175,82,17.84,SSE_MISS,B2025121600565
+2025,12,44,"Network LLC",H,"Verification Total Miss",0.099,378,37.42,VRT_MISS,B2025121600566
+2025,12,45,"Foundation Online",H,"Account Basic Null",0.1104,109,12.03,ACB_NULL,B2025121600567
+2025,12,45,"Foundation Online",H,"Account Standard Hit",0.17,100,17,ACS_HIT,B2025121600568
+2025,12,45,"Foundation Online",H,"Bank Basic Err",0.15,912,136.8,BKB_ERR,B2025121600569
+2025,12,45,"Foundation Online",H,"Bank Basic Hit",0.168,2658,446.54,BKB_HIT,B2025121600570
+2025,12,45,"Foundation Online",H,"Bank Basic Miss",0.1335,80,10.68,BKB_MISS,B2025121600571
+2025,12,45,"Foundation Online",H,"Financial Core Err",0.3648,558,203.56,FNC_ERR,B2025121600572
+2025,12,45,"Foundation Online",M,"Financial Core Null",0.336,119,39.98,FNC_NULL,B2025121600573
+2025,12,45,"Foundation Online",H,"Financial Lookup Err",0.294,297,87.32,FNL_ERR,B2025121600574
+2025,12,45,"Foundation Online",M,"Identity Standard Err",0.3955,379,149.89,IDS_ERR,B2025121600575
+2025,12,45,"Foundation Online",H,"Identity Standard Hit",0.371,2906,1078.13,IDS_HIT,B2025121600576
+2025,12,45,"Foundation Online",M,"Lending Check Miss",0.11,201,22.11,LNK_MISS,B2025121600577
+2025,12,45,"Foundation Online",H,"Lending Extended Hit",0.096,388,37.25,LNX_HIT,B2025121600578
+2025,12,45,"Foundation Online",H,"Lending Extended Miss",0.111,406,45.07,LNX_MISS,B2025121600579
+2025,12,45,"Foundation Online",H,"Verification Total Miss",0.096,1526,146.5,VRT_MISS,B2025121600580
+2025,12,46,"Plaza Insurance",N,"Account Basic Err",0.1248,445,55.54,ACB_ERR,B2025121600581
+2025,12,46,"Plaza Insurance",M,"Account Basic Hit",0.1224,406,49.69,ACB_HIT,B2025121600582
+2025,12,46,"Plaza Insurance",H,"Account Basic Null",0.1056,410,43.3,ACB_NULL,B2025121600583
+2025,12,46,"Plaza Insurance",E,"Account Standard Miss",0.172,268,46.1,ACS_MISS,B2025121600584
+2025,12,46,"Plaza Insurance",M,"Bank Basic Err",0.159,343,54.54,BKB_ERR,B2025121600585
+2025,12,46,"Plaza Insurance",H,"Financial Core Err",0.368,145,53.36,FNC_ERR,B2025121600586
+2025,12,46,"Plaza Insurance",H,"Financial Core Hit",0.3072,50,15.36,FNC_HIT,B2025121600587
+2025,12,46,"Plaza Insurance",H,"Financial Core Miss",0.2944,411,121,FNC_MISS,B2025121600588
+2025,12,46,"Plaza Insurance",H,"Financial Lookup Err",0.2744,193,52.96,FNL_ERR,B2025121600589
+2025,12,46,"Plaza Insurance",H,"Identity Standard Err",0.3255,260,84.63,IDS_ERR,B2025121600590
+2025,12,46,"Plaza Insurance",H,"Identity Standard Miss",0.3955,574,227.02,IDS_MISS,B2025121600591
+2025,12,46,"Plaza Insurance",H,"Lending Check Miss",0.107,209,22.36,LNK_MISS,B2025121600592
+2025,12,46,"Plaza Insurance",H,"Social Security Express Hit",0.225,312,70.2,SSE_HIT,B2025121600593
+2025,12,46,"Plaza Insurance",H,"Social Security Express Miss",0.2525,81,20.45,SSE_MISS,B2025121600594
+2025,12,46,"Plaza Insurance",H,"Social Security Monitor Hit",0.333,387,128.87,SSM_HIT,B2025121600595
+2025,12,46,"Plaza Insurance",H,"Verification Network Hit",0.089,241,21.45,VRN_HIT,B2025121600596
+2025,12,46,"Plaza Insurance",H,"Verification Network Miss",0.085,224,19.04,VRN_MISS,B2025121600597
+2025,12,46,"Plaza Insurance",M,"Verification Total Miss",0.094,420,39.48,VRT_MISS,B2025121600598
+2025,12,48,"Tribute Systems",M,"Account Basic Err",0.1356,290,39.32,ACB_ERR,B2025121600599
+2025,12,48,"Tribute Systems",H,"Account Basic Miss",0.1284,321,41.22,ACB_MISS,B2025121600600
+2025,12,48,"Tribute Systems",H,"Account Standard Hit",0.218,172,37.5,ACS_HIT,B2025121600601
+2025,12,48,"Tribute Systems",H,"Bank Basic Err",0.1305,342,44.63,BKB_ERR,B2025121600602
+2025,12,48,"Tribute Systems",H,"Financial Core Miss",0.368,339,124.75,FNC_MISS,B2025121600603
+2025,12,48,"Tribute Systems",M,"Financial Lookup Err",0.2828,369,104.35,FNL_ERR,B2025121600604
+2025,12,48,"Tribute Systems",H,"Financial Lookup Miss",0.294,89,26.17,FNL_MISS,B2025121600605
+2025,12,48,"Tribute Systems",H,"Identity Standard Hit",0.378,106,40.07,IDS_HIT,B2025121600606
+2025,12,48,"Tribute Systems",M,"Lending Check Err",0.1,154,15.4,LNK_ERR,B2025121600607
+2025,12,48,"Tribute Systems",H,"Social Security Express Hit",0.2775,510,141.53,SSE_HIT,B2025121600608
+2025,12,48,"Tribute Systems",H,"Social Security Express Miss",0.2825,1514,427.71,SSE_MISS,B2025121600609
+2025,12,48,"Tribute Systems",M,"Social Security Monitor Miss",0.255,179,45.65,SSM_MISS,B2025121600610
+2025,12,48,"Tribute Systems",E,"Verification Network Miss",0.087,371,32.28,VRN_MISS,B2025121600611
+2025,12,48,"Tribute Systems",M,"Verification Total Miss",0.096,400,38.4,VRT_MISS,B2025121600612
+2025,12,50,"Twin Trust",H,"Account Basic Hit",0.1368,311,42.54,ACB_HIT,B2025121600613
+2025,12,50,"Twin Trust",M,"Account Basic Miss",0.1308,360,47.09,ACB_MISS,B2025121600614
+2025,12,50,"Twin Trust",N,"Account Basic Null",0.1176,1831,215.33,ACB_NULL,B2025121600615
+2025,12,50,"Twin Trust",N,"Account Standard Miss",0.196,213,41.75,ACS_MISS,B2025121600616
+2025,12,50,"Twin Trust",H,"Bank Basic Hit",0.141,355,50.06,BKB_HIT,B2025121600617
+2025,12,50,"Twin Trust",M,"Bank Basic Null",0.153,427,65.33,BKB_NULL,B2025121600618
+2025,12,50,"Twin Trust",H,"Financial Core Miss",0.2944,3316,976.23,FNC_MISS,B2025121600619
+2025,12,50,"Twin Trust",M,"Financial Core Null",0.3552,70,24.86,FNC_NULL,B2025121600620
+2025,12,50,"Twin Trust",H,"Financial Lookup Hit",0.2604,238,61.98,FNL_HIT,B2025121600621
+2025,12,50,"Twin Trust",H,"Identity Standard Err",0.2975,138,41.06,IDS_ERR,B2025121600622
+2025,12,50,"Twin Trust",M,"Lending Check Miss",0.096,211,20.26,LNK_MISS,B2025121600623
+2025,12,50,"Twin Trust",M,"Lending Extended Hit",0.1,397,39.7,LNX_HIT,B2025121600624
+2025,12,50,"Twin Trust",E,"Social Security Express Err",0.2725,1235,336.54,SSE_ERR,B2025121600625
+2025,12,50,"Twin Trust",H,"Social Security Express Hit",0.27,305,82.35,SSE_HIT,B2025121600626
+2025,12,50,"Twin Trust",H,"Social Security Express Miss",0.2275,192,43.68,SSE_MISS,B2025121600627
+2025,12,50,"Twin Trust",M,"Social Security Monitor Hit",0.282,131,36.94,SSM_HIT,B2025121600628
+2025,12,50,"Twin Trust",H,"Social Security Monitor Miss",0.297,249,73.95,SSM_MISS,B2025121600629
+2025,12,50,"Twin Trust",H,"Verification Network Miss",0.106,206,21.84,VRN_MISS,B2025121600630
+2025,12,50,"Twin Trust",H,"Verification Total Miss",0.109,377,41.09,VRT_MISS,B2025121600631
+2025,12,52,"First Advisors",H,"Account Basic Err",0.1188,172,20.43,ACB_ERR,B2025121600632
+2025,12,52,"First Advisors",H,"Account Basic Hit",0.1092,191,20.86,ACB_HIT,B2025121600633
+2025,12,52,"First Advisors",H,"Account Basic Null",0.102,408,41.62,ACB_NULL,B2025121600634
+2025,12,52,"First Advisors",H,"Account Standard Hit",0.222,4664,1035.41,ACS_HIT,B2025121600635
+2025,12,52,"First Advisors",H,"Bank Basic Err",0.1395,332,46.31,BKB_ERR,B2025121600636
+2025,12,52,"First Advisors",H,"Financial Core Err",0.2912,527,153.46,FNC_ERR,B2025121600637
+2025,12,52,"First Advisors",H,"Financial Core Hit",0.288,118,33.98,FNC_HIT,B2025121600638
+2025,12,52,"First Advisors",H,"Financial Lookup Err",0.2408,197,47.44,FNL_ERR,B2025121600639
+2025,12,52,"First Advisors",H,"Financial Lookup Hit",0.2744,168,46.1,FNL_HIT,B2025121600640
+2025,12,52,"First Advisors",H,"Financial Lookup Miss",0.2464,565,139.22,FNL_MISS,B2025121600641
+2025,12,52,"First Advisors",H,"Identity Standard Err",0.301,168,50.57,IDS_ERR,B2025121600642
+2025,12,52,"First Advisors",H,"Identity Standard Hit",0.378,318,120.2,IDS_HIT,B2025121600643
+2025,12,52,"First Advisors",M,"Identity Standard Miss",0.357,933,333.08,IDS_MISS,B2025121600644
+2025,12,52,"First Advisors",H,"Lending Check Err",0.111,227,25.2,LNK_ERR,B2025121600645
+2025,12,52,"First Advisors",H,"Lending Extended Hit",0.09,182,16.38,LNX_HIT,B2025121600646
+2025,12,52,"First Advisors",N,"Social Security Express Err",0.2625,235,61.69,SSE_ERR,B2025121600647
+2025,12,52,"First Advisors",H,"Social Security Express Hit",0.26,232,60.32,SSE_HIT,B2025121600648
+2025,12,52,"First Advisors",M,"Social Security Express Miss",0.25,364,91,SSE_MISS,B2025121600649
+2025,12,53,"Pulse Systems",H,"Account Basic Hit",0.1044,153,15.97,ACB_HIT,B2025121600650
+2025,12,53,"Pulse Systems",M,"Account Basic Miss",0.1164,258,30.03,ACB_MISS,B2025121600651
+2025,12,53,"Pulse Systems",H,"Bank Basic Err",0.129,590,76.11,BKB_ERR,B2025121600652
+2025,12,53,"Pulse Systems",H,"Bank Basic Null",0.1365,351,47.91,BKB_NULL,B2025121600653
+2025,12,53,"Pulse Systems",N,"Financial Core Err",0.3264,144,47,FNC_ERR,B2025121600654
+2025,12,53,"Pulse Systems",M,"Financial Core Hit",0.2976,1760,523.78,FNC_HIT,B2025121600655
+2025,12,53,"Pulse Systems",H,"Financial Lookup Hit",0.2688,360,96.77,FNL_HIT,B2025121600656
+2025,12,53,"Pulse Systems",H,"Identity Standard Hit",0.301,3980,1197.98,IDS_HIT,B2025121600657
+2025,12,53,"Pulse Systems",H,"Lending Check Miss",0.088,389,34.23,LNK_MISS,B2025121600658
+2025,12,53,"Pulse Systems",H,"Lending Extended Hit",0.094,242,22.75,LNX_HIT,B2025121600659
+2025,12,53,"Pulse Systems",E,"Lending Extended Miss",0.092,402,36.98,LNX_MISS,B2025121600660
+2025,12,53,"Pulse Systems",H,"Social Security Express Miss",0.285,320,91.2,SSE_MISS,B2025121600661
+2025,12,55,"Diamond Global",H,"Account Standard Hit",0.174,180,31.32,ACS_HIT,B2025121600662
+2025,12,55,"Diamond Global",H,"Bank Basic Miss",0.141,2241,315.98,BKB_MISS,B2025121600663
+2025,12,55,"Diamond Global",H,"Financial Lookup Hit",0.3024,461,139.41,FNL_HIT,B2025121600664
+2025,12,55,"Diamond Global",H,"Financial Lookup Miss",0.2548,228,58.09,FNL_MISS,B2025121600665
+2025,12,55,"Diamond Global",H,"Identity Standard Hit",0.336,395,132.72,IDS_HIT,B2025121600666
+2025,12,55,"Diamond Global",H,"Identity Standard Miss",0.3815,585,223.18,IDS_MISS,B2025121600667
+2025,12,55,"Diamond Global",H,"Lending Check Err",0.103,134,13.8,LNK_ERR,B2025121600668
+2025,12,55,"Diamond Global",H,"Lending Check Miss",0.108,57,6.16,LNK_MISS,B2025121600669
+2025,12,55,"Diamond Global",H,"Lending Extended Miss",0.103,431,44.39,LNX_MISS,B2025121600670
+2025,12,55,"Diamond Global",H,"Social Security Express Err",0.2575,376,96.82,SSE_ERR,B2025121600671
+2025,12,55,"Diamond Global",H,"Social Security Express Hit",0.22,463,101.86,SSE_HIT,B2025121600672
+2025,12,55,"Diamond Global",H,"Social Security Monitor Hit",0.324,520,168.48,SSM_HIT,B2025121600673
+2025,12,55,"Diamond Global",H,"Verification Total Hit",0.107,399,42.69,VRT_HIT,B2025121600674
+2025,12,55,"Diamond Global",M,"Verification Total Miss",0.103,81,8.34,VRT_MISS,B2025121600675
+2025,12,56,"Rocky Global",H,"Account Basic Err",0.1272,131,16.66,ACB_ERR,B2025121600676
+2025,12,56,"Rocky Global",M,"Account Basic Hit",0.1236,357,44.13,ACB_HIT,B2025121600677
+2025,12,56,"Rocky Global",H,"Account Basic Null",0.1104,214,23.63,ACB_NULL,B2025121600678
+2025,12,56,"Rocky Global",H,"Account Standard Miss",0.174,290,50.46,ACS_MISS,B2025121600679
+2025,12,56,"Rocky Global",E,"Bank Basic Err",0.1425,540,76.95,BKB_ERR,B2025121600680
+2025,12,56,"Rocky Global",H,"Bank Basic Hit",0.1695,297,50.34,BKB_HIT,B2025121600681
+2025,12,56,"Rocky Global",H,"Bank Basic Miss",0.132,280,36.96,BKB_MISS,B2025121600682
+2025,12,56,"Rocky Global",N,"Bank Basic Null",0.132,246,32.47,BKB_NULL,B2025121600683
+2025,12,56,"Rocky Global",H,"Financial Core Hit",0.2752,205,56.42,FNC_HIT,B2025121600684
+2025,12,56,"Rocky Global",H,"Financial Lookup Err",0.2548,369,94.02,FNL_ERR,B2025121600685
+2025,12,56,"Rocky Global",E,"Identity Standard Hit",0.3815,406,154.89,IDS_HIT,B2025121600686
+2025,12,56,"Rocky Global",H,"Lending Check Err",0.097,303,29.39,LNK_ERR,B2025121600687
+2025,12,56,"Rocky Global",H,"Lending Extended Hit",0.087,74,6.44,LNX_HIT,B2025121600688
+2025,12,56,"Rocky Global",H,"Lending Extended Miss",0.092,347,31.92,LNX_MISS,B2025121600689
+2025,12,56,"Rocky Global",H,"Verification Network Hit",0.091,79,7.19,VRN_HIT,B2025121600690
+2025,12,56,"Rocky Global",H,"Verification Network Miss",0.105,64,6.72,VRN_MISS,B2025121600691
+2025,12,56,"Rocky Global",H,"Verification Total Hit",0.107,78,8.35,VRT_HIT,B2025121600692
+2025,12,56,"Rocky Global",M,"Verification Total Miss",0.099,109,10.79,VRT_MISS,B2025121600693
+2025,12,57,"Central Mortgage",H,"Account Basic Hit",0.1116,4371,487.8,ACB_HIT,B2025121600694
+2025,12,57,"Central Mortgage",H,"Account Basic Null",0.1164,86,10.01,ACB_NULL,B2025121600695
+2025,12,57,"Central Mortgage",M,"Bank Basic Err",0.132,158,20.86,BKB_ERR,B2025121600696
+2025,12,57,"Central Mortgage",H,"Financial Core Err",0.2752,435,119.71,FNC_ERR,B2025121600697
+2025,12,57,"Central Mortgage",H,"Financial Core Hit",0.304,85,25.84,FNC_HIT,B2025121600698
+2025,12,57,"Central Mortgage",H,"Financial Lookup Err",0.3108,98,30.46,FNL_ERR,B2025121600699
+2025,12,57,"Central Mortgage",M,"Identity Standard Err",0.392,514,201.49,IDS_ERR,B2025121600700
+2025,12,57,"Central Mortgage",M,"Identity Standard Hit",0.3535,441,155.89,IDS_HIT,B2025121600701
+2025,12,57,"Central Mortgage",H,"Identity Standard Miss",0.301,160,48.16,IDS_MISS,B2025121600702
+2025,12,57,"Central Mortgage",H,"Lending Extended Hit",0.104,230,23.92,LNX_HIT,B2025121600703
+2025,12,57,"Central Mortgage",H,"Social Security Monitor Miss",0.255,135,34.43,SSM_MISS,B2025121600704
+2025,12,57,"Central Mortgage",H,"Verification Total Hit",0.107,74,7.92,VRT_HIT,B2025121600705
+2025,12,58,"Acme Leasing",H,"Account Basic Miss",0.1176,351,41.28,ACB_MISS,B2025121600706
+2025,12,58,"Acme Leasing",H,"Bank Basic Err",0.159,135,21.47,BKB_ERR,B2025121600707
+2025,12,58,"Acme Leasing",H,"Bank Basic Miss",0.15,562,84.3,BKB_MISS,B2025121600708
+2025,12,58,"Acme Leasing",H,"Financial Core Hit",0.3584,429,153.75,FNC_HIT,B2025121600709
+2025,12,58,"Acme Leasing",H,"Financial Core Miss",0.2944,346,101.86,FNC_MISS,B2025121600710
+2025,12,58,"Acme Leasing",N,"Lending Check Err",0.112,453,50.74,LNK_ERR,B2025121600711
+2025,12,58,"Acme Leasing",N,"Lending Check Miss",0.088,467,41.1,LNK_MISS,B2025121600712
+2025,12,58,"Acme Leasing",H,"Lending Extended Hit",0.088,203,17.86,LNX_HIT,B2025121600713
+2025,12,58,"Acme Leasing",N,"Lending Extended Miss",0.1,244,24.4,LNX_MISS,B2025121600714
+2025,12,58,"Acme Leasing",H,"Social Security Express Miss",0.265,176,46.64,SSE_MISS,B2025121600715
+2025,12,58,"Acme Leasing",M,"Social Security Monitor Hit",0.258,209,53.92,SSM_HIT,B2025121600716
+2025,12,58,"Acme Leasing",H,"Verification Total Hit",0.105,149,15.65,VRT_HIT,B2025121600717
+2025,12,58,"Acme Leasing",H,"Verification Total Miss",0.106,418,44.31,VRT_MISS,B2025121600718
+2025,12,59,"Strong Plus",M,"Account Basic Err",0.1332,199,26.51,ACB_ERR,B2025121600719
+2025,12,59,"Strong Plus",H,"Account Basic Null",0.1248,3355,418.7,ACB_NULL,B2025121600720
+2025,12,59,"Strong Plus",M,"Account Standard Miss",0.172,293,50.4,ACS_MISS,B2025121600721
+2025,12,59,"Strong Plus",H,"Bank Basic Hit",0.1395,75,10.46,BKB_HIT,B2025121600722
+2025,12,59,"Strong Plus",H,"Bank Basic Miss",0.1665,63,10.49,BKB_MISS,B2025121600723
+2025,12,59,"Strong Plus",H,"Bank Basic Null",0.1305,346,45.15,BKB_NULL,B2025121600724
+2025,12,59,"Strong Plus",M,"Financial Core Err",0.3584,536,192.1,FNC_ERR,B2025121600725
+2025,12,59,"Strong Plus",H,"Financial Core Null",0.3616,312,112.82,FNC_NULL,B2025121600726
+2025,12,59,"Strong Plus",H,"Financial Lookup Hit",0.2996,272,81.49,FNL_HIT,B2025121600727
+2025,12,59,"Strong Plus",H,"Identity Standard Err",0.371,176,65.3,IDS_ERR,B2025121600728
+2025,12,59,"Strong Plus",H,"Lending Check Err",0.092,316,29.07,LNK_ERR,B2025121600729
+2025,12,59,"Strong Plus",M,"Lending Check Miss",0.104,329,34.22,LNK_MISS,B2025121600730
+2025,12,59,"Strong Plus",H,"Social Security Express Hit",0.285,311,88.64,SSE_HIT,B2025121600731
+2025,12,59,"Strong Plus",M,"Social Security Express Miss",0.2775,131,36.35,SSE_MISS,B2025121600732
+2025,12,59,"Strong Plus",M,"Verification Network Miss",0.103,400,41.2,VRN_MISS,B2025121600733
+2025,12,60,"Silver Solutions",H,"Account Basic Hit",0.1224,495,60.59,ACB_HIT,B2025121600734
+2025,12,60,"Silver Solutions",M,"Account Basic Null",0.1128,125,14.1,ACB_NULL,B2025121600735
+2025,12,60,"Silver Solutions",E,"Financial Core Hit",0.2848,195,55.54,FNC_HIT,B2025121600736
+2025,12,60,"Silver Solutions",H,"Financial Core Miss",0.3488,438,152.77,FNC_MISS,B2025121600737
+2025,12,60,"Silver Solutions",M,"Financial Lookup Hit",0.2548,509,129.69,FNL_HIT,B2025121600738
+2025,12,60,"Silver Solutions",H,"Financial Lookup Miss",0.2772,138,38.25,FNL_MISS,B2025121600739
+2025,12,60,"Silver Solutions",M,"Identity Standard Err",0.357,357,127.45,IDS_ERR,B2025121600740
+2025,12,60,"Silver Solutions",H,"Lending Check Miss",0.103,235,24.21,LNK_MISS,B2025121600741
+2025,12,60,"Silver Solutions",H,"Lending Extended Miss",0.103,475,48.93,LNX_MISS,B2025121600742
+2025,12,60,"Silver Solutions",H,"Social Security Express Hit",0.2425,493,119.55,SSE_HIT,B2025121600743
+2025,12,60,"Silver Solutions",H,"Social Security Express Miss",0.2675,222,59.39,SSE_MISS,B2025121600744
+2025,12,60,"Silver Solutions",H,"Social Security Monitor Miss",0.285,142,40.47,SSM_MISS,B2025121600745
+2025,12,61,"Empire Capital",H,"Account Basic Miss",0.1164,284,33.06,ACB_MISS,B2025121600746
+2025,12,61,"Empire Capital",H,"Account Basic Null",0.1368,153,20.93,ACB_NULL,B2025121600747
+2025,12,61,"Empire Capital",H,"Account Standard Hit",0.17,120,20.4,ACS_HIT,B2025121600748
+2025,12,61,"Empire Capital",H,"Account Standard Miss",0.226,441,99.67,ACS_MISS,B2025121600749
+2025,12,61,"Empire Capital",H,"Bank Basic Err",0.1485,213,31.63,BKB_ERR,B2025121600750
+2025,12,61,"Empire Capital",H,"Bank Basic Hit",0.1695,444,75.26,BKB_HIT,B2025121600751
+2025,12,61,"Empire Capital",N,"Bank Basic Null",0.1515,523,79.23,BKB_NULL,B2025121600752
+2025,12,61,"Empire Capital",H,"Financial Core Err",0.3648,389,141.91,FNC_ERR,B2025121600753
+2025,12,61,"Empire Capital",H,"Financial Core Miss",0.3136,138,43.28,FNC_MISS,B2025121600754
+2025,12,61,"Empire Capital",H,"Financial Lookup Err",0.2436,314,76.49,FNL_ERR,B2025121600755
+2025,12,61,"Empire Capital",H,"Identity Standard Err",0.35,277,96.95,IDS_ERR,B2025121600756
+2025,12,61,"Empire Capital",M,"Lending Check Err",0.11,105,11.55,LNK_ERR,B2025121600757
+2025,12,61,"Empire Capital",H,"Lending Check Miss",0.105,142,14.91,LNK_MISS,B2025121600758
+2025,12,61,"Empire Capital",H,"Lending Extended Hit",0.09,117,10.53,LNX_HIT,B2025121600759
+2025,12,61,"Empire Capital",H,"Lending Extended Miss",0.087,235,20.45,LNX_MISS,B2025121600760
+2025,12,61,"Empire Capital",E,"Social Security Express Err",0.275,349,95.98,SSE_ERR,B2025121600761
+2025,12,61,"Empire Capital",M,"Social Security Monitor Miss",0.27,203,54.81,SSM_MISS,B2025121600762
+2025,12,61,"Empire Capital",H,"Verification Network Hit",0.09,508,45.72,VRN_HIT,B2025121600763
+2025,12,61,"Empire Capital",M,"Verification Total Hit",0.093,4235,393.86,VRT_HIT,B2025121600764
+2025,12,61,"Empire Capital",E,"Verification Total Miss",0.101,186,18.79,VRT_MISS,B2025121600765
+2025,12,64,"Yellow Associates",H,"Account Standard Hit",0.194,419,81.29,ACS_HIT,B2025121600766
+2025,12,64,"Yellow Associates",H,"Account Standard Miss",0.18,74,13.32,ACS_MISS,B2025121600767
+2025,12,64,"Yellow Associates",N,"Bank Basic Err",0.132,247,32.6,BKB_ERR,B2025121600768
+2025,12,64,"Yellow Associates",M,"Bank Basic Miss",0.171,52,8.89,BKB_MISS,B2025121600769
+2025,12,64,"Yellow Associates",H,"Bank Basic Null",0.15,164,24.6,BKB_NULL,B2025121600770
+2025,12,64,"Yellow Associates",H,"Financial Core Err",0.3552,415,147.41,FNC_ERR,B2025121600771
+2025,12,64,"Yellow Associates",H,"Financial Core Miss",0.3488,323,112.66,FNC_MISS,B2025121600772
+2025,12,64,"Yellow Associates",H,"Financial Lookup Err",0.238,299,71.16,FNL_ERR,B2025121600773
+2025,12,64,"Yellow Associates",H,"Financial Lookup Hit",0.238,94,22.37,FNL_HIT,B2025121600774
+2025,12,64,"Yellow Associates",H,"Identity Standard Err",0.378,189,71.44,IDS_ERR,B2025121600775
+2025,12,64,"Yellow Associates",H,"Identity Standard Hit",0.308,625,192.5,IDS_HIT,B2025121600776
+2025,12,64,"Yellow Associates",M,"Lending Extended Hit",0.109,387,42.18,LNX_HIT,B2025121600777
+2025,12,64,"Yellow Associates",N,"Lending Extended Miss",0.091,217,19.75,LNX_MISS,B2025121600778
+2025,12,64,"Yellow Associates",N,"Social Security Express Err",0.2375,127,30.16,SSE_ERR,B2025121600779
+2025,12,64,"Yellow Associates",H,"Social Security Express Miss",0.2425,161,39.04,SSE_MISS,B2025121600780
+2025,12,64,"Yellow Associates",H,"Social Security Monitor Miss",0.291,126,36.67,SSM_MISS,B2025121600781
+2025,12,64,"Yellow Associates",H,"Verification Network Hit",0.106,190,20.14,VRN_HIT,B2025121600782
+2025,12,64,"Yellow Associates",H,"Verification Network Miss",0.107,540,57.78,VRN_MISS,B2025121600783
+2025,12,64,"Yellow Associates",H,"Verification Total Hit",0.091,437,39.77,VRT_HIT,B2025121600784
+2025,12,64,"Yellow Associates",H,"Verification Total Miss",0.106,372,39.43,VRT_MISS,B2025121600785
+2025,12,66,"Heritage Global",M,"Account Basic Miss",0.132,165,21.78,ACB_MISS,B2025121600786
+2025,12,66,"Heritage Global",H,"Bank Basic Hit",0.147,464,68.21,BKB_HIT,B2025121600787
+2025,12,66,"Heritage Global",N,"Bank Basic Miss",0.1515,267,40.45,BKB_MISS,B2025121600788
+2025,12,66,"Heritage Global",H,"Bank Basic Null",0.156,341,53.2,BKB_NULL,B2025121600789
+2025,12,66,"Heritage Global",E,"Financial Core Err",0.32,3920,1254.4,FNC_ERR,B2025121600790
+2025,12,66,"Heritage Global",H,"Financial Core Hit",0.3552,428,152.03,FNC_HIT,B2025121600791
+2025,12,66,"Heritage Global",H,"Financial Core Miss",0.3552,441,156.64,FNC_MISS,B2025121600792
+2025,12,66,"Heritage Global",H,"Financial Lookup Err",0.2464,131,32.28,FNL_ERR,B2025121600793
+2025,12,66,"Heritage Global",H,"Identity Standard Err",0.3605,425,153.21,IDS_ERR,B2025121600794
+2025,12,66,"Heritage Global",H,"Identity Standard Hit",0.3465,130,45.05,IDS_HIT,B2025121600795
+2025,12,66,"Heritage Global",H,"Lending Check Err",0.09,435,39.15,LNK_ERR,B2025121600796
+2025,12,66,"Heritage Global",M,"Lending Check Miss",0.097,222,21.53,LNK_MISS,B2025121600797
+2025,12,66,"Heritage Global",H,"Lending Extended Hit",0.092,43,3.96,LNX_HIT,B2025121600798
+2025,12,66,"Heritage Global",E,"Lending Extended Miss",0.102,314,32.03,LNX_MISS,B2025121600799
+2025,12,66,"Heritage Global",H,"Social Security Express Err",0.2625,343,90.04,SSE_ERR,B2025121600800
+2025,12,66,"Heritage Global",H,"Social Security Monitor Hit",0.294,344,101.14,SSM_HIT,B2025121600801
+2025,12,66,"Heritage Global",H,"Verification Network Miss",0.095,285,27.08,VRN_MISS,B2025121600802
+2025,12,67,"Western Solutions",H,"Account Basic Miss",0.1128,93,10.49,ACB_MISS,B2025121600803
+2025,12,67,"Western Solutions",H,"Account Basic Null",0.1188,319,37.9,ACB_NULL,B2025121600804
+2025,12,67,"Western Solutions",H,"Account Standard Hit",0.228,336,76.61,ACS_HIT,B2025121600805
+2025,12,67,"Western Solutions",E,"Bank Basic Hit",0.165,397,65.51,BKB_HIT,B2025121600806
+2025,12,67,"Western Solutions",H,"Financial Core Hit",0.304,482,146.53,FNC_HIT,B2025121600807
+2025,12,67,"Western Solutions",H,"Financial Core Miss",0.3232,492,159.01,FNC_MISS,B2025121600808
+2025,12,67,"Western Solutions",H,"Financial Lookup Hit",0.2772,300,83.16,FNL_HIT,B2025121600809
+2025,12,67,"Western Solutions",N,"Financial Lookup Miss",0.2464,245,60.37,FNL_MISS,B2025121600810
+2025,12,67,"Western Solutions",M,"Identity Standard Err",0.3675,48,17.64,IDS_ERR,B2025121600811
+2025,12,67,"Western Solutions",H,"Identity Standard Hit",0.357,587,209.56,IDS_HIT,B2025121600812
+2025,12,67,"Western Solutions",H,"Identity Standard Miss",0.3535,155,54.79,IDS_MISS,B2025121600813
+2025,12,67,"Western Solutions",H,"Lending Check Miss",0.091,311,28.3,LNK_MISS,B2025121600814
+2025,12,67,"Western Solutions",H,"Social Security Express Hit",0.225,411,92.48,SSE_HIT,B2025121600815
+2025,12,67,"Western Solutions",E,"Social Security Express Miss",0.215,2716,583.94,SSE_MISS,B2025121600816
+2025,12,67,"Western Solutions",H,"Social Security Monitor Hit",0.285,4361,1242.89,SSM_HIT,B2025121600817
+2025,12,67,"Western Solutions",M,"Social Security Monitor Miss",0.255,4176,1064.88,SSM_MISS,B2025121600818
+2025,12,67,"Western Solutions",E,"Verification Network Miss",0.099,250,24.75,VRN_MISS,B2025121600819
+2025,12,68,"Street Associates",N,"Account Basic Hit",0.1296,42,5.44,ACB_HIT,B2025121600820
+2025,12,68,"Street Associates",H,"Account Basic Null",0.1116,435,48.55,ACB_NULL,B2025121600821
+2025,12,68,"Street Associates",M,"Account Standard Miss",0.222,171,37.96,ACS_MISS,B2025121600822
+2025,12,68,"Street Associates",H,"Financial Lookup Err",0.2604,195,50.78,FNL_ERR,B2025121600823
+2025,12,68,"Street Associates",H,"Financial Lookup Miss",0.2632,207,54.48,FNL_MISS,B2025121600824
+2025,12,68,"Street Associates",E,"Identity Standard Miss",0.3395,260,88.27,IDS_MISS,B2025121600825
+2025,12,68,"Street Associates",H,"Lending Check Miss",0.097,973,94.38,LNK_MISS,B2025121600826
+2025,12,68,"Street Associates",N,"Lending Extended Miss",0.106,206,21.84,LNX_MISS,B2025121600827
+2025,12,68,"Street Associates",H,"Social Security Express Miss",0.2425,235,56.99,SSE_MISS,B2025121600828
+2025,12,68,"Street Associates",H,"Social Security Monitor Hit",0.261,129,33.67,SSM_HIT,B2025121600829
+2025,12,68,"Street Associates",H,"Verification Network Hit",0.1,283,28.3,VRN_HIT,B2025121600830
+2025,12,68,"Street Associates",E,"Verification Total Hit",0.098,71,6.96,VRT_HIT,B2025121600831
+2025,12,69,"Pearl Mortgage",M,"Account Basic Null",0.108,2863,309.2,ACB_NULL,B2025121600832
+2025,12,69,"Pearl Mortgage",H,"Account Standard Miss",0.188,106,19.93,ACS_MISS,B2025121600833
+2025,12,69,"Pearl Mortgage",H,"Bank Basic Hit",0.1665,316,52.61,BKB_HIT,B2025121600834
+2025,12,69,"Pearl Mortgage",H,"Bank Basic Miss",0.1365,149,20.34,BKB_MISS,B2025121600835
+2025,12,69,"Pearl Mortgage",E,"Financial Lookup Hit",0.2548,104,26.5,FNL_HIT,B2025121600836
+2025,12,69,"Pearl Mortgage",M,"Identity Standard Err",0.343,542,185.91,IDS_ERR,B2025121600837
+2025,12,69,"Pearl Mortgage",H,"Lending Extended Hit",0.108,297,32.08,LNX_HIT,B2025121600838
+2025,12,69,"Pearl Mortgage",H,"Social Security Express Err",0.215,1318,283.37,SSE_ERR,B2025121600839
+2025,12,69,"Pearl Mortgage",H,"Social Security Monitor Hit",0.279,425,118.58,SSM_HIT,B2025121600840
+2025,12,69,"Pearl Mortgage",H,"Social Security Monitor Miss",0.3,312,93.6,SSM_MISS,B2025121600841
+2025,12,69,"Pearl Mortgage",E,"Verification Network Hit",0.105,324,34.02,VRN_HIT,B2025121600842
+2025,12,69,"Pearl Mortgage",M,"Verification Total Hit",0.112,494,55.33,VRT_HIT,B2025121600843
+2025,12,70,"Pioneer United",H,"Account Basic Err",0.1272,356,45.28,ACB_ERR,B2025121600844
+2025,12,70,"Pioneer United",H,"Account Standard Hit",0.224,126,28.22,ACS_HIT,B2025121600845
+2025,12,70,"Pioneer United",H,"Account Standard Miss",0.196,416,81.54,ACS_MISS,B2025121600846
+2025,12,70,"Pioneer United",M,"Bank Basic Err",0.1425,466,66.41,BKB_ERR,B2025121600847
+2025,12,70,"Pioneer United",N,"Bank Basic Miss",0.1275,427,54.44,BKB_MISS,B2025121600848
+2025,12,70,"Pioneer United",H,"Bank Basic Null",0.147,111,16.32,BKB_NULL,B2025121600849
+2025,12,70,"Pioneer United",H,"Financial Core Hit",0.2976,2072,616.63,FNC_HIT,B2025121600850
+2025,12,70,"Pioneer United",H,"Financial Core Null",0.3232,395,127.66,FNC_NULL,B2025121600851
+2025,12,70,"Pioneer United",H,"Financial Lookup Err",0.2968,264,78.36,FNL_ERR,B2025121600852
+2025,12,70,"Pioneer United",H,"Financial Lookup Hit",0.2716,262,71.16,FNL_HIT,B2025121600853
+2025,12,70,"Pioneer United",H,"Financial Lookup Miss",0.294,331,97.31,FNL_MISS,B2025121600854
+2025,12,70,"Pioneer United",H,"Identity Standard Miss",0.35,574,200.9,IDS_MISS,B2025121600855
+2025,12,70,"Pioneer United",H,"Lending Check Err",0.091,255,23.21,LNK_ERR,B2025121600856
+2025,12,70,"Pioneer United",H,"Lending Extended Hit",0.099,3681,364.42,LNX_HIT,B2025121600857
+2025,12,70,"Pioneer United",H,"Social Security Express Err",0.25,2980,745,SSE_ERR,B2025121600858
+2025,12,70,"Pioneer United",H,"Social Security Express Hit",0.255,575,146.63,SSE_HIT,B2025121600859
+2025,12,70,"Pioneer United",H,"Social Security Express Miss",0.2475,405,100.24,SSE_MISS,B2025121600860
+2025,12,70,"Pioneer United",M,"Social Security Monitor Miss",0.258,136,35.09,SSM_MISS,B2025121600861
+2025,12,70,"Pioneer United",H,"Verification Total Hit",0.088,360,31.68,VRT_HIT,B2025121600862
+2025,12,70,"Pioneer United",E,"Verification Total Miss",0.103,140,14.42,VRT_MISS,B2025121600863
+2025,12,71,"Coastal Bank",H,"Account Basic Err",0.1344,299,40.19,ACB_ERR,B2025121600864
+2025,12,71,"Coastal Bank",H,"Account Basic Hit",0.1308,533,69.72,ACB_HIT,B2025121600865
+2025,12,71,"Coastal Bank",M,"Account Basic Null",0.1092,286,31.23,ACB_NULL,B2025121600866
+2025,12,71,"Coastal Bank",H,"Account Standard Hit",0.198,234,46.33,ACS_HIT,B2025121600867
+2025,12,71,"Coastal Bank",H,"Bank Basic Miss",0.171,126,21.55,BKB_MISS,B2025121600868
+2025,12,71,"Coastal Bank",N,"Bank Basic Null",0.1275,97,12.37,BKB_NULL,B2025121600869
+2025,12,71,"Coastal Bank",H,"Financial Core Err",0.3584,317,113.61,FNC_ERR,B2025121600870
+2025,12,71,"Coastal Bank",H,"Financial Core Hit",0.3264,166,54.18,FNC_HIT,B2025121600871
+2025,12,71,"Coastal Bank",M,"Financial Core Miss",0.336,165,55.44,FNC_MISS,B2025121600872
+2025,12,71,"Coastal Bank",H,"Financial Core Null",0.3296,327,107.78,FNC_NULL,B2025121600873
+2025,12,71,"Coastal Bank",H,"Financial Lookup Err",0.252,344,86.69,FNL_ERR,B2025121600874
+2025,12,71,"Coastal Bank",H,"Financial Lookup Hit",0.294,182,53.51,FNL_HIT,B2025121600875
+2025,12,71,"Coastal Bank",H,"Identity Standard Hit",0.3815,394,150.31,IDS_HIT,B2025121600876
+2025,12,71,"Coastal Bank",E,"Lending Check Err",0.091,535,48.69,LNK_ERR,B2025121600877
+2025,12,71,"Coastal Bank",M,"Lending Check Miss",0.097,383,37.15,LNK_MISS,B2025121600878
+2025,12,71,"Coastal Bank",M,"Lending Extended Hit",0.112,115,12.88,LNX_HIT,B2025121600879
+2025,12,71,"Coastal Bank",N,"Lending Extended Miss",0.101,555,56.06,LNX_MISS,B2025121600880
+2025,12,71,"Coastal Bank",M,"Social Security Express Hit",0.2525,129,32.57,SSE_HIT,B2025121600881
+2025,12,71,"Coastal Bank",H,"Verification Network Hit",0.11,78,8.58,VRN_HIT,B2025121600882
+2025,12,71,"Coastal Bank",H,"Verification Total Hit",0.097,1472,142.78,VRT_HIT,B2025121600883
+2025,12,72,"Nova Bank",H,"Account Basic Hit",0.1092,168,18.35,ACB_HIT,B2025121600884
+2025,12,72,"Nova Bank",H,"Account Basic Miss",0.1104,326,35.99,ACB_MISS,B2025121600885
+2025,12,72,"Nova Bank",M,"Account Basic Null",0.1284,100,12.84,ACB_NULL,B2025121600886
+2025,12,72,"Nova Bank",M,"Account Standard Hit",0.212,220,46.64,ACS_HIT,B2025121600887
+2025,12,72,"Nova Bank",M,"Bank Basic Err",0.1725,107,18.46,BKB_ERR,B2025121600888
+2025,12,72,"Nova Bank",H,"Bank Basic Hit",0.1305,47,6.13,BKB_HIT,B2025121600889
+2025,12,72,"Nova Bank",H,"Bank Basic Null",0.132,119,15.71,BKB_NULL,B2025121600890
+2025,12,72,"Nova Bank",H,"Financial Core Hit",0.2816,518,145.87,FNC_HIT,B2025121600891
+2025,12,72,"Nova Bank",E,"Financial Lookup Err",0.294,219,64.39,FNL_ERR,B2025121600892
+2025,12,72,"Nova Bank",H,"Financial Lookup Hit",0.2408,177,42.62,FNL_HIT,B2025121600893
+2025,12,72,"Nova Bank",M,"Financial Lookup Miss",0.2716,194,52.69,FNL_MISS,B2025121600894
+2025,12,72,"Nova Bank",M,"Identity Standard Hit",0.3185,158,50.32,IDS_HIT,B2025121600895
+2025,12,72,"Nova Bank",H,"Lending Check Err",0.088,133,11.7,LNK_ERR,B2025121600896
+2025,12,72,"Nova Bank",M,"Lending Check Miss",0.085,241,20.49,LNK_MISS,B2025121600897
+2025,12,72,"Nova Bank",M,"Social Security Express Miss",0.23,508,116.84,SSE_MISS,B2025121600898
+2025,12,72,"Nova Bank",H,"Social Security Monitor Hit",0.279,1097,306.06,SSM_HIT,B2025121600899
+2025,12,72,"Nova Bank",M,"Social Security Monitor Miss",0.291,315,91.67,SSM_MISS,B2025121600900
+2025,12,72,"Nova Bank",H,"Verification Network Hit",0.102,207,21.11,VRN_HIT,B2025121600901
+2025,12,72,"Nova Bank",H,"Verification Total Hit",0.101,285,28.79,VRT_HIT,B2025121600902
+2025,12,72,"Nova Bank",M,"Verification Total Miss",0.102,308,31.42,VRT_MISS,B2025121600903
+2025,12,76,"One Lending",H,"Account Basic Err",0.108,357,38.56,ACB_ERR,B2025121600904
+2025,12,76,"One Lending",H,"Account Basic Miss",0.1368,515,70.45,ACB_MISS,B2025121600905
+2025,12,76,"One Lending",H,"Account Basic Null",0.1356,282,38.24,ACB_NULL,B2025121600906
+2025,12,76,"One Lending",H,"Account Standard Hit",0.196,233,45.67,ACS_HIT,B2025121600907
+2025,12,76,"One Lending",H,"Bank Basic Err",0.1725,251,43.3,BKB_ERR,B2025121600908
+2025,12,76,"One Lending",M,"Bank Basic Hit",0.141,115,16.22,BKB_HIT,B2025121600909
+2025,12,76,"One Lending",H,"Bank Basic Miss",0.1605,499,80.09,BKB_MISS,B2025121600910
+2025,12,76,"One Lending",H,"Financial Core Err",0.2976,178,52.97,FNC_ERR,B2025121600911
+2025,12,76,"One Lending",H,"Financial Core Hit",0.3424,3435,1176.14,FNC_HIT,B2025121600912
+2025,12,76,"One Lending",H,"Financial Lookup Hit",0.3164,178,56.32,FNL_HIT,B2025121600913
+2025,12,76,"One Lending",N,"Financial Lookup Miss",0.2632,269,70.8,FNL_MISS,B2025121600914
+2025,12,76,"One Lending",H,"Identity Standard Hit",0.3325,284,94.43,IDS_HIT,B2025121600915
+2025,12,76,"One Lending",E,"Identity Standard Miss",0.35,207,72.45,IDS_MISS,B2025121600916
+2025,12,76,"One Lending",H,"Lending Check Err",0.11,2306,253.66,LNK_ERR,B2025121600917
+2025,12,76,"One Lending",H,"Lending Extended Hit",0.107,203,21.72,LNX_HIT,B2025121600918
+2025,12,76,"One Lending",H,"Lending Extended Miss",0.085,311,26.44,LNX_MISS,B2025121600919
+2025,12,76,"One Lending",E,"Social Security Express Miss",0.2625,57,14.96,SSE_MISS,B2025121600920
+2025,12,76,"One Lending",M,"Verification Total Hit",0.112,276,30.91,VRT_HIT,B2025121600921
+2025,12,76,"One Lending",H,"Verification Total Miss",0.092,350,32.2,VRT_MISS,B2025121600922
+2025,12,77,"Third Plus",H,"Account Basic Err",0.1044,385,40.19,ACB_ERR,B2025121600923
+2025,12,77,"Third Plus",H,"Account Standard Miss",0.214,232,49.65,ACS_MISS,B2025121600924
+2025,12,77,"Third Plus",E,"Bank Basic Err",0.153,404,61.81,BKB_ERR,B2025121600925
+2025,12,77,"Third Plus",H,"Bank Basic Hit",0.153,284,43.45,BKB_HIT,B2025121600926
+2025,12,77,"Third Plus",H,"Bank Basic Null",0.1515,257,38.94,BKB_NULL,B2025121600927
+2025,12,77,"Third Plus",H,"Financial Core Hit",0.3552,458,162.68,FNC_HIT,B2025121600928
+2025,12,77,"Third Plus",H,"Financial Lookup Err",0.28,308,86.24,FNL_ERR,B2025121600929
+2025,12,77,"Third Plus",H,"Identity Standard Err",0.3605,431,155.38,IDS_ERR,B2025121600930
+2025,12,77,"Third Plus",H,"Lending Check Err",0.108,530,57.24,LNK_ERR,B2025121600931
+2025,12,77,"Third Plus",H,"Lending Extended Hit",0.094,3289,309.17,LNX_HIT,B2025121600932
+2025,12,77,"Third Plus",H,"Social Security Express Err",0.275,3917,1077.18,SSE_ERR,B2025121600933
+2025,12,77,"Third Plus",H,"Social Security Monitor Hit",0.339,105,35.6,SSM_HIT,B2025121600934
+2025,12,77,"Third Plus",H,"Verification Total Hit",0.096,329,31.58,VRT_HIT,B2025121600935
+2025,12,77,"Third Plus",H,"Verification Total Miss",0.109,2583,281.55,VRT_MISS,B2025121600936
+2025,12,79,"Hub Trust",H,"Account Basic Err",0.1212,158,19.15,ACB_ERR,B2025121600937
+2025,12,79,"Hub Trust",H,"Account Basic Hit",0.1176,199,23.4,ACB_HIT,B2025121600938
+2025,12,79,"Hub Trust",H,"Account Standard Hit",0.216,362,78.19,ACS_HIT,B2025121600939
+2025,12,79,"Hub Trust",M,"Account Standard Miss",0.202,278,56.16,ACS_MISS,B2025121600940
+2025,12,79,"Hub Trust",H,"Financial Core Err",0.3008,171,51.44,FNC_ERR,B2025121600941
+2025,12,79,"Hub Trust",H,"Financial Core Hit",0.2944,107,31.5,FNC_HIT,B2025121600942
+2025,12,79,"Hub Trust",M,"Financial Core Miss",0.32,390,124.8,FNC_MISS,B2025121600943
+2025,12,79,"Hub Trust",H,"Financial Core Null",0.3136,408,127.95,FNC_NULL,B2025121600944
+2025,12,79,"Hub Trust",H,"Financial Lookup Err",0.2492,505,125.85,FNL_ERR,B2025121600945
+2025,12,79,"Hub Trust",H,"Financial Lookup Hit",0.3164,266,84.16,FNL_HIT,B2025121600946
+2025,12,79,"Hub Trust",H,"Lending Extended Hit",0.101,43,4.34,LNX_HIT,B2025121600947
+2025,12,79,"Hub Trust",M,"Social Security Express Hit",0.2275,437,99.42,SSE_HIT,B2025121600948
+2025,12,79,"Hub Trust",M,"Social Security Express Miss",0.28,255,71.4,SSE_MISS,B2025121600949
+2025,12,79,"Hub Trust",H,"Verification Network Hit",0.108,427,46.12,VRN_HIT,B2025121600950
+2025,12,79,"Hub Trust",H,"Verification Total Miss",0.101,459,46.36,VRT_MISS,B2025121600951
+2025,12,80,"Value Management",N,"Account Basic Hit",0.1152,147,16.93,ACB_HIT,B2025121600952
+2025,12,80,"Value Management",M,"Account Basic Null",0.1044,189,19.73,ACB_NULL,B2025121600953
+2025,12,80,"Value Management",H,"Account Standard Hit",0.206,53,10.92,ACS_HIT,B2025121600954
+2025,12,80,"Value Management",H,"Account Standard Miss",0.174,62,10.79,ACS_MISS,B2025121600955
+2025,12,80,"Value Management",H,"Financial Core Err",0.3424,391,133.88,FNC_ERR,B2025121600956
+2025,12,80,"Value Management",M,"Financial Core Null",0.288,303,87.26,FNC_NULL,B2025121600957
+2025,12,80,"Value Management",H,"Financial Lookup Err",0.3192,244,77.88,FNL_ERR,B2025121600958
+2025,12,80,"Value Management",H,"Financial Lookup Hit",0.2632,380,100.02,FNL_HIT,B2025121600959
+2025,12,80,"Value Management",H,"Identity Standard Hit",0.329,304,100.02,IDS_HIT,B2025121600960
+2025,12,80,"Value Management",M,"Lending Check Miss",0.086,176,15.14,LNK_MISS,B2025121600961
+2025,12,80,"Value Management",H,"Lending Extended Miss",0.087,292,25.4,LNX_MISS,B2025121600962
+2025,12,80,"Value Management",H,"Social Security Express Miss",0.275,73,20.08,SSE_MISS,B2025121600963
+2025,12,80,"Value Management",H,"Social Security Monitor Miss",0.294,442,129.95,SSM_MISS,B2025121600964
+2025,12,80,"Value Management",E,"Verification Total Hit",0.088,1412,124.26,VRT_HIT,B2025121600965
+2025,12,80,"Value Management",M,"Verification Total Miss",0.094,148,13.91,VRT_MISS,B2025121600966
+2025,12,82,"Wise Inc",M,"Account Basic Hit",0.1092,529,57.77,ACB_HIT,B2025121600967
+2025,12,82,"Wise Inc",M,"Account Basic Miss",0.1296,74,9.59,ACB_MISS,B2025121600968
+2025,12,82,"Wise Inc",M,"Bank Basic Hit",0.138,2811,387.92,BKB_HIT,B2025121600969
+2025,12,82,"Wise Inc",H,"Bank Basic Null",0.1635,392,64.09,BKB_NULL,B2025121600970
+2025,12,82,"Wise Inc",H,"Financial Core Miss",0.336,156,52.42,FNC_MISS,B2025121600971
+2025,12,82,"Wise Inc",M,"Financial Core Null",0.3456,263,90.89,FNC_NULL,B2025121600972
+2025,12,82,"Wise Inc",M,"Financial Lookup Err",0.2492,297,74.01,FNL_ERR,B2025121600973
+2025,12,82,"Wise Inc",H,"Lending Check Miss",0.095,207,19.67,LNK_MISS,B2025121600974
+2025,12,82,"Wise Inc",H,"Lending Extended Miss",0.086,180,15.48,LNX_MISS,B2025121600975
+2025,12,82,"Wise Inc",H,"Social Security Monitor Miss",0.327,194,63.44,SSM_MISS,B2025121600976
+2025,12,82,"Wise Inc",H,"Verification Network Miss",0.089,194,17.27,VRN_MISS,B2025121600977
+2025,12,82,"Wise Inc",H,"Verification Total Miss",0.089,174,15.49,VRT_MISS,B2025121600978
+2025,12,86,"Peninsula Credit",H,"Account Basic Hit",0.1368,155,21.2,ACB_HIT,B2025121600979
+2025,12,86,"Peninsula Credit",H,"Account Standard Hit",0.198,196,38.81,ACS_HIT,B2025121600980
+2025,12,86,"Peninsula Credit",M,"Account Standard Miss",0.172,135,23.22,ACS_MISS,B2025121600981
+2025,12,86,"Peninsula Credit",H,"Bank Basic Err",0.138,391,53.96,BKB_ERR,B2025121600982
+2025,12,86,"Peninsula Credit",H,"Bank Basic Null",0.129,381,49.15,BKB_NULL,B2025121600983
+2025,12,86,"Peninsula Credit",H,"Financial Core Miss",0.368,339,124.75,FNC_MISS,B2025121600984
+2025,12,86,"Peninsula Credit",H,"Financial Lookup Err",0.2912,192,55.91,FNL_ERR,B2025121600985
+2025,12,86,"Peninsula Credit",H,"Financial Lookup Hit",0.294,55,16.17,FNL_HIT,B2025121600986
+2025,12,86,"Peninsula Credit",H,"Financial Lookup Miss",0.2744,352,96.59,FNL_MISS,B2025121600987
+2025,12,86,"Peninsula Credit",H,"Identity Standard Err",0.3605,503,181.33,IDS_ERR,B2025121600988
+2025,12,86,"Peninsula Credit",H,"Lending Check Err",0.1,208,20.8,LNK_ERR,B2025121600989
+2025,12,86,"Peninsula Credit",H,"Lending Extended Hit",0.101,353,35.65,LNX_HIT,B2025121600990
+2025,12,86,"Peninsula Credit",H,"Social Security Express Err",0.2175,2239,486.98,SSE_ERR,B2025121600991
+2025,12,86,"Peninsula Credit",H,"Social Security Express Hit",0.2875,395,113.56,SSE_HIT,B2025121600992
+2025,12,86,"Peninsula Credit",H,"Social Security Express Miss",0.2275,451,102.6,SSE_MISS,B2025121600993
+2025,12,86,"Peninsula Credit",M,"Social Security Monitor Hit",0.291,140,40.74,SSM_HIT,B2025121600994
+2025,12,86,"Peninsula Credit",M,"Social Security Monitor Miss",0.342,279,95.42,SSM_MISS,B2025121600995
+2025,12,86,"Peninsula Credit",H,"Verification Network Hit",0.094,441,41.45,VRN_HIT,B2025121600996
+2025,12,86,"Peninsula Credit",H,"Verification Total Hit",0.1,63,6.3,VRT_HIT,B2025121600997
+2025,12,86,"Peninsula Credit",M,"Verification Total Miss",0.1,400,40,VRT_MISS,B2025121600998
+2025,12,87,"Direct Partners",H,"Account Basic Err",0.1212,276,33.45,ACB_ERR,B2025121600999
+2025,12,87,"Direct Partners",N,"Bank Basic Err",0.1545,1756,271.3,BKB_ERR,B2025121601000
+2025,12,87,"Direct Partners",H,"Financial Core Err",0.3296,283,93.28,FNC_ERR,B2025121601001
+2025,12,87,"Direct Partners",M,"Financial Lookup Err",0.2604,141,36.72,FNL_ERR,B2025121601002
+2025,12,87,"Direct Partners",M,"Financial Lookup Hit",0.3052,275,83.93,FNL_HIT,B2025121601003
+2025,12,87,"Direct Partners",M,"Identity Standard Hit",0.329,242,79.62,IDS_HIT,B2025121601004
+2025,12,87,"Direct Partners",H,"Lending Check Err",0.114,264,30.1,LNK_ERR,B2025121601005
+2025,12,87,"Direct Partners",H,"Lending Check Miss",0.114,540,61.56,LNK_MISS,B2025121601006
+2025,12,87,"Direct Partners",H,"Lending Extended Hit",0.109,367,40,LNX_HIT,B2025121601007
+2025,12,87,"Direct Partners",H,"Lending Extended Miss",0.097,453,43.94,LNX_MISS,B2025121601008
+2025,12,87,"Direct Partners",H,"Social Security Express Err",0.2225,291,64.75,SSE_ERR,B2025121601009
+2025,12,87,"Direct Partners",H,"Social Security Express Miss",0.23,406,93.38,SSE_MISS,B2025121601010
+2025,12,87,"Direct Partners",N,"Verification Network Hit",0.089,2870,255.43,VRN_HIT,B2025121601011
+2025,12,87,"Direct Partners",H,"Verification Network Miss",0.101,160,16.16,VRN_MISS,B2025121601012
+2025,12,88,"Green Technologies",H,"Account Basic Hit",0.102,429,43.76,ACB_HIT,B2025121601013
+2025,12,88,"Green Technologies",H,"Bank Basic Null",0.1335,232,30.97,BKB_NULL,B2025121601014
+2025,12,88,"Green Technologies",H,"Financial Core Err",0.3456,159,54.95,FNC_ERR,B2025121601015
+2025,12,88,"Green Technologies",H,"Financial Core Hit",0.3584,148,53.04,FNC_HIT,B2025121601016
+2025,12,88,"Green Technologies",H,"Financial Core Miss",0.3328,58,19.3,FNC_MISS,B2025121601017
+2025,12,88,"Green Technologies",H,"Financial Core Null",0.3296,161,53.07,FNC_NULL,B2025121601018
+2025,12,88,"Green Technologies",H,"Financial Lookup Err",0.2968,380,112.78,FNL_ERR,B2025121601019
+2025,12,88,"Green Technologies",H,"Financial Lookup Miss",0.322,97,31.23,FNL_MISS,B2025121601020
+2025,12,88,"Green Technologies",H,"Identity Standard Hit",0.3255,3176,1033.79,IDS_HIT,B2025121601021
+2025,12,88,"Green Technologies",H,"Identity Standard Miss",0.3745,336,125.83,IDS_MISS,B2025121601022
+2025,12,88,"Green Technologies",H,"Lending Check Miss",0.115,343,39.45,LNK_MISS,B2025121601023
+2025,12,88,"Green Technologies",H,"Social Security Express Err",0.245,307,75.22,SSE_ERR,B2025121601024
+2025,12,88,"Green Technologies",M,"Social Security Express Hit",0.22,215,47.3,SSE_HIT,B2025121601025
+2025,12,88,"Green Technologies",H,"Social Security Monitor Miss",0.291,146,42.49,SSM_MISS,B2025121601026
+2025,12,88,"Green Technologies",H,"Verification Network Miss",0.112,404,45.25,VRN_MISS,B2025121601027
+2025,12,88,"Green Technologies",H,"Verification Total Hit",0.093,155,14.42,VRT_HIT,B2025121601028
+2025,12,89,"North Digital",H,"Account Basic Err",0.1056,307,32.42,ACB_ERR,B2025121601029
+2025,12,89,"North Digital",M,"Account Basic Hit",0.1032,74,7.64,ACB_HIT,B2025121601030
+2025,12,89,"North Digital",H,"Account Basic Miss",0.1152,2161,248.95,ACB_MISS,B2025121601031
+2025,12,89,"North Digital",M,"Account Standard Hit",0.216,92,19.87,ACS_HIT,B2025121601032
+2025,12,89,"North Digital",H,"Account Standard Miss",0.18,190,34.2,ACS_MISS,B2025121601033
+2025,12,89,"North Digital",N,"Bank Basic Err",0.1335,139,18.56,BKB_ERR,B2025121601034
+2025,12,89,"North Digital",H,"Bank Basic Hit",0.135,145,19.58,BKB_HIT,B2025121601035
+2025,12,89,"North Digital",H,"Bank Basic Miss",0.1425,225,32.06,BKB_MISS,B2025121601036
+2025,12,89,"North Digital",H,"Bank Basic Null",0.129,161,20.77,BKB_NULL,B2025121601037
+2025,12,89,"North Digital",H,"Financial Core Hit",0.3232,516,166.77,FNC_HIT,B2025121601038
+2025,12,89,"North Digital",N,"Financial Lookup Err",0.2632,300,78.96,FNL_ERR,B2025121601039
+2025,12,89,"North Digital",H,"Financial Lookup Miss",0.2996,87,26.07,FNL_MISS,B2025121601040
+2025,12,89,"North Digital",H,"Lending Check Err",0.087,112,9.74,LNK_ERR,B2025121601041
+2025,12,89,"North Digital",H,"Social Security Express Err",0.285,2109,601.07,SSE_ERR,B2025121601042
+2025,12,89,"North Digital",H,"Social Security Express Hit",0.275,541,148.78,SSE_HIT,B2025121601043
+2025,12,89,"North Digital",M,"Social Security Express Miss",0.2625,302,79.28,SSE_MISS,B2025121601044
+2025,12,89,"North Digital",H,"Social Security Monitor Hit",0.291,45,13.1,SSM_HIT,B2025121601045
+2025,12,89,"North Digital",H,"Verification Network Miss",0.112,1927,215.82,VRN_MISS,B2025121601046
+2025,12,89,"North Digital",H,"Verification Total Hit",0.102,136,13.87,VRT_HIT,B2025121601047
+2025,12,89,"North Digital",M,"Verification Total Miss",0.109,143,15.59,VRT_MISS,B2025121601048
+2025,12,90,"Stone LLC",M,"Account Basic Hit",0.126,68,8.57,ACB_HIT,B2025121601049
+2025,12,90,"Stone LLC",H,"Account Basic Null",0.108,335,36.18,ACB_NULL,B2025121601050
+2025,12,90,"Stone LLC",E,"Account Standard Miss",0.218,84,18.31,ACS_MISS,B2025121601051
+2025,12,90,"Stone LLC",H,"Bank Basic Err",0.1275,4439,565.97,BKB_ERR,B2025121601052
+2025,12,90,"Stone LLC",H,"Bank Basic Hit",0.138,436,60.17,BKB_HIT,B2025121601053
+2025,12,90,"Stone LLC",H,"Bank Basic Null",0.1725,118,20.36,BKB_NULL,B2025121601054
+2025,12,90,"Stone LLC",H,"Financial Core Err",0.2752,322,88.61,FNC_ERR,B2025121601055
+2025,12,90,"Stone LLC",H,"Financial Lookup Err",0.2604,459,119.52,FNL_ERR,B2025121601056
+2025,12,90,"Stone LLC",H,"Financial Lookup Hit",0.322,461,148.44,FNL_HIT,B2025121601057
+2025,12,90,"Stone LLC",M,"Financial Lookup Miss",0.3024,182,55.04,FNL_MISS,B2025121601058
+2025,12,90,"Stone LLC",H,"Lending Check Err",0.108,404,43.63,LNK_ERR,B2025121601059
+2025,12,90,"Stone LLC",M,"Lending Check Miss",0.086,86,7.4,LNK_MISS,B2025121601060
+2025,12,90,"Stone LLC",M,"Lending Extended Miss",0.089,510,45.39,LNX_MISS,B2025121601061
+2025,12,90,"Stone LLC",H,"Social Security Express Miss",0.2475,84,20.79,SSE_MISS,B2025121601062
+2025,12,90,"Stone LLC",H,"Social Security Monitor Hit",0.276,234,64.58,SSM_HIT,B2025121601063
+2025,12,90,"Stone LLC",M,"Verification Network Hit",0.089,67,5.96,VRN_HIT,B2025121601064
+2025,12,90,"Stone LLC",H,"Verification Network Miss",0.112,513,57.46,VRN_MISS,B2025121601065
+2025,12,91,"Peninsula Funding",E,"Account Basic Err",0.132,184,24.29,ACB_ERR,B2025121601066
+2025,12,91,"Peninsula Funding",H,"Account Basic Miss",0.138,55,7.59,ACB_MISS,B2025121601067
+2025,12,91,"Peninsula Funding",E,"Account Standard Miss",0.18,389,70.02,ACS_MISS,B2025121601068
+2025,12,91,"Peninsula Funding",M,"Bank Basic Err",0.1665,292,48.62,BKB_ERR,B2025121601069
+2025,12,91,"Peninsula Funding",H,"Bank Basic Hit",0.129,72,9.29,BKB_HIT,B2025121601070
+2025,12,91,"Peninsula Funding",H,"Financial Core Err",0.2784,125,34.8,FNC_ERR,B2025121601071
+2025,12,91,"Peninsula Funding",H,"Financial Core Hit",0.2784,287,79.9,FNC_HIT,B2025121601072
+2025,12,91,"Peninsula Funding",H,"Financial Core Miss",0.3328,212,70.55,FNC_MISS,B2025121601073
+2025,12,91,"Peninsula Funding",H,"Financial Core Null",0.3296,611,201.39,FNC_NULL,B2025121601074
+2025,12,91,"Peninsula Funding",M,"Financial Lookup Miss",0.2716,225,61.11,FNL_MISS,B2025121601075
+2025,12,91,"Peninsula Funding",H,"Identity Standard Err",0.3605,69,24.87,IDS_ERR,B2025121601076
+2025,12,91,"Peninsula Funding",M,"Identity Standard Hit",0.3535,427,150.94,IDS_HIT,B2025121601077
+2025,12,91,"Peninsula Funding",N,"Identity Standard Miss",0.371,80,29.68,IDS_MISS,B2025121601078
+2025,12,91,"Peninsula Funding",H,"Lending Check Miss",0.108,297,32.08,LNK_MISS,B2025121601079
+2025,12,91,"Peninsula Funding",H,"Social Security Express Miss",0.26,234,60.84,SSE_MISS,B2025121601080
+2025,12,91,"Peninsula Funding",H,"Verification Total Hit",0.102,221,22.54,VRT_HIT,B2025121601081
+2025,12,91,"Peninsula Funding",H,"Verification Total Miss",0.101,340,34.34,VRT_MISS,B2025121601082
+2025,12,92,"Spectrum Holdings",M,"Account Basic Miss",0.1224,50,6.12,ACB_MISS,B2025121601083
+2025,12,92,"Spectrum Holdings",H,"Account Basic Null",0.1056,3343,353.02,ACB_NULL,B2025121601084
+2025,12,92,"Spectrum Holdings",H,"Bank Basic Err",0.153,446,68.24,BKB_ERR,B2025121601085
+2025,12,92,"Spectrum Holdings",H,"Bank Basic Miss",0.1605,389,62.43,BKB_MISS,B2025121601086
+2025,12,92,"Spectrum Holdings",N,"Bank Basic Null",0.1425,185,26.36,BKB_NULL,B2025121601087
+2025,12,92,"Spectrum Holdings",H,"Financial Core Null",0.2752,76,20.92,FNC_NULL,B2025121601088
+2025,12,92,"Spectrum Holdings",H,"Financial Lookup Miss",0.308,545,167.86,FNL_MISS,B2025121601089
+2025,12,92,"Spectrum Holdings",H,"Identity Standard Err",0.3185,408,129.95,IDS_ERR,B2025121601090
+2025,12,92,"Spectrum Holdings",M,"Identity Standard Miss",0.2975,48,14.28,IDS_MISS,B2025121601091
+2025,12,92,"Spectrum Holdings",H,"Lending Check Err",0.115,133,15.3,LNK_ERR,B2025121601092
+2025,12,92,"Spectrum Holdings",H,"Lending Check Miss",0.094,189,17.77,LNK_MISS,B2025121601093
+2025,12,92,"Spectrum Holdings",E,"Lending Extended Hit",0.111,359,39.85,LNX_HIT,B2025121601094
+2025,12,92,"Spectrum Holdings",M,"Lending Extended Miss",0.097,376,36.47,LNX_MISS,B2025121601095
+2025,12,92,"Spectrum Holdings",H,"Social Security Express Err",0.28,177,49.56,SSE_ERR,B2025121601096
+2025,12,92,"Spectrum Holdings",M,"Social Security Express Hit",0.275,97,26.68,SSE_HIT,B2025121601097
+2025,12,92,"Spectrum Holdings",M,"Social Security Monitor Hit",0.255,106,27.03,SSM_HIT,B2025121601098
+2025,12,92,"Spectrum Holdings",M,"Verification Network Miss",0.086,489,42.05,VRN_MISS,B2025121601099
+2025,12,92,"Spectrum Holdings",H,"Verification Total Miss",0.102,230,23.46,VRT_MISS,B2025121601100
+2025,12,93,"Ray Corp",H,"Account Standard Hit",0.226,148,33.45,ACS_HIT,B2025121601101
+2025,12,93,"Ray Corp",H,"Account Standard Miss",0.176,289,50.86,ACS_MISS,B2025121601102
+2025,12,93,"Ray Corp",H,"Bank Basic Err",0.1455,485,70.57,BKB_ERR,B2025121601103
+2025,12,93,"Ray Corp",H,"Bank Basic Miss",0.153,133,20.35,BKB_MISS,B2025121601104
+2025,12,93,"Ray Corp",H,"Financial Core Null",0.3328,184,61.24,FNC_NULL,B2025121601105
+2025,12,93,"Ray Corp",N,"Financial Lookup Err",0.308,228,70.22,FNL_ERR,B2025121601106
+2025,12,93,"Ray Corp",H,"Financial Lookup Hit",0.3164,269,85.11,FNL_HIT,B2025121601107
+2025,12,93,"Ray Corp",N,"Identity Standard Err",0.322,4335,1395.87,IDS_ERR,B2025121601108
+2025,12,93,"Ray Corp",H,"Identity Standard Hit",0.3115,243,75.69,IDS_HIT,B2025121601109
+2025,12,93,"Ray Corp",H,"Identity Standard Miss",0.3535,363,128.32,IDS_MISS,B2025121601110
+2025,12,93,"Ray Corp",H,"Lending Check Err",0.108,2696,291.17,LNK_ERR,B2025121601111
+2025,12,93,"Ray Corp",H,"Lending Extended Hit",0.095,95,9.03,LNX_HIT,B2025121601112
+2025,12,93,"Ray Corp",H,"Lending Extended Miss",0.088,59,5.19,LNX_MISS,B2025121601113
+2025,12,93,"Ray Corp",M,"Social Security Express Hit",0.24,239,57.36,SSE_HIT,B2025121601114
+2025,12,93,"Ray Corp",H,"Verification Network Miss",0.108,274,29.59,VRN_MISS,B2025121601115
+2025,12,93,"Ray Corp",H,"Verification Total Hit",0.087,167,14.53,VRT_HIT,B2025121601116
+2025,12,94,"Venture Global",M,"Account Basic Err",0.1308,5009,655.18,ACB_ERR,B2025121601117
+2025,12,94,"Venture Global",H,"Account Basic Miss",0.1368,316,43.23,ACB_MISS,B2025121601118
+2025,12,94,"Venture Global",M,"Account Basic Null",0.1056,176,18.59,ACB_NULL,B2025121601119
+2025,12,94,"Venture Global",H,"Account Standard Miss",0.19,457,86.83,ACS_MISS,B2025121601120
+2025,12,94,"Venture Global",H,"Bank Basic Null",0.138,222,30.64,BKB_NULL,B2025121601121
+2025,12,94,"Venture Global",H,"Financial Core Err",0.3552,117,41.56,FNC_ERR,B2025121601122
+2025,12,94,"Venture Global",H,"Financial Core Hit",0.3008,61,18.35,FNC_HIT,B2025121601123
+2025,12,94,"Venture Global",H,"Financial Lookup Hit",0.2772,224,62.09,FNL_HIT,B2025121601124
+2025,12,94,"Venture Global",H,"Financial Lookup Miss",0.2744,398,109.21,FNL_MISS,B2025121601125
+2025,12,94,"Venture Global",H,"Identity Standard Err",0.3815,95,36.24,IDS_ERR,B2025121601126
+2025,12,94,"Venture Global",E,"Identity Standard Miss",0.35,175,61.25,IDS_MISS,B2025121601127
+2025,12,94,"Venture Global",H,"Lending Check Err",0.087,428,37.24,LNK_ERR,B2025121601128
+2025,12,94,"Venture Global",H,"Lending Check Miss",0.091,124,11.28,LNK_MISS,B2025121601129
+2025,12,94,"Venture Global",H,"Lending Extended Miss",0.105,305,32.03,LNX_MISS,B2025121601130
+2025,12,94,"Venture Global",H,"Social Security Express Err",0.275,212,58.3,SSE_ERR,B2025121601131
+2025,12,94,"Venture Global",H,"Social Security Express Miss",0.2575,316,81.37,SSE_MISS,B2025121601132
+2025,12,94,"Venture Global",H,"Verification Network Hit",0.111,264,29.3,VRN_HIT,B2025121601133
+2025,12,94,"Venture Global",H,"Verification Network Miss",0.086,104,8.94,VRN_MISS,B2025121601134
+2025,12,95,"Ocean Corp",H,"Account Basic Hit",0.1068,349,37.27,ACB_HIT,B2025121601135
+2025,12,95,"Ocean Corp",E,"Account Basic Null",0.1356,114,15.46,ACB_NULL,B2025121601136
+2025,12,95,"Ocean Corp",H,"Bank Basic Err",0.1485,333,49.45,BKB_ERR,B2025121601137
+2025,12,95,"Ocean Corp",H,"Bank Basic Null",0.162,146,23.65,BKB_NULL,B2025121601138
+2025,12,95,"Ocean Corp",H,"Financial Core Hit",0.3072,465,142.85,FNC_HIT,B2025121601139
+2025,12,95,"Ocean Corp",H,"Financial Lookup Err",0.2716,186,50.52,FNL_ERR,B2025121601140
+2025,12,95,"Ocean Corp",H,"Financial Lookup Hit",0.3164,119,37.65,FNL_HIT,B2025121601141
+2025,12,95,"Ocean Corp",H,"Financial Lookup Miss",0.3164,577,182.56,FNL_MISS,B2025121601142
+2025,12,95,"Ocean Corp",H,"Identity Standard Err",0.378,77,29.11,IDS_ERR,B2025121601143
+2025,12,95,"Ocean Corp",H,"Lending Check Err",0.101,203,20.5,LNK_ERR,B2025121601144
+2025,12,95,"Ocean Corp",E,"Lending Check Miss",0.103,394,40.58,LNK_MISS,B2025121601145
+2025,12,95,"Ocean Corp",M,"Social Security Express Err",0.23,272,62.56,SSE_ERR,B2025121601146
+2025,12,95,"Ocean Corp",N,"Social Security Monitor Miss",0.27,317,85.59,SSM_MISS,B2025121601147
+2025,12,95,"Ocean Corp",H,"Verification Network Hit",0.108,379,40.93,VRN_HIT,B2025121601148
+2025,12,95,"Ocean Corp",M,"Verification Total Miss",0.11,2647,291.17,VRT_MISS,B2025121601149
+2025,12,96,"Falcon Consulting",H,"Account Basic Err",0.1176,151,17.76,ACB_ERR,B2025121601150
+2025,12,96,"Falcon Consulting",H,"Account Basic Miss",0.1188,263,31.24,ACB_MISS,B2025121601151
+2025,12,96,"Falcon Consulting",H,"Account Basic Null",0.1056,542,57.24,ACB_NULL,B2025121601152
+2025,12,96,"Falcon Consulting",M,"Account Standard Hit",0.174,236,41.06,ACS_HIT,B2025121601153
+2025,12,96,"Falcon Consulting",H,"Bank Basic Err",0.162,185,29.97,BKB_ERR,B2025121601154
+2025,12,96,"Falcon Consulting",H,"Bank Basic Miss",0.138,301,41.54,BKB_MISS,B2025121601155
+2025,12,96,"Falcon Consulting",H,"Financial Core Hit",0.2816,130,36.61,FNC_HIT,B2025121601156
+2025,12,96,"Falcon Consulting",H,"Financial Core Miss",0.368,3095,1138.96,FNC_MISS,B2025121601157
+2025,12,96,"Falcon Consulting",M,"Financial Lookup Hit",0.2492,5614,1399.01,FNL_HIT,B2025121601158
+2025,12,96,"Falcon Consulting",E,"Financial Lookup Miss",0.2996,132,39.55,FNL_MISS,B2025121601159
+2025,12,96,"Falcon Consulting",H,"Identity Standard Err",0.3675,147,54.02,IDS_ERR,B2025121601160
+2025,12,96,"Falcon Consulting",H,"Lending Check Miss",0.095,163,15.49,LNK_MISS,B2025121601161
+2025,12,96,"Falcon Consulting",H,"Lending Extended Hit",0.11,42,4.62,LNX_HIT,B2025121601162
+2025,12,96,"Falcon Consulting",H,"Lending Extended Miss",0.1,455,45.5,LNX_MISS,B2025121601163
+2025,12,96,"Falcon Consulting",E,"Social Security Express Miss",0.2425,135,32.74,SSE_MISS,B2025121601164
+2025,12,96,"Falcon Consulting",H,"Social Security Monitor Hit",0.261,73,19.05,SSM_HIT,B2025121601165
+2025,12,98,"Mason Leasing",H,"Account Basic Hit",0.1164,229,26.66,ACB_HIT,B2025121601166
+2025,12,98,"Mason Leasing",H,"Account Basic Miss",0.1248,320,39.94,ACB_MISS,B2025121601167
+2025,12,98,"Mason Leasing",H,"Account Standard Miss",0.226,383,86.56,ACS_MISS,B2025121601168
+2025,12,98,"Mason Leasing",H,"Financial Core Hit",0.336,73,24.53,FNC_HIT,B2025121601169
+2025,12,98,"Mason Leasing",H,"Financial Core Null",0.3136,329,103.17,FNC_NULL,B2025121601170
+2025,12,98,"Mason Leasing",E,"Identity Standard Err",0.399,250,99.75,IDS_ERR,B2025121601171
+2025,12,98,"Mason Leasing",H,"Lending Check Err",0.087,47,4.09,LNK_ERR,B2025121601172
+2025,12,98,"Mason Leasing",H,"Lending Extended Miss",0.107,56,5.99,LNX_MISS,B2025121601173
+2025,12,98,"Mason Leasing",H,"Social Security Express Err",0.265,87,23.06,SSE_ERR,B2025121601174
+2025,12,98,"Mason Leasing",M,"Social Security Express Hit",0.275,435,119.63,SSE_HIT,B2025121601175
+2025,12,98,"Mason Leasing",M,"Social Security Express Miss",0.23,4819,1108.37,SSE_MISS,B2025121601176
+2025,12,98,"Mason Leasing",N,"Social Security Monitor Miss",0.255,4039,1029.95,SSM_MISS,B2025121601177
+2025,12,98,"Mason Leasing",M,"Verification Total Hit",0.092,105,9.66,VRT_HIT,B2025121601178
+2025,12,99,"Native Credit",H,"Account Basic Err",0.1068,258,27.55,ACB_ERR,B2025121601179
+2025,12,99,"Native Credit",M,"Account Basic Hit",0.138,95,13.11,ACB_HIT,B2025121601180
+2025,12,99,"Native Credit",H,"Account Basic Null",0.1356,137,18.58,ACB_NULL,B2025121601181
+2025,12,99,"Native Credit",H,"Account Standard Hit",0.22,441,97.02,ACS_HIT,B2025121601182
+2025,12,99,"Native Credit",M,"Financial Core Err",0.2944,5205,1532.35,FNC_ERR,B2025121601183
+2025,12,99,"Native Credit",M,"Financial Core Null",0.3392,2107,714.69,FNC_NULL,B2025121601184
+2025,12,99,"Native Credit",H,"Financial Lookup Hit",0.3136,428,134.22,FNL_HIT,B2025121601185
+2025,12,99,"Native Credit",H,"Lending Check Miss",0.088,45,3.96,LNK_MISS,B2025121601186
+2025,12,99,"Native Credit",M,"Lending Extended Hit",0.088,274,24.11,LNX_HIT,B2025121601187
+2025,12,99,"Native Credit",M,"Social Security Monitor Hit",0.261,309,80.65,SSM_HIT,B2025121601188
+2025,12,99,"Native Credit",M,"Verification Network Hit",0.089,458,40.76,VRN_HIT,B2025121601189
+2025,12,99,"Native Credit",H,"Verification Total Miss",0.102,3489,355.88,VRT_MISS,B2025121601190
+2025,12,100,"Coastal LLC",H,"Account Basic Hit",0.1092,217,23.7,ACB_HIT,B2025121601191
+2025,12,100,"Coastal LLC",H,"Account Basic Miss",0.1356,95,12.88,ACB_MISS,B2025121601192
+2025,12,100,"Coastal LLC",H,"Bank Basic Err",0.1365,331,45.18,BKB_ERR,B2025121601193
+2025,12,100,"Coastal LLC",H,"Bank Basic Hit",0.171,176,30.1,BKB_HIT,B2025121601194
+2025,12,100,"Coastal LLC",M,"Financial Core Hit",0.3136,109,34.18,FNC_HIT,B2025121601195
+2025,12,100,"Coastal LLC",H,"Financial Lookup Err",0.294,59,17.35,FNL_ERR,B2025121601196
+2025,12,100,"Coastal LLC",H,"Identity Standard Err",0.3955,251,99.27,IDS_ERR,B2025121601197
+2025,12,100,"Coastal LLC",H,"Identity Standard Miss",0.3185,78,24.84,IDS_MISS,B2025121601198
+2025,12,100,"Coastal LLC",N,"Lending Check Err",0.086,204,17.54,LNK_ERR,B2025121601199
+2025,12,100,"Coastal LLC",H,"Lending Extended Hit",0.114,340,38.76,LNX_HIT,B2025121601200
+2025,12,100,"Coastal LLC",H,"Lending Extended Miss",0.109,410,44.69,LNX_MISS,B2025121601201
+2025,12,100,"Coastal LLC",H,"Social Security Express Hit",0.2725,375,102.19,SSE_HIT,B2025121601202
+2025,12,100,"Coastal LLC",H,"Social Security Express Miss",0.255,334,85.17,SSE_MISS,B2025121601203
+2025,12,100,"Coastal LLC",H,"Social Security Monitor Miss",0.288,85,24.48,SSM_MISS,B2025121601204
+2025,12,100,"Coastal LLC",H,"Verification Network Hit",0.106,310,32.86,VRN_HIT,B2025121601205
