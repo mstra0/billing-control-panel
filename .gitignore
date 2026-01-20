@@ -1,0 +1,27 @@
+# Environment-specific shared directories
+*_shared/
+
+# IDE and editor files
+.phpactor.json
+.idea/
+*.swp
+*.swo
+.vscode/
+
+# PHP-CS-Fixer
+.php-cs-fixer.cache
+.php-cs-fixer.dist.php
+
+# Composer (if used)
+vendor/
+composer.lock
+.composer/
+
+# Backup files
+*.backup
+*.bak
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
