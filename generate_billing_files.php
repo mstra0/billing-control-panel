@@ -39,12 +39,12 @@ function sqlite_query($sql, $params = [])
 echo "Loading data from database...\n";
 
 $customers = sqlite_query(
-    "SELECT id, name FROM customers WHERE status='active' ORDER BY id",
+    "SELECT id, name FROM customers WHERE status='active' ORDER BY id"
 );
 echo "Found " . count($customers) . " active customers\n";
 
 $transaction_types = sqlite_query(
-    "SELECT efx_code, display_name, service_id FROM transaction_types ORDER BY efx_code",
+    "SELECT efx_code, display_name, service_id FROM transaction_types ORDER BY efx_code"
 );
 echo "Found " . count($transaction_types) . " transaction types\n";
 
@@ -135,7 +135,7 @@ function generate_daily_file(
     $day,
     $customers,
     $transaction_types,
-    $hit_codes,
+    $hit_codes
 ) {
     $lines = [];
     $billing_id_counter = 1;
@@ -174,7 +174,7 @@ function generate_daily_file(
                 $year,
                 $month,
                 $day,
-                $billing_id_counter++,
+                $billing_id_counter++
             );
 
             $lines[] = [
@@ -228,7 +228,7 @@ for ($day = 1; $day <= 31; $day++) {
         $day,
         $customers,
         $transaction_types,
-        $hit_codes,
+        $hit_codes
     );
 
     $filename = sprintf("DataX_2025_12_%d_humanreadable.csv", $day);
@@ -267,7 +267,7 @@ for ($day = 1; $day <= 31; $day++) {
         $day,
         $customers,
         $transaction_types,
-        $hit_codes,
+        $hit_codes
     );
 
     $filename = sprintf("DataX_2026_01_%d_humanreadable.csv", $day);

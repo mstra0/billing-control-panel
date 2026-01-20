@@ -12,12 +12,38 @@ $_sqlite_db = null;
  * @param string $sql    SQL query with ? placeholders
  * @param array  $params Parameters to bind
  * @return array         Array of associative arrays
+ * @throws Exception     If remote DB is not configured (in production mode)
  */
 function remote_db_query($sql, $params = [])
 {
-    // TODO: Replace with your remote DB implementation
-    // STUB: Returns empty array
-    return [];
+    // Check if remote DB is configured
+    $host = defined("REMOTE_DB_HOST") ? REMOTE_DB_HOST : "";
+
+    if (empty($host)) {
+        // Not configured - this is an error in production environments
+        throw new Exception(
+            "Remote database not configured. Set REMOTE_DB_HOST, REMOTE_DB_NAME, " .
+                "REMOTE_DB_USER, and REMOTE_DB_PASS in environment config."
+        );
+    }
+
+    // TODO: Implement actual remote database connection
+    // Example for MySQL/MariaDB:
+    //
+    // $dsn = "mysql:host=" . REMOTE_DB_HOST . ";dbname=" . REMOTE_DB_NAME . ";charset=utf8mb4";
+    // $pdo = new PDO($dsn, REMOTE_DB_USER, REMOTE_DB_PASS, [
+    //     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    //     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    // ]);
+    // $stmt = $pdo->prepare($sql);
+    // $stmt->execute($params);
+    // return $stmt->fetchAll();
+
+    throw new Exception(
+        "Remote database connection not implemented. " .
+            "Edit db.php remote_db_query() to connect to: " .
+            $host
+    );
 }
 
 /**
@@ -433,6 +459,40 @@ function sqlite_run_migrations()
             "ALTER TABLE lms ADD COLUMN status TEXT DEFAULT 'active'"
         );
     }
+
+    // Migration 3: Create generated_reports table for report archival
+    $_sqlite_db->exec("
+        CREATE TABLE IF NOT EXISTS generated_reports (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            report_type TEXT NOT NULL,
+            report_subtype TEXT,
+            file_name TEXT NOT NULL,
+            file_path TEXT NOT NULL,
+            file_size INTEGER,
+            record_count INTEGER,
+            generated_at TEXT DEFAULT (datetime('now')),
+            parameters TEXT,
+            notes TEXT
+        )
+    ");
+
+    $_sqlite_db->exec("
+        CREATE INDEX IF NOT EXISTS idx_generated_reports_type
+            ON generated_reports(report_type, generated_at)
+    ");
+
+    // Migration 4: Add notes column to sync_log if it doesn't exist
+    $result = $_sqlite_db->query("PRAGMA table_info(sync_log)");
+    $has_notes = false;
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        if ($row["name"] === "notes") {
+            $has_notes = true;
+            break;
+        }
+    }
+    if (!$has_notes) {
+        $_sqlite_db->exec("ALTER TABLE sync_log ADD COLUMN notes TEXT");
+    }
 }
 
 /**
@@ -586,7 +646,7 @@ function sqlite_seed_mock_data()
         [7, "Oscorp", 3, "active", "2025-01-01"],
         [8, "LexCorp", 2, "decommissioned", "2021-01-01"],
         [9, "Cyberdyne", 1, "active", "2024-09-01"],
-        [10, "Tyrell Corp", null, "active", "2023-01-01"]
+        [10, "Tyrell Corp", null, "active", "2023-01-01"],
     ];
 
     foreach ($customers_data as $c) {
@@ -612,7 +672,7 @@ function sqlite_seed_mock_data()
         ["default", null, 4, 10001, null, 0.05],
         ["default", null, 5, 0, 100, 5.0],
         ["default", null, 5, 101, 500, 4.5],
-        ["default", null, 5, 501, null, 4.0]
+        ["default", null, 5, 501, null, 4.0],
     ];
 
     foreach ($default_tiers as $t) {
@@ -627,7 +687,7 @@ function sqlite_seed_mock_data()
     $group_tiers = [
         ["group", 1, 1, 0, 1000, 0.4],
         ["group", 1, 1, 1001, 5000, 0.32],
-        ["group", 1, 1, 5001, null, 0.24]
+        ["group", 1, 1, 5001, null, 0.24],
     ];
 
     foreach ($group_tiers as $t) {
@@ -642,7 +702,7 @@ function sqlite_seed_mock_data()
     $customer_tiers = [
         ["customer", 6, 5, 0, 100, 4.0],
         ["customer", 6, 5, 101, 500, 3.5],
-        ["customer", 6, 5, 501, null, 3.0]
+        ["customer", 6, 5, 501, null, 3.0],
     ];
 
     foreach ($customer_tiers as $t) {

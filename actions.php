@@ -34,78 +34,26 @@ function action_dashboard()
  */
 function action_list_reports()
 {
-    $data = [
-        "reports" => list_reports(),
-    ];
-    render_list_reports($data);
+    // Legacy redirect - use billing_reports instead
+    redirect("billing_reports");
 }
 
 /**
- * View a specific report
+ * View a specific report (legacy - redirects to billing_reports)
  */
 function action_view_report()
 {
-    $file = get_param("file");
-
-    if (empty($file)) {
-        set_flash("error", "No file specified");
-        redirect("list_reports");
-        return;
-    }
-
-    $filepath = get_generated_path() . "/" . basename($file);
-
-    if (!is_valid_filepath($filepath)) {
-        set_flash("error", "Invalid file path");
-        redirect("list_reports");
-        return;
-    }
-
-    $rows = csv_read($filepath);
-    $headers = csv_get_headers($filepath);
-
-    if ($rows === false) {
-        set_flash("error", "Could not read file");
-        redirect("list_reports");
-        return;
-    }
-
-    $data = [
-        "filename" => basename($file),
-        "filepath" => $filepath,
-        "headers" => $headers,
-        "rows" => $rows,
-        "count" => count($rows),
-    ];
-    render_view_report($data);
+    // Legacy redirect
+    redirect("billing_reports");
 }
 
 /**
- * Download a report file
+ * Download a report file (legacy - redirects to billing_reports)
  */
 function action_download_report()
 {
-    $file = get_param("file");
-
-    if (empty($file)) {
-        set_flash("error", "No file specified");
-        redirect("list_reports");
-        return;
-    }
-
-    $filepath = get_generated_path() . "/" . basename($file);
-
-    if (!is_valid_filepath($filepath)) {
-        set_flash("error", "Invalid file path");
-        redirect("list_reports");
-        return;
-    }
-
-    if (!download_file($filepath)) {
-        set_flash("error", "Could not download file");
-        redirect("list_reports");
-    }
-    exit();
+    // Legacy redirect
+    redirect("billing_reports");
 }
 
 /**
@@ -1162,6 +1110,78 @@ function action_ingestion_view()
 }
 
 /**
+ * Audit a single billing line item
+ * Shows the full calculation breakdown with expected vs actual comparison
+ */
+function action_line_audit()
+{
+    require_once __DIR__ . "/calculator.php";
+
+    $line_id = (int) get_param("id");
+
+    if (!$line_id) {
+        set_flash("error", "No line ID specified");
+        redirect("ingestion");
+        return;
+    }
+
+    $audit = audit_billing_line($line_id);
+
+    if (!isset($audit["line_id"])) {
+        set_flash(
+            "error",
+            isset($audit["error"]) ? $audit["error"] : "Line not found"
+        );
+        redirect("ingestion");
+        return;
+    }
+
+    // Generate LaTeX representation
+    $latex = format_audit_as_latex($audit);
+
+    $data = [
+        "audit" => $audit,
+        "latex" => $latex,
+    ];
+
+    render_line_audit($data);
+}
+
+/**
+ * Audit all lines in a billing report
+ * Shows summary with variance statistics
+ */
+function action_report_audit()
+{
+    require_once __DIR__ . "/calculator.php";
+
+    $report_id = (int) get_param("id");
+
+    if (!$report_id) {
+        set_flash("error", "No report ID specified");
+        redirect("ingestion");
+        return;
+    }
+
+    $audit = audit_billing_report($report_id);
+
+    if (!(isset($audit["success"]) ? $audit["success"] : true)) {
+        set_flash(
+            "error",
+            isset($audit["error"]) ? $audit["error"] : "Report not found"
+        );
+        redirect("ingestion");
+        return;
+    }
+
+    $data = [
+        "audit" => $audit,
+    ];
+
+    render_report_audit($data);
+}
+
+/**
  * Bulk import page for historical seeding
  */
 function action_ingestion_bulk()
@@ -1386,9 +1406,23 @@ function action_generation()
 
         $file_path = $pending_path . "/" . $filename;
         if (file_put_contents($file_path, $result["csv_content"])) {
+            // Also archive to reports directory
+            $archive_params = [
+                "as_of_date" => $options["as_of_date"],
+                "include_inactive" => $options["include_inactive"],
+            ];
+            $report_id = archive_generated_report(
+                "tier_pricing",
+                $file_path,
+                $archive_params,
+                "Generated from Generation page"
+            );
+
+            $archive_msg = $report_id ? " and archived to reports" : "";
             set_flash(
                 "success",
-                "Generated $filename with {$result["row_count"]} rows and saved to pending directory"
+                "Generated $filename with {$result["row_count"]} rows and saved to pending directory" .
+                    $archive_msg
             );
         } else {
             set_flash("error", "Failed to write file to pending directory");
@@ -2179,9 +2213,15 @@ function action_customer_pricing()
     // Get customer settings
     $settings = get_current_customer_settings($customer_id);
 
-    // Get escalators
+    // Get escalators with their delays
     $escalators = get_current_escalators($customer_id);
-    $total_delay = get_total_delay_months($customer_id);
+    foreach ($escalators as &$esc) {
+        $esc["total_delay"] = get_total_delay_months(
+            $customer_id,
+            $esc["year_number"]
+        );
+    }
+    unset($esc);
 
     // Summary counts
     $summary = [
@@ -2206,7 +2246,6 @@ function action_customer_pricing()
         "pricing_data" => $pricing_data,
         "settings" => $settings,
         "escalators" => $escalators,
-        "total_delay" => $total_delay,
         "summary" => $summary,
     ];
 
@@ -2903,6 +2942,1539 @@ function action_calendar_month()
     render_calendar_month($data);
 }
 
+// ============================================================
+// BILLING REPORTS ACTIONS
+// ============================================================
+
+/**
+ * Billing Reports - View all ingestion and generated reports
+ */
+function action_billing_reports()
+{
+    $data = [
+        "ingestion_reports" => get_ingestion_reports(),
+        "generated_reports" => get_generated_reports_grouped(),
+    ];
+
+    render_billing_reports($data);
+}
+
+/**
+ * View a specific billing report (CSV preview)
+ */
+function action_view_billing_report()
+{
+    $type = get_param("type"); // 'ingestion' or 'generated'
+    $id = get_param("id"); // For generated reports
+    $file = get_param("file"); // For ingestion reports
+
+    if ($type === "generated" && $id) {
+        $report = get_generated_report($id);
+        if (!$report || !file_exists($report["file_path"])) {
+            set_flash("error", "Report not found");
+            redirect("billing_reports");
+            return;
+        }
+        $filepath = $report["file_path"];
+        $filename = $report["file_name"];
+        $report_info = $report;
+    } elseif ($type === "ingestion" && $file) {
+        $filepath = get_archive_path() . "/" . basename($file);
+        if (!file_exists($filepath)) {
+            set_flash("error", "File not found");
+            redirect("billing_reports");
+            return;
+        }
+        $filename = basename($file);
+        $report_info = null;
+    } else {
+        set_flash("error", "Invalid parameters");
+        redirect("billing_reports");
+        return;
+    }
+
+    // Read CSV
+    $rows = [];
+    $headers = [];
+    $count = 0;
+
+    if (($handle = fopen($filepath, "r")) !== false) {
+        $headers = fgetcsv($handle);
+        while (($row = fgetcsv($handle)) !== false && $count < 100) {
+            $rows[] = array_combine($headers, $row);
+            $count++;
+        }
+        // Count remaining
+        while (fgetcsv($handle) !== false) {
+            $count++;
+        }
+        fclose($handle);
+    }
+
+    $data = [
+        "type" => $type,
+        "filename" => $filename,
+        "filepath" => $filepath,
+        "headers" => $headers,
+        "rows" => $rows,
+        "count" => $count,
+        "report_info" => $report_info,
+    ];
+
+    render_view_billing_report($data);
+}
+
+/**
+ * Download a billing report
+ */
+function action_download_billing_report()
+{
+    $type = get_param("type");
+    $id = get_param("id");
+    $file = get_param("file");
+
+    if ($type === "generated" && $id) {
+        $report = get_generated_report($id);
+        if (!$report || !file_exists($report["file_path"])) {
+            set_flash("error", "Report not found");
+            redirect("billing_reports");
+            return;
+        }
+        $filepath = $report["file_path"];
+        $filename = $report["file_name"];
+    } elseif ($type === "ingestion" && $file) {
+        $filepath = get_archive_path() . "/" . basename($file);
+        if (!file_exists($filepath)) {
+            set_flash("error", "File not found");
+            redirect("billing_reports");
+            return;
+        }
+        $filename = basename($file);
+    } else {
+        set_flash("error", "Invalid parameters");
+        redirect("billing_reports");
+        return;
+    }
+
+    header("Content-Type: text/csv");
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header("Content-Length: " . filesize($filepath));
+    readfile($filepath);
+    exit();
+}
+
+/**
+ * Regenerate a report to temp directory (for comparison, not archived)
+ */
+function action_regenerate_report()
+{
+    $report_type = get_param("report_type");
+    $compare_id = get_param("compare_id"); // Optional: ID of report to compare against
+
+    if ($report_type === "tier_pricing") {
+        $options = [
+            "as_of_date" => get_param("as_of_date", date("Y-m-d")),
+            "include_inactive" => get_param("include_inactive") === "1",
+        ];
+
+        $result = generate_tier_pricing_csv($options);
+
+        if (!empty($result["errors"])) {
+            set_flash("error", implode(", ", $result["errors"]));
+            redirect("billing_reports");
+            return;
+        }
+
+        // Save to temp directory (not archived)
+        $filename = "tier_pricing_temp_" . date("Ymd_His") . ".csv";
+        $temp_path = get_temp_path();
+
+        if (!is_dir($temp_path)) {
+            mkdir($temp_path, 0755, true);
+        }
+
+        $file_path = $temp_path . "/" . $filename;
+        file_put_contents($file_path, $result["csv_content"]);
+
+        // If compare_id provided, redirect to compare view
+        if ($compare_id) {
+            redirect(
+                "compare_reports&temp_file=" .
+                    urlencode($filename) .
+                    "&compare_id=" .
+                    $compare_id
+            );
+            return;
+        }
+
+        // Otherwise just view the temp file
+        $data = [
+            "type" => "temp",
+            "filename" => $filename,
+            "filepath" => $file_path,
+            "headers" => [],
+            "rows" => [],
+            "count" => $result["row_count"],
+            "report_info" => [
+                "generated_at" => date("Y-m-d H:i:s"),
+                "notes" => "Temporary regeneration (not archived)",
+                "parameters" => json_encode($options),
+            ],
+        ];
+
+        // Read CSV for preview
+        if (($handle = fopen($file_path, "r")) !== false) {
+            $data["headers"] = fgetcsv($handle);
+            $count = 0;
+            while (($row = fgetcsv($handle)) !== false && $count < 100) {
+                $data["rows"][] = array_combine($data["headers"], $row);
+                $count++;
+            }
+            fclose($handle);
+        }
+
+        render_view_billing_report($data);
+        return;
+    }
+
+    set_flash("error", "Unknown report type: " . $report_type);
+    redirect("billing_reports");
+}
+
+/**
+ * Compare two reports side by side
+ */
+function action_compare_reports()
+{
+    $compare_id = get_param("compare_id");
+    $temp_file = get_param("temp_file");
+    $report_id_1 = get_param("report_id_1");
+    $report_id_2 = get_param("report_id_2");
+
+    // Determine which reports to compare
+    $report1 = null;
+    $report2 = null;
+    $file1 = null;
+    $file2 = null;
+
+    if ($temp_file && $compare_id) {
+        // Compare temp file against archived report
+        $file1 = get_temp_path() . "/" . basename($temp_file);
+        $report2 = get_generated_report($compare_id);
+        $file2 = $report2 ? $report2["file_path"] : null;
+
+        if (!file_exists($file1) || !$report2 || !file_exists($file2)) {
+            set_flash("error", "One or both files not found");
+            redirect("billing_reports");
+            return;
+        }
+    } elseif ($report_id_1 && $report_id_2) {
+        // Compare two archived reports
+        $report1 = get_generated_report($report_id_1);
+        $report2 = get_generated_report($report_id_2);
+
+        if (
+            !$report1 ||
+            !$report2 ||
+            !file_exists($report1["file_path"]) ||
+            !file_exists($report2["file_path"])
+        ) {
+            set_flash("error", "One or both reports not found");
+            redirect("billing_reports");
+            return;
+        }
+
+        $file1 = $report1["file_path"];
+        $file2 = $report2["file_path"];
+    } else {
+        set_flash("error", "Invalid comparison parameters");
+        redirect("billing_reports");
+        return;
+    }
+
+    // Read both files
+    $data1 = read_csv_for_compare($file1);
+    $data2 = read_csv_for_compare($file2);
+
+    // Compare the data
+    $comparison = compare_csv_data($data1, $data2);
+
+    $data = [
+        "file1" => [
+            "name" => $temp_file ? basename($temp_file) : $report1["file_name"],
+            "label" => $temp_file ? "New (Temp)" : $report1["file_name"],
+            "generated" => $temp_file
+                ? date("Y-m-d H:i:s")
+                : $report1["generated_at"],
+            "row_count" => count($data1["rows"]),
+        ],
+        "file2" => [
+            "name" => $report2["file_name"],
+            "label" => "Archived: " . $report2["file_name"],
+            "generated" => $report2["generated_at"],
+            "row_count" => count($data2["rows"]),
+        ],
+        "comparison" => $comparison,
+        "headers" => $data1["headers"],
+    ];
+
+    render_compare_reports($data);
+}
+
+/**
+ * Helper: Read CSV file for comparison
+ */
+function read_csv_for_compare($filepath)
+{
+    $result = ["headers" => [], "rows" => [], "indexed" => []];
+
+    if (($handle = fopen($filepath, "r")) !== false) {
+        $result["headers"] = fgetcsv($handle);
+        while (($row = fgetcsv($handle)) !== false) {
+            $assoc = array_combine($result["headers"], $row);
+            $result["rows"][] = $assoc;
+
+            // Create index key for comparison (cust_id + EFX_code + start_trans for tier_pricing)
+            if (
+                isset($assoc["cust_id"]) &&
+                isset($assoc["EFX_code"]) &&
+                isset($assoc["start_trans"])
+            ) {
+                $key =
+                    $assoc["cust_id"] .
+                    "|" .
+                    $assoc["EFX_code"] .
+                    "|" .
+                    $assoc["start_trans"];
+                $result["indexed"][$key] = $assoc;
+            }
+        }
+        fclose($handle);
+    }
+
+    return $result;
+}
+
+/**
+ * Helper: Compare two CSV datasets
+ */
+function compare_csv_data($data1, $data2)
+{
+    $result = [
+        "added" => [], // In new but not in old
+        "removed" => [], // In old but not in new
+        "changed" => [], // In both but different
+        "unchanged" => 0, // Count of unchanged rows
+    ];
+
+    // Find added and changed rows
+    foreach ($data1["indexed"] as $key => $row1) {
+        if (!isset($data2["indexed"][$key])) {
+            $result["added"][] = $row1;
+        } else {
+            $row2 = $data2["indexed"][$key];
+            $changes = [];
+
+            foreach ($row1 as $col => $val1) {
+                $val2 = isset($row2[$col]) ? $row2[$col] : "";
+                if ($val1 !== $val2) {
+                    $changes[$col] = ["old" => $val2, "new" => $val1];
+                }
+            }
+
+            if (!empty($changes)) {
+                $result["changed"][] = [
+                    "key" => $key,
+                    "row" => $row1,
+                    "changes" => $changes,
+                ];
+            } else {
+                $result["unchanged"]++;
+            }
+        }
+    }
+
+    // Find removed rows
+    foreach ($data2["indexed"] as $key => $row2) {
+        if (!isset($data1["indexed"][$key])) {
+            $result["removed"][] = $row2;
+        }
+    }
+
+    return $result;
+}
+
+// ============================================================
+// BILLING DASHBOARD ACTIONS
+// ============================================================
+
+/**
+ * Billing Dashboard - Unified dashboard for billing insights
+ * LMS performance, tier proximity analysis, and operational metrics
+ */
+function action_billing_intelligence()
+{
+    require_once __DIR__ . "/calculator.php";
+
+    // Get date range from ingested data
+    $date_range = sqlite_query(
+        "SELECT MIN(report_date) as earliest, MAX(report_date) as latest FROM billing_reports"
+    );
+    $earliest = isset($date_range[0]["earliest"])
+        ? $date_range[0]["earliest"]
+        : date("Y-m-d");
+    $latest = isset($date_range[0]["latest"])
+        ? $date_range[0]["latest"]
+        : date("Y-m-d");
+
+    // Get current month/year for MTD calculations
+    $current_year = (int) date("Y");
+    $current_month = (int) date("n");
+
+    // Get overall stats
+    $overall_stats = sqlite_query(
+        "SELECT
+            COUNT(DISTINCT br.id) as total_reports,
+            SUM(brl.count) as total_transactions,
+            SUM(brl.revenue) as total_revenue,
+            COUNT(DISTINCT brl.customer_id) as unique_customers,
+            COUNT(DISTINCT brl.efx_code) as unique_services
+         FROM billing_reports br
+         LEFT JOIN billing_report_lines brl ON br.id = brl.report_id"
+    );
+    $stats = isset($overall_stats[0]) ? $overall_stats[0] : [];
+
+    // Calculate average price per transaction
+    $avg_price =
+        $stats["total_transactions"] > 0
+            ? $stats["total_revenue"] / $stats["total_transactions"]
+            : 0;
+
+    // ========================================
+    // LMS PERFORMANCE METRICS
+    // ========================================
+    $lms_performance = get_lms_performance_metrics(
+        $current_year,
+        $current_month
+    );
+
+    // ========================================
+    // TIER PROXIMITY ANALYSIS
+    // ========================================
+    $tier_proximity = get_tier_proximity_analysis(
+        $current_year,
+        $current_month
+    );
+
+    // Get monthly breakdown (for reference)
+    $monthly_data = sqlite_query(
+        "SELECT
+            brl.year,
+            brl.month,
+            COUNT(DISTINCT br.id) as report_count,
+            SUM(brl.count) as transactions,
+            SUM(brl.revenue) as revenue,
+            COUNT(DISTINCT brl.customer_id) as customers
+         FROM billing_report_lines brl
+         JOIN billing_reports br ON brl.report_id = br.id
+         GROUP BY brl.year, brl.month
+         ORDER BY brl.year DESC, brl.month DESC
+         LIMIT 6"
+    );
+
+    // Run audit on a sample to get variance stats
+    $variance_stats = get_billing_variance_stats();
+
+    $data = [
+        "date_range" => ["earliest" => $earliest, "latest" => $latest],
+        "current_period" => [
+            "year" => $current_year,
+            "month" => $current_month,
+        ],
+        "stats" => [
+            "total_reports" => isset($stats["total_reports"])
+                ? $stats["total_reports"]
+                : 0,
+            "total_transactions" => isset($stats["total_transactions"])
+                ? $stats["total_transactions"]
+                : 0,
+            "total_revenue" => isset($stats["total_revenue"])
+                ? $stats["total_revenue"]
+                : 0,
+            "unique_customers" => isset($stats["unique_customers"])
+                ? $stats["unique_customers"]
+                : 0,
+            "unique_services" => isset($stats["unique_services"])
+                ? $stats["unique_services"]
+                : 0,
+            "avg_price" => $avg_price,
+        ],
+        "lms_performance" => $lms_performance,
+        "tier_proximity" => $tier_proximity,
+        "monthly_data" => $monthly_data,
+        "variance_stats" => $variance_stats,
+    ];
+
+    render_billing_intelligence($data);
+}
+
+/**
+ * Get LMS performance metrics - daily counts, COGS, revenue vs payout
+ */
+function get_lms_performance_metrics($year, $month)
+{
+    $all_lms = get_all_lms();
+    $default_rate = get_default_commission_rate();
+    $services = get_all_services();
+
+    // Build service COGS lookup
+    $service_cogs = [];
+    foreach ($services as $svc) {
+        $service_cogs[$svc["id"]] = get_service_cogs($svc["id"]);
+    }
+
+    // Get EFX code to service mapping
+    $efx_to_service = [];
+    $types = sqlite_query(
+        "SELECT efx_code, service_id FROM transaction_types WHERE service_id IS NOT NULL"
+    );
+    foreach ($types as $t) {
+        $efx_to_service[$t["efx_code"]] = $t["service_id"];
+    }
+
+    $lms_data = [];
+    $totals = [
+        "revenue" => 0,
+        "cogs" => 0,
+        "gross_profit" => 0,
+        "commission" => 0,
+        "net_profit" => 0,
+        "transactions" => 0,
+        "customers" => 0,
+    ];
+
+    foreach ($all_lms as $lms) {
+        $customers = get_customers_by_lms($lms["id"]);
+        if (empty($customers)) {
+            continue;
+        }
+
+        $customer_ids = array_column($customers, "id");
+        $customer_id_placeholders = implode(
+            ",",
+            array_fill(0, count($customer_ids), "?")
+        );
+
+        // Get billing data for this LMS's customers for the period
+        $params = array_merge($customer_ids, [$year, $month]);
+        $billing = sqlite_query(
+            "SELECT
+                brl.efx_code,
+                SUM(brl.count) as total_count,
+                SUM(brl.revenue) as total_revenue
+             FROM billing_report_lines brl
+             WHERE brl.customer_id IN ($customer_id_placeholders)
+               AND brl.year = ? AND brl.month = ?
+             GROUP BY brl.efx_code",
+            $params
+        );
+
+        $lms_revenue = 0;
+        $lms_cogs = 0;
+        $lms_transactions = 0;
+
+        foreach ($billing as $row) {
+            $lms_revenue += (float) $row["total_revenue"];
+            $lms_transactions += (int) $row["total_count"];
+
+            // Calculate COGS based on service mapping
+            $service_id = isset($efx_to_service[$row["efx_code"]])
+                ? $efx_to_service[$row["efx_code"]]
+                : null;
+            if ($service_id && isset($service_cogs[$service_id])) {
+                $lms_cogs +=
+                    $service_cogs[$service_id] * (int) $row["total_count"];
+            }
+        }
+
+        $effective_rate =
+            $lms["commission_rate"] !== null
+                ? (float) $lms["commission_rate"]
+                : $default_rate;
+
+        $gross_profit = $lms_revenue - $lms_cogs;
+        $commission = $gross_profit * ($effective_rate / 100);
+        $net_profit = $gross_profit - $commission;
+
+        if ($lms_revenue > 0 || $lms_transactions > 0) {
+            $lms_data[] = [
+                "id" => $lms["id"],
+                "name" => $lms["name"],
+                "commission_rate" => $effective_rate,
+                "is_default_rate" => $lms["commission_rate"] === null,
+                "customer_count" => count($customers),
+                "transactions" => $lms_transactions,
+                "revenue" => $lms_revenue,
+                "cogs" => $lms_cogs,
+                "gross_profit" => $gross_profit,
+                "commission" => $commission,
+                "net_profit" => $net_profit,
+                "margin_pct" =>
+                    $lms_revenue > 0 ? ($net_profit / $lms_revenue) * 100 : 0,
+            ];
+
+            $totals["revenue"] += $lms_revenue;
+            $totals["cogs"] += $lms_cogs;
+            $totals["gross_profit"] += $gross_profit;
+            $totals["commission"] += $commission;
+            $totals["net_profit"] += $net_profit;
+            $totals["transactions"] += $lms_transactions;
+            $totals["customers"] += count($customers);
+        }
+    }
+
+    // Sort by revenue descending
+    usort($lms_data, function ($a, $b) {
+        if ($b["revenue"] == $a["revenue"]) {
+            return 0;
+        }
+        return $b["revenue"] > $a["revenue"] ? 1 : -1;
+    });
+
+    return [
+        "lms_list" => $lms_data,
+        "totals" => $totals,
+        "default_rate" => $default_rate,
+    ];
+}
+
+/**
+ * Get tier proximity analysis - how close customers are to next tier
+ */
+function get_tier_proximity_analysis($year, $month)
+{
+    // Get all active customers with their MTD transaction counts by service
+    $customer_volumes = sqlite_query(
+        "SELECT
+            brl.customer_id,
+            brl.customer_name,
+            brl.efx_code,
+            SUM(brl.count) as mtd_count,
+            SUM(brl.revenue) as mtd_revenue
+         FROM billing_report_lines brl
+         JOIN billing_reports br ON brl.report_id = br.id
+         WHERE brl.year = ? AND brl.month = ?
+         GROUP BY brl.customer_id, brl.customer_name, brl.efx_code",
+        [$year, $month]
+    );
+
+    // Get EFX code to service mapping
+    $efx_to_service = [];
+    $types = sqlite_query(
+        "SELECT efx_code, service_id FROM transaction_types WHERE service_id IS NOT NULL"
+    );
+    foreach ($types as $t) {
+        $efx_to_service[$t["efx_code"]] = $t["service_id"];
+    }
+
+    // Calculate days elapsed and remaining in month
+    $days_in_month = (int) date("t");
+    $current_day = (int) date("j");
+    $days_remaining = $days_in_month - $current_day;
+    $month_progress_pct = ($current_day / $days_in_month) * 100;
+
+    $proximity_data = [];
+
+    foreach ($customer_volumes as $vol) {
+        $customer_id = $vol["customer_id"];
+        $efx_code = $vol["efx_code"];
+        $mtd_count = (int) $vol["mtd_count"];
+
+        // Map to service
+        $service_id = isset($efx_to_service[$efx_code])
+            ? $efx_to_service[$efx_code]
+            : null;
+        if (!$service_id) {
+            continue;
+        }
+
+        // Get effective tiers for this customer/service
+        $tiers = get_effective_customer_tiers($customer_id, $service_id);
+        if (empty($tiers)) {
+            continue;
+        }
+
+        // Find current tier and next tier
+        $current_tier = null;
+        $next_tier = null;
+
+        for ($i = 0; $i < count($tiers); $i++) {
+            $tier = $tiers[$i];
+            $vol_start = (int) $tier["volume_start"];
+            $vol_end =
+                $tier["volume_end"] !== null
+                    ? (int) $tier["volume_end"]
+                    : PHP_INT_MAX;
+
+            if ($mtd_count >= $vol_start && $mtd_count <= $vol_end) {
+                $current_tier = $tier;
+                $current_tier["index"] = $i;
+                // Next tier is the one after
+                if ($i + 1 < count($tiers)) {
+                    $next_tier = $tiers[$i + 1];
+                }
+                break;
+            }
+        }
+
+        if (!$current_tier || !$next_tier) {
+            continue; // Already at highest tier or no tier found
+        }
+
+        // Calculate proximity to next tier
+        $next_tier_threshold = (int) $next_tier["volume_start"];
+        $distance_to_next = $next_tier_threshold - $mtd_count;
+
+        // Project end-of-month volume based on current rate
+        $daily_rate = $current_day > 0 ? $mtd_count / $current_day : 0;
+        $projected_eom = $mtd_count + $daily_rate * $days_remaining;
+
+        // Will they hit next tier?
+        $will_hit_next = $projected_eom >= $next_tier_threshold;
+
+        // Calculate probability of hitting next tier
+        $hit_probability = 0;
+        if ($distance_to_next > 0) {
+            // How many days needed at current rate to hit next tier
+            $days_needed =
+                $daily_rate > 0 ? $distance_to_next / $daily_rate : PHP_INT_MAX;
+            $hit_probability = min(
+                100,
+                ($days_remaining / max(1, $days_needed)) * 100
+            );
+        } elseif ($mtd_count >= $next_tier_threshold) {
+            $hit_probability = 100;
+        }
+
+        // Calculate potential savings if they hit next tier
+        $current_price = (float) $current_tier["price_per_inquiry"];
+        $next_price = (float) $next_tier["price_per_inquiry"];
+        $price_reduction_pct =
+            $current_price > 0
+                ? (($current_price - $next_price) / $current_price) * 100
+                : 0;
+
+        // Progress through current tier
+        $tier_start = (int) $current_tier["volume_start"];
+        $tier_range = $next_tier_threshold - $tier_start;
+        $position_in_tier = $mtd_count - $tier_start;
+        $progress_to_next =
+            $tier_range > 0 ? ($position_in_tier / $tier_range) * 100 : 0;
+
+        // Only include if they have meaningful progress or chance
+        if ($progress_to_next >= 40 || $hit_probability >= 25) {
+            $proximity_data[] = [
+                "customer_id" => $customer_id,
+                "customer_name" => $vol["customer_name"],
+                "service_id" => $service_id,
+                "efx_code" => $efx_code,
+                "mtd_count" => $mtd_count,
+                "mtd_revenue" => (float) $vol["mtd_revenue"],
+                "current_tier_start" => $tier_start,
+                "current_tier_end" => $current_tier["volume_end"],
+                "current_price" => $current_price,
+                "next_tier_threshold" => $next_tier_threshold,
+                "next_tier_price" => $next_price,
+                "distance_to_next" => $distance_to_next,
+                "progress_to_next_pct" => $progress_to_next,
+                "daily_rate" => $daily_rate,
+                "projected_eom" => $projected_eom,
+                "will_hit_next" => $will_hit_next,
+                "hit_probability_pct" => $hit_probability,
+                "price_reduction_pct" => $price_reduction_pct,
+            ];
+        }
+    }
+
+    // Sort by hit probability descending
+    usort($proximity_data, function ($a, $b) {
+        if ($b["hit_probability_pct"] == $a["hit_probability_pct"]) {
+            return 0;
+        }
+        return $b["hit_probability_pct"] > $a["hit_probability_pct"] ? 1 : -1;
+    });
+
+    return [
+        "customers" => $proximity_data,
+        "month_progress_pct" => $month_progress_pct,
+        "days_remaining" => $days_remaining,
+        "days_elapsed" => $current_day,
+        "days_in_month" => $days_in_month,
+        "likely_to_upgrade" => count(
+            array_filter($proximity_data, function ($p) {
+                return $p["hit_probability_pct"] >= 70;
+            })
+        ),
+        "possible_upgrade" => count(
+            array_filter($proximity_data, function ($p) {
+                return $p["hit_probability_pct"] >= 30 &&
+                    $p["hit_probability_pct"] < 70;
+            })
+        ),
+        "unlikely_upgrade" => count(
+            array_filter($proximity_data, function ($p) {
+                return $p["hit_probability_pct"] < 30;
+            })
+        ),
+    ];
+}
+
+/**
+ * Get variance statistics from billing data
+ */
+function get_billing_variance_stats()
+{
+    // Get a sample of audited lines to calculate variance distribution
+    $sample_size = 1000;
+
+    $lines = sqlite_query(
+        "SELECT id FROM billing_report_lines ORDER BY RANDOM() LIMIT ?",
+        [$sample_size]
+    );
+
+    $matches = 0;
+    $small_variances = 0;
+    $large_variances = 0;
+    $errors = 0;
+    $total_audited = 0;
+
+    // Only audit if we have the calculator and reasonable number of lines
+    if (function_exists("audit_billing_line") && count($lines) > 0) {
+        foreach ($lines as $line) {
+            $audit = audit_billing_line($line["id"]);
+
+            if (!empty($audit["errors"])) {
+                $errors++;
+            } elseif (isset($audit["variance"])) {
+                $total_audited++;
+                if ($audit["variance"]["is_match"]) {
+                    $matches++;
+                } elseif (abs($audit["variance"]["unit_price_pct"]) <= 5) {
+                    $small_variances++;
+                } else {
+                    $large_variances++;
+                }
+            }
+        }
+    }
+
+    return [
+        "total_audited" => $total_audited,
+        "matches" => $matches,
+        "small_variances" => $small_variances,
+        "large_variances" => $large_variances,
+        "errors" => $errors,
+        "match_pct" =>
+            $total_audited > 0 ? ($matches / $total_audited) * 100 : 0,
+        "small_var_pct" =>
+            $total_audited > 0 ? ($small_variances / $total_audited) * 100 : 0,
+        "large_var_pct" =>
+            $total_audited > 0 ? ($large_variances / $total_audited) * 100 : 0,
+    ];
+}
+
+/**
+ * Billing Dashboard - Month drill-down
+ */
+function action_billing_month()
+{
+    $year = (int) get_param("year", date("Y"));
+    $month = (int) get_param("month", date("n"));
+
+    // Get month stats
+    $month_stats = sqlite_query(
+        "SELECT
+            COUNT(DISTINCT br.id) as report_count,
+            SUM(brl.count) as total_transactions,
+            SUM(brl.revenue) as total_revenue,
+            COUNT(DISTINCT brl.customer_id) as unique_customers
+         FROM billing_report_lines brl
+         JOIN billing_reports br ON brl.report_id = br.id
+         WHERE brl.year = ? AND brl.month = ?",
+        [$year, $month]
+    );
+
+    // Get daily breakdown (from daily reports)
+    $daily_data = sqlite_query(
+        "SELECT
+            br.report_date,
+            SUM(brl.count) as transactions,
+            SUM(brl.revenue) as revenue,
+            COUNT(DISTINCT brl.customer_id) as customers
+         FROM billing_report_lines brl
+         JOIN billing_reports br ON brl.report_id = br.id
+         WHERE brl.year = ? AND brl.month = ? AND br.report_type = 'daily'
+         GROUP BY br.report_date
+         ORDER BY br.report_date",
+        [$year, $month]
+    );
+
+    // Get customer breakdown for this month
+    $customer_breakdown = sqlite_query(
+        "SELECT
+            brl.customer_id,
+            brl.customer_name,
+            SUM(brl.count) as transactions,
+            SUM(brl.revenue) as revenue
+         FROM billing_report_lines brl
+         JOIN billing_reports br ON brl.report_id = br.id
+         WHERE brl.year = ? AND brl.month = ?
+         GROUP BY brl.customer_id, brl.customer_name
+         ORDER BY revenue DESC",
+        [$year, $month]
+    );
+
+    // Get service breakdown for this month
+    $service_breakdown = sqlite_query(
+        "SELECT
+            brl.efx_code,
+            tt.efx_displayname as service_name,
+            SUM(brl.count) as transactions,
+            SUM(brl.revenue) as revenue
+         FROM billing_report_lines brl
+         JOIN billing_reports br ON brl.report_id = br.id
+         LEFT JOIN transaction_types tt ON brl.efx_code = tt.efx_code
+         WHERE brl.year = ? AND brl.month = ?
+         GROUP BY brl.efx_code
+         ORDER BY revenue DESC",
+        [$year, $month]
+    );
+
+    // Get reports for this month
+    $reports = sqlite_query(
+        "SELECT br.*
+         FROM billing_reports br
+         WHERE br.report_year = ? AND br.report_month = ?
+         ORDER BY br.report_date DESC",
+        [$year, $month]
+    );
+
+    $data = [
+        "year" => $year,
+        "month" => $month,
+        "month_name" => date("F", mktime(0, 0, 0, $month, 1)),
+        "stats" => isset($month_stats[0]) ? $month_stats[0] : [],
+        "daily_data" => $daily_data,
+        "customer_breakdown" => $customer_breakdown,
+        "service_breakdown" => $service_breakdown,
+        "reports" => $reports,
+    ];
+
+    render_billing_month($data);
+}
+
+/**
+ * Billing Dashboard - Customer drill-down
+ */
+function action_billing_customer()
+{
+    $customer_id = get_param("id");
+
+    if (empty($customer_id)) {
+        set_flash("error", "No customer specified");
+        redirect("billing_intelligence");
+        return;
+    }
+
+    // Get customer info from billing data
+    $customer_info = sqlite_query(
+        "SELECT DISTINCT customer_id, customer_name
+         FROM billing_report_lines
+         WHERE customer_id = ?
+         LIMIT 1",
+        [$customer_id]
+    );
+
+    if (empty($customer_info)) {
+        set_flash("error", "Customer not found in billing data");
+        redirect("billing_intelligence");
+        return;
+    }
+
+    $customer = $customer_info[0];
+
+    // Get overall stats for this customer
+    $stats = sqlite_query(
+        "SELECT
+            SUM(brl.count) as total_transactions,
+            SUM(brl.revenue) as total_revenue,
+            COUNT(DISTINCT br.id) as report_count,
+            MIN(br.report_date) as first_seen,
+            MAX(br.report_date) as last_seen
+         FROM billing_report_lines brl
+         JOIN billing_reports br ON brl.report_id = br.id
+         WHERE brl.customer_id = ?",
+        [$customer_id]
+    );
+
+    // Get monthly trend for this customer
+    $monthly_trend = sqlite_query(
+        "SELECT
+            brl.year,
+            brl.month,
+            SUM(brl.count) as transactions,
+            SUM(brl.revenue) as revenue
+         FROM billing_report_lines brl
+         WHERE brl.customer_id = ?
+         GROUP BY brl.year, brl.month
+         ORDER BY brl.year DESC, brl.month DESC",
+        [$customer_id]
+    );
+
+    // Get service breakdown for this customer
+    $service_breakdown = sqlite_query(
+        "SELECT
+            brl.efx_code,
+            tt.efx_displayname as service_name,
+            SUM(brl.count) as transactions,
+            SUM(brl.revenue) as revenue,
+            AVG(brl.actual_unit_cost) as avg_unit_cost
+         FROM billing_report_lines brl
+         LEFT JOIN transaction_types tt ON brl.efx_code = tt.efx_code
+         WHERE brl.customer_id = ?
+         GROUP BY brl.efx_code
+         ORDER BY revenue DESC",
+        [$customer_id]
+    );
+
+    // Get recent line items
+    $recent_lines = sqlite_query(
+        "SELECT brl.*, br.report_date, br.report_type
+         FROM billing_report_lines brl
+         JOIN billing_reports br ON brl.report_id = br.id
+         WHERE brl.customer_id = ?
+         ORDER BY br.report_date DESC, brl.id DESC
+         LIMIT 50",
+        [$customer_id]
+    );
+
+    $data = [
+        "customer" => $customer,
+        "stats" => isset($stats[0]) ? $stats[0] : [],
+        "monthly_trend" => $monthly_trend,
+        "service_breakdown" => $service_breakdown,
+        "recent_lines" => $recent_lines,
+    ];
+
+    render_billing_customer($data);
+}
+
+/**
+ * Billing Dashboard - Customer Daily Chart
+ * Shows daily transaction counts with cumulative vs delta (true daily) breakdown
+ */
+function action_billing_customer_daily()
+{
+    $customer_id = get_param("id");
+    $year = (int) get_param("year", date("Y"));
+    $month = (int) get_param("month", date("n"));
+    $efx_code = get_param("efx_code", ""); // Optional filter by service
+
+    if (empty($customer_id)) {
+        set_flash("error", "No customer specified");
+        redirect("billing_intelligence");
+        return;
+    }
+
+    // Get customer info
+    $customer_info = sqlite_query(
+        "SELECT DISTINCT customer_id, customer_name
+         FROM billing_report_lines
+         WHERE customer_id = ?
+         LIMIT 1",
+        [$customer_id]
+    );
+
+    if (empty($customer_info)) {
+        set_flash("error", "Customer not found in billing data");
+        redirect("billing_intelligence");
+        return;
+    }
+
+    $customer = $customer_info[0];
+
+    // Get services available for this customer in this month
+    $available_services = sqlite_query(
+        "SELECT DISTINCT brl.efx_code, tt.efx_displayname as service_name
+         FROM billing_report_lines brl
+         LEFT JOIN transaction_types tt ON brl.efx_code = tt.efx_code
+         WHERE brl.customer_id = ? AND brl.year = ? AND brl.month = ?
+         ORDER BY brl.efx_code",
+        [$customer_id, $year, $month]
+    );
+
+    // Build EFX filter condition
+    $efx_filter = "";
+    $params = [$customer_id, $year, $month];
+    if (!empty($efx_code)) {
+        $efx_filter = " AND brl.efx_code = ?";
+        $params[] = $efx_code;
+    }
+
+    // Get daily cumulative data from daily reports
+    // Daily reports contain cumulative counts for MTD
+    $daily_cumulative = sqlite_query(
+        "SELECT
+            br.report_date,
+            CAST(strftime('%d', br.report_date) AS INTEGER) as day_num,
+            SUM(brl.count) as cumulative_count,
+            SUM(brl.revenue) as cumulative_revenue
+         FROM billing_report_lines brl
+         JOIN billing_reports br ON brl.report_id = br.id
+         WHERE brl.customer_id = ?
+           AND brl.year = ? AND brl.month = ?
+           AND br.report_type = 'daily'
+           $efx_filter
+         GROUP BY br.report_date
+         ORDER BY br.report_date",
+        $params
+    );
+
+    // Calculate delta (true daily count) by subtracting previous day
+    $chart_data = [];
+    $prev_cumulative = 0;
+    $prev_revenue = 0;
+
+    foreach ($daily_cumulative as $day) {
+        $delta_count = $day["cumulative_count"] - $prev_cumulative;
+        $delta_revenue = $day["cumulative_revenue"] - $prev_revenue;
+
+        $chart_data[] = [
+            "date" => $day["report_date"],
+            "day" => $day["day_num"],
+            "cumulative" => (int) $day["cumulative_count"],
+            "delta" => $delta_count,
+            "cumulative_revenue" => (float) $day["cumulative_revenue"],
+            "delta_revenue" => $delta_revenue,
+        ];
+
+        $prev_cumulative = $day["cumulative_count"];
+        $prev_revenue = $day["cumulative_revenue"];
+    }
+
+    // Get month summary stats
+    $month_stats = sqlite_query(
+        "SELECT
+            SUM(brl.count) as total_count,
+            SUM(brl.revenue) as total_revenue,
+            COUNT(DISTINCT br.id) as report_count
+         FROM billing_report_lines brl
+         JOIN billing_reports br ON brl.report_id = br.id
+         WHERE brl.customer_id = ?
+           AND brl.year = ? AND brl.month = ?
+           $efx_filter",
+        $params
+    );
+
+    // Calculate stats from chart data
+    $total_days = count($chart_data);
+    $avg_daily =
+        $total_days > 0
+            ? array_sum(array_column($chart_data, "delta")) / $total_days
+            : 0;
+    $max_daily = $total_days > 0 ? max(array_column($chart_data, "delta")) : 0;
+    $min_daily = $total_days > 0 ? min(array_column($chart_data, "delta")) : 0;
+
+    // Get available months for navigation
+    $available_months = sqlite_query(
+        "SELECT DISTINCT brl.year, brl.month
+         FROM billing_report_lines brl
+         JOIN billing_reports br ON brl.report_id = br.id
+         WHERE brl.customer_id = ? AND br.report_type = 'daily'
+         ORDER BY brl.year DESC, brl.month DESC",
+        [$customer_id]
+    );
+
+    // Days in month for projections
+    $days_in_month = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+    $current_day = (int) date("j");
+    $is_current_month = $year == date("Y") && $month == date("n");
+
+    // Project end of month based on average
+    $projected_eom = 0;
+    if ($is_current_month && $total_days > 0) {
+        $days_remaining = $days_in_month - $current_day;
+        $last_cumulative = end($chart_data)["cumulative"];
+        $projected_eom = $last_cumulative + $avg_daily * $days_remaining;
+    }
+
+    $data = [
+        "customer" => $customer,
+        "year" => $year,
+        "month" => $month,
+        "month_name" => date("F", mktime(0, 0, 0, $month, 1, $year)),
+        "efx_code" => $efx_code,
+        "available_services" => $available_services,
+        "chart_data" => $chart_data,
+        "stats" => [
+            "total_count" => isset($month_stats[0]["total_count"])
+                ? $month_stats[0]["total_count"]
+                : 0,
+            "total_revenue" => isset($month_stats[0]["total_revenue"])
+                ? $month_stats[0]["total_revenue"]
+                : 0,
+            "report_count" => isset($month_stats[0]["report_count"])
+                ? $month_stats[0]["report_count"]
+                : 0,
+            "avg_daily" => $avg_daily,
+            "max_daily" => $max_daily,
+            "min_daily" => $min_daily,
+            "total_days" => $total_days,
+        ],
+        "available_months" => $available_months,
+        "days_in_month" => $days_in_month,
+        "is_current_month" => $is_current_month,
+        "projected_eom" => $projected_eom,
+    ];
+
+    render_billing_customer_daily($data);
+}
+
+/**
+ * Billing Dashboard - Service drill-down
+ */
+function action_billing_service()
+{
+    $efx_code = get_param("code");
+
+    if (empty($efx_code)) {
+        set_flash("error", "No service code specified");
+        redirect("billing_intelligence");
+        return;
+    }
+
+    // Get service info
+    $service_info = sqlite_query(
+        "SELECT tt.*, s.name as mapped_service_name
+         FROM transaction_types tt
+         LEFT JOIN services s ON tt.service_id = s.id
+         WHERE tt.efx_code = ?",
+        [$efx_code]
+    );
+
+    $service = isset($service_info[0])
+        ? $service_info[0]
+        : [
+            "efx_code" => $efx_code,
+            "efx_displayname" => $efx_code,
+        ];
+
+    // Get overall stats for this service
+    $stats = sqlite_query(
+        "SELECT
+            SUM(brl.count) as total_transactions,
+            SUM(brl.revenue) as total_revenue,
+            AVG(brl.actual_unit_cost) as avg_unit_cost,
+            COUNT(DISTINCT brl.customer_id) as unique_customers,
+            COUNT(DISTINCT br.id) as report_count
+         FROM billing_report_lines brl
+         JOIN billing_reports br ON brl.report_id = br.id
+         WHERE brl.efx_code = ?",
+        [$efx_code]
+    );
+
+    // Get monthly trend for this service
+    $monthly_trend = sqlite_query(
+        "SELECT
+            brl.year,
+            brl.month,
+            SUM(brl.count) as transactions,
+            SUM(brl.revenue) as revenue,
+            AVG(brl.actual_unit_cost) as avg_unit_cost
+         FROM billing_report_lines brl
+         WHERE brl.efx_code = ?
+         GROUP BY brl.year, brl.month
+         ORDER BY brl.year DESC, brl.month DESC",
+        [$efx_code]
+    );
+
+    // Get customer breakdown for this service
+    $customer_breakdown = sqlite_query(
+        "SELECT
+            brl.customer_id,
+            brl.customer_name,
+            SUM(brl.count) as transactions,
+            SUM(brl.revenue) as revenue,
+            AVG(brl.actual_unit_cost) as avg_unit_cost
+         FROM billing_report_lines brl
+         WHERE brl.efx_code = ?
+         GROUP BY brl.customer_id, brl.customer_name
+         ORDER BY revenue DESC",
+        [$efx_code]
+    );
+
+    $data = [
+        "service" => $service,
+        "stats" => isset($stats[0]) ? $stats[0] : [],
+        "monthly_trend" => $monthly_trend,
+        "customer_breakdown" => $customer_breakdown,
+    ];
+
+    render_billing_service($data);
+}
+
+// ============================================================
+// ADMIN ACTIONS
+// ============================================================
+
+/**
+ * Admin panel - database management
+ */
+function action_admin()
+{
+    require_once __DIR__ . "/admin_seed.php";
+
+    $tab = get_param("tab", "overview");
+
+    $data = [
+        "tab" => $tab,
+        "stats" => get_database_stats(),
+        "sync_status" => get_sync_status(),
+        "sync_log" => get_sync_log(15),
+        "filesystem" => get_filesystem_status(),
+        "environment" => get_environment_status(),
+    ];
+
+    render_admin($data);
+}
+
+/**
+ * Sync a single entity from remote database
+ */
+function action_admin_sync()
+{
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+        set_flash("error", "Invalid request method");
+        redirect("admin", ["tab" => "sync"]);
+        return;
+    }
+
+    $entity = get_param("entity");
+
+    $sync_functions = [
+        "customers" => "sync_customers_from_remote",
+        "services" => "sync_services_from_remote",
+        "discount_groups" => "sync_discount_groups_from_remote",
+        "lms" => "sync_lms_from_remote",
+        "cogs" => "sync_cogs_from_remote",
+        "business_rules" => "sync_business_rules_from_remote",
+        "all" => "sync_all_from_remote",
+    ];
+
+    if (!isset($sync_functions[$entity])) {
+        set_flash("error", "Unknown entity: $entity");
+        redirect("admin", ["tab" => "sync"]);
+        return;
+    }
+
+    $func = $sync_functions[$entity];
+
+    try {
+        $result = $func();
+    } catch (Exception $e) {
+        set_flash("error", "Sync failed: " . $e->getMessage());
+        redirect("admin", ["tab" => "sync"]);
+        return;
+    }
+
+    if ($entity === "all") {
+        $total = 0;
+        foreach ($result as $e => $r) {
+            if (is_array($r) && isset($r["synced"])) {
+                $total += $r["synced"];
+            } elseif (is_int($r)) {
+                $total += $r;
+            }
+        }
+        set_flash("success", "Synced all entities: $total total records");
+    } else {
+        if (is_array($result)) {
+            $msg = isset($result["message"])
+                ? $result["message"]
+                : "Synced {$result["synced"]} of {$result["total"]} records";
+            set_flash(
+                "success",
+                ucfirst(str_replace("_", " ", $entity)) . ": " . $msg
+            );
+        } else {
+            set_flash(
+                "success",
+                ucfirst(str_replace("_", " ", $entity)) .
+                    ": Synced $result records"
+            );
+        }
+    }
+
+    redirect("admin", ["tab" => "sync"]);
+}
+
+/**
+ * Clear data for a specific entity
+ */
+function action_admin_clear_entity()
+{
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+        set_flash("error", "Invalid request method");
+        redirect("admin", ["tab" => "data"]);
+        return;
+    }
+
+    $entity = get_param("entity");
+    $confirm = get_param("confirm");
+
+    if ($confirm !== $entity) {
+        set_flash(
+            "error",
+            "Confirmation did not match. Type the entity name to confirm."
+        );
+        redirect("admin", ["tab" => "data"]);
+        return;
+    }
+
+    $result = clear_entity_data($entity);
+
+    if ($result["success"]) {
+        set_flash("success", $result["message"]);
+    } else {
+        set_flash("error", $result["message"]);
+    }
+
+    redirect("admin", ["tab" => "data"]);
+}
+
+/**
+ * Fix filesystem directories
+ */
+function action_admin_fix_directories()
+{
+    $errors = ensure_directories();
+
+    if (empty($errors)) {
+        set_flash("success", "All directories created/verified successfully");
+    } else {
+        set_flash(
+            "error",
+            "Some directories could not be created: " . implode(", ", $errors)
+        );
+    }
+
+    redirect("admin", ["tab" => "filesystem"]);
+}
+
+/**
+ * Clear database (with confirmation)
+ */
+function action_admin_clear()
+{
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+        set_flash("error", "Invalid request method");
+        redirect("admin");
+        return;
+    }
+
+    $confirm = get_param("confirm");
+    if ($confirm !== "CLEAR") {
+        set_flash("error", "You must type CLEAR to confirm");
+        redirect("admin");
+        return;
+    }
+
+    require_once __DIR__ . "/admin_seed.php";
+    clear_database();
+
+    set_flash("success", "Database cleared successfully");
+    redirect("admin");
+}
+
+/**
+ * Reseed database with test data
+ */
+function action_admin_reseed()
+{
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+        set_flash("error", "Invalid request method");
+        redirect("admin");
+        return;
+    }
+
+    require_once __DIR__ . "/admin_seed.php";
+
+    // Get options from form
+    $config = isset($GLOBALS["SEED_CONFIG"])
+        ? $GLOBALS["SEED_CONFIG"]
+        : $SEED_CONFIG;
+    $config["days_of_history"] = (int) get_param("days", 90);
+    $config["customer_count"] = (int) get_param("customers", 100);
+    $config["exact_match_pct"] = (int) get_param("exact_pct", 85);
+    $config["small_variance_pct"] = (int) get_param("small_pct", 10);
+    $config["large_variance_pct"] = (int) get_param("large_pct", 5);
+
+    $clear_first = get_param("clear_first") === "1";
+
+    // Run the seed
+    $result = run_seed($config, $clear_first);
+
+    if ($result["success"]) {
+        set_flash(
+            "success",
+            sprintf(
+                "Database reseeded: %d reports, %d lines (%.1f%% exact, %.1f%% small var, %.1f%% large var)",
+                $result["reports"],
+                $result["lines"],
+                ($result["matches"] / max(1, $result["lines"])) * 100,
+                ($result["small_variances"] / max(1, $result["lines"])) * 100,
+                ($result["large_variances"] / max(1, $result["lines"])) * 100
+            )
+        );
+    } else {
+        set_flash("error", "Seeding failed");
+    }
+
+    redirect("admin");
+}
+
+// ============================================================
+// SYSTEM/SETUP ACTIONS
+// ============================================================
+
+/**
+ * Fix shared directory - creates symlink or directory structure
+ * Called when production mode can't find the shared directory
+ */
+function action_fix_shared_directory()
+{
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+        set_flash("error", "Invalid request method");
+        redirect("dashboard");
+        return;
+    }
+
+    $shared_path = SHARED_BASE_PATH;
+    $result = fix_shared_directory($shared_path);
+
+    if ($result["success"]) {
+        set_flash("success", $result["message"]);
+        // Switch to production mode since it should work now
+        $_SESSION["mock_mode"] = false;
+    } else {
+        set_flash("error", $result["message"]);
+        // Fall back to mock mode
+        $_SESSION["mock_mode"] = true;
+    }
+
+    redirect("dashboard");
+}
+
 // ------------------------------------------------------------
 // MAIN ROUTER
 // ------------------------------------------------------------
@@ -2919,7 +4491,14 @@ function route()
         // Dashboard
         "dashboard" => "action_dashboard",
 
-        // CSV/File management (existing)
+        // Billing Reports
+        "billing_reports" => "action_billing_reports",
+        "view_billing_report" => "action_view_billing_report",
+        "download_billing_report" => "action_download_billing_report",
+        "regenerate_report" => "action_regenerate_report",
+        "compare_reports" => "action_compare_reports",
+
+        // CSV/File management (legacy - kept for backwards compatibility)
         "list_reports" => "action_list_reports",
         "view_report" => "action_view_report",
         "download_report" => "action_download_report",
@@ -2976,6 +4555,8 @@ function route()
         "ingestion" => "action_ingestion",
         "ingestion_view" => "action_ingestion_view",
         "ingestion_bulk" => "action_ingestion_bulk",
+        "line_audit" => "action_line_audit",
+        "report_audit" => "action_report_audit",
 
         // Generation
         "generation" => "action_generation",
@@ -2988,6 +4569,24 @@ function route()
 
         // Customer Pricing View
         "customer_pricing" => "action_customer_pricing",
+
+        // Billing Dashboard
+        "billing_intelligence" => "action_billing_intelligence",
+        "billing_month" => "action_billing_month",
+        "billing_customer" => "action_billing_customer",
+        "billing_customer_daily" => "action_billing_customer_daily",
+        "billing_service" => "action_billing_service",
+
+        // Admin
+        "admin" => "action_admin",
+        "admin_sync" => "action_admin_sync",
+        "admin_clear" => "action_admin_clear",
+        "admin_clear_entity" => "action_admin_clear_entity",
+        "admin_reseed" => "action_admin_reseed",
+        "admin_fix_directories" => "action_admin_fix_directories",
+
+        // System/Setup
+        "fix_shared_directory" => "action_fix_shared_directory",
     ];
 
     if (isset($routes[$action]) && function_exists($routes[$action])) {

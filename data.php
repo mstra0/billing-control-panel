@@ -882,6 +882,367 @@ function get_effective_customer_tiers($customer_id, $service_id)
     return $default_tiers;
 }
 
+// ============================================================
+// HISTORICAL / POINT-IN-TIME QUERY FUNCTIONS
+// For audit trail calculations - query pricing state as of a specific date
+// ============================================================
+
+/**
+ * Get default tiers as they were on a specific date
+ */
+function get_default_tiers_as_of($service_id, $as_of_date)
+{
+    $latest = sqlite_query(
+        "SELECT MAX(effective_date) as max_date FROM pricing_tiers
+         WHERE level = 'default' AND level_id IS NULL AND service_id = ?
+         AND effective_date <= ?",
+        [$service_id, $as_of_date]
+    );
+
+    if (empty($latest) || !$latest[0]["max_date"]) {
+        return [];
+    }
+
+    return sqlite_query(
+        "SELECT * FROM pricing_tiers
+         WHERE level = 'default' AND level_id IS NULL AND service_id = ?
+         AND effective_date = ?
+         ORDER BY volume_start ASC",
+        [$service_id, $latest[0]["max_date"]]
+    );
+}
+
+/**
+ * Get group tiers as they were on a specific date
+ */
+function get_group_tiers_as_of($group_id, $service_id, $as_of_date)
+{
+    $latest = sqlite_query(
+        "SELECT MAX(effective_date) as max_date FROM pricing_tiers
+         WHERE level = 'group' AND level_id = ? AND service_id = ?
+         AND effective_date <= ?",
+        [$group_id, $service_id, $as_of_date]
+    );
+
+    if (empty($latest) || !$latest[0]["max_date"]) {
+        return [];
+    }
+
+    return sqlite_query(
+        "SELECT * FROM pricing_tiers
+         WHERE level = 'group' AND level_id = ? AND service_id = ?
+         AND effective_date = ?
+         ORDER BY volume_start ASC",
+        [$group_id, $service_id, $latest[0]["max_date"]]
+    );
+}
+
+/**
+ * Get customer tiers as they were on a specific date
+ */
+function get_customer_tiers_as_of($customer_id, $service_id, $as_of_date)
+{
+    $latest = sqlite_query(
+        "SELECT MAX(effective_date) as max_date FROM pricing_tiers
+         WHERE level = 'customer' AND level_id = ? AND service_id = ?
+         AND effective_date <= ?",
+        [$customer_id, $service_id, $as_of_date]
+    );
+
+    if (empty($latest) || !$latest[0]["max_date"]) {
+        return [];
+    }
+
+    return sqlite_query(
+        "SELECT * FROM pricing_tiers
+         WHERE level = 'customer' AND level_id = ? AND service_id = ?
+         AND effective_date = ?
+         ORDER BY volume_start ASC",
+        [$customer_id, $service_id, $latest[0]["max_date"]]
+    );
+}
+
+/**
+ * Get customer settings as they were on a specific date
+ */
+function get_customer_settings_as_of($customer_id, $as_of_date)
+{
+    $settings = sqlite_query(
+        "SELECT * FROM customer_settings
+         WHERE customer_id = ? AND effective_date <= ?
+         ORDER BY effective_date DESC, id DESC LIMIT 1",
+        [$customer_id, $as_of_date]
+    );
+
+    if (!empty($settings)) {
+        return $settings[0];
+    }
+
+    return [
+        "customer_id" => $customer_id,
+        "monthly_minimum" => null,
+        "uses_annualized" => 0,
+        "annualized_start_date" => null,
+        "look_period_months" => null,
+    ];
+}
+
+/**
+ * Get escalators as they were on a specific date
+ */
+function get_escalators_as_of($customer_id, $as_of_date)
+{
+    $latest = sqlite_query(
+        "SELECT MAX(effective_date) as max_date FROM customer_escalators
+         WHERE customer_id = ? AND effective_date <= ?",
+        [$customer_id, $as_of_date]
+    );
+
+    if (empty($latest) || !$latest[0]["max_date"]) {
+        return [];
+    }
+
+    return sqlite_query(
+        "SELECT * FROM customer_escalators
+         WHERE customer_id = ? AND effective_date = ?
+         ORDER BY year_number ASC",
+        [$customer_id, $latest[0]["max_date"]]
+    );
+}
+
+/**
+ * Get total delay months for a customer/year as of a specific date
+ */
+function get_total_delay_months_as_of($customer_id, $year_number, $as_of_date)
+{
+    $delays = sqlite_query(
+        "SELECT SUM(delay_months) as total FROM escalator_delays
+         WHERE customer_id = ? AND year_number = ? AND applied_date <= ?",
+        [$customer_id, $year_number, $as_of_date]
+    );
+
+    return !empty($delays) && $delays[0]["total"]
+        ? (int) $delays[0]["total"]
+        : 0;
+}
+
+/**
+ * Get customer's discount group as of a specific date
+ * Note: Currently customers table doesn't track group history,
+ * so this returns current group. Future enhancement could add
+ * customer_group_history table for full audit trail.
+ */
+function get_customer_group_as_of($customer_id, $as_of_date)
+{
+    $customer = sqlite_query(
+        "SELECT c.*, dg.name as group_name
+         FROM customers c
+         LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
+         WHERE c.id = ?",
+        [$customer_id]
+    );
+
+    if (empty($customer)) {
+        return null;
+    }
+
+    return [
+        "group_id" => $customer[0]["discount_group_id"],
+        "group_name" => $customer[0]["group_name"],
+    ];
+}
+
+/**
+ * Get service by EFX code
+ */
+function get_service_by_efx_code($efx_code)
+{
+    $result = sqlite_query(
+        "SELECT s.* FROM services s
+         INNER JOIN transaction_types tt ON tt.service_id = s.id
+         WHERE tt.efx_code = ?
+         LIMIT 1",
+        [$efx_code]
+    );
+
+    return !empty($result) ? $result[0] : null;
+}
+
+/**
+ * Get effective tiers for a customer+service as of a specific date
+ * Full inheritance resolution: customer -> group -> default
+ * Returns tiers with source tracking and effective dates used
+ */
+function get_effective_tiers_as_of($customer_id, $service_id, $as_of_date)
+{
+    $result = [
+        "tiers" => [],
+        "source" => null,
+        "effective_date" => null,
+        "inheritance_chain" => [],
+    ];
+
+    // Try customer override first
+    $customer_tiers = get_customer_tiers_as_of(
+        $customer_id,
+        $service_id,
+        $as_of_date
+    );
+    if (!empty($customer_tiers)) {
+        foreach ($customer_tiers as &$tier) {
+            $tier["source"] = "customer";
+        }
+        $result["tiers"] = $customer_tiers;
+        $result["source"] = "customer";
+        $result["effective_date"] = $customer_tiers[0]["effective_date"];
+        $result["inheritance_chain"][] = [
+            "level" => "customer",
+            "applied" => true,
+            "effective_date" => $customer_tiers[0]["effective_date"],
+        ];
+        return $result;
+    }
+    $result["inheritance_chain"][] = [
+        "level" => "customer",
+        "applied" => false,
+    ];
+
+    // Try group override
+    $group_info = get_customer_group_as_of($customer_id, $as_of_date);
+    if ($group_info && $group_info["group_id"]) {
+        $group_tiers = get_group_tiers_as_of(
+            $group_info["group_id"],
+            $service_id,
+            $as_of_date
+        );
+        if (!empty($group_tiers)) {
+            foreach ($group_tiers as &$tier) {
+                $tier["source"] = "group";
+            }
+            $result["tiers"] = $group_tiers;
+            $result["source"] = "group";
+            $result["effective_date"] = $group_tiers[0]["effective_date"];
+            $result["inheritance_chain"][] = [
+                "level" => "group",
+                "group_id" => $group_info["group_id"],
+                "group_name" => $group_info["group_name"],
+                "applied" => true,
+                "effective_date" => $group_tiers[0]["effective_date"],
+            ];
+            return $result;
+        }
+        $result["inheritance_chain"][] = [
+            "level" => "group",
+            "group_id" => $group_info["group_id"],
+            "group_name" => $group_info["group_name"],
+            "applied" => false,
+        ];
+    }
+
+    // Fall back to defaults
+    $default_tiers = get_default_tiers_as_of($service_id, $as_of_date);
+    foreach ($default_tiers as &$tier) {
+        $tier["source"] = "default";
+    }
+    $result["tiers"] = $default_tiers;
+    $result["source"] = "default";
+    $result["effective_date"] = !empty($default_tiers)
+        ? $default_tiers[0]["effective_date"]
+        : null;
+    $result["inheritance_chain"][] = [
+        "level" => "default",
+        "applied" => true,
+        "effective_date" => $result["effective_date"],
+    ];
+
+    return $result;
+}
+
+/**
+ * Calculate which escalator year a customer is in on a given date
+ * Accounts for delays and 1st-of-month normalization
+ */
+function get_escalator_year_on_date($customer_id, $as_of_date)
+{
+    $escalators = get_escalators_as_of($customer_id, $as_of_date);
+
+    if (empty($escalators)) {
+        return [
+            "has_escalator" => false,
+            "contract_start" => null,
+            "current_year" => null,
+            "escalator_percentage" => 0,
+            "fixed_adjustment" => 0,
+            "delay_months" => 0,
+        ];
+    }
+
+    $contract_start = $escalators[0]["escalator_start_date"];
+    $start_ts = strtotime($contract_start);
+    $as_of_ts = strtotime($as_of_date);
+
+    if ($as_of_ts < $start_ts) {
+        // Before contract started
+        return [
+            "has_escalator" => true,
+            "contract_start" => $contract_start,
+            "current_year" => 0,
+            "escalator_percentage" => 0,
+            "fixed_adjustment" => 0,
+            "delay_months" => 0,
+            "note" => "Before contract start date",
+        ];
+    }
+
+    // Calculate raw years since contract start
+    $days_since = ($as_of_ts - $start_ts) / (60 * 60 * 24);
+    $raw_year = (int) floor($days_since / 365.25) + 1;
+
+    // Find the escalator record for this year
+    $current_esc = null;
+    foreach ($escalators as $esc) {
+        if ($esc["year_number"] == $raw_year) {
+            $current_esc = $esc;
+            break;
+        }
+    }
+
+    // If no escalator for this year, find the highest year that applies
+    if (!$current_esc) {
+        foreach ($escalators as $esc) {
+            if ($esc["year_number"] <= $raw_year) {
+                $current_esc = $esc;
+            }
+        }
+    }
+
+    // Get delay for this year
+    $delay_months = get_total_delay_months_as_of(
+        $customer_id,
+        $raw_year,
+        $as_of_date
+    );
+
+    // Calculate effective year considering delays
+    // Each delay month pushes the escalator activation forward
+    $effective_year = $raw_year;
+
+    return [
+        "has_escalator" => true,
+        "contract_start" => $contract_start,
+        "raw_year" => $raw_year,
+        "current_year" => $effective_year,
+        "escalator_percentage" => $current_esc
+            ? (float) $current_esc["escalator_percentage"]
+            : 0,
+        "fixed_adjustment" => $current_esc
+            ? (float) $current_esc["fixed_adjustment"]
+            : 0,
+        "delay_months" => $delay_months,
+        "escalator_record" => $current_esc,
+    ];
+}
+
 /**
  * Get customer settings (monthly minimum, annualized, etc.)
  */
@@ -1400,6 +1761,604 @@ function sync_cogs_from_remote()
     );
 
     return count($remote_cogs);
+}
+
+// ============================================================
+// SYNC FUNCTIONS - Pull data from remote/main database
+// ============================================================
+
+/**
+ * Sync customers from remote database
+ */
+function sync_customers_from_remote()
+{
+    if (MOCK_MODE) {
+        // In mock mode, customers are already seeded
+        // Just log the "sync" action
+        $count = sqlite_query("SELECT COUNT(*) as cnt FROM customers");
+        $count = $count[0]["cnt"];
+
+        sqlite_execute(
+            "INSERT INTO sync_log (entity_type, record_count, status, notes) VALUES ('customers', ?, 'success', 'Mock mode - data already seeded')",
+            [$count]
+        );
+
+        return [
+            "synced" => 0,
+            "total" => $count,
+            "message" => "Mock mode - using seeded data",
+        ];
+    }
+
+    // Production: query remote DB
+    // TODO: Update with actual table/column names from main database
+    $remote_customers = remote_db_query("
+        SELECT
+            id,
+            name,
+            status,
+            discount_group_id,
+            contract_start_date,
+            lms_id
+        FROM customers
+        WHERE status != 'deleted'
+        ORDER BY name
+    ");
+
+    $synced = 0;
+    $errors = [];
+
+    foreach ($remote_customers as $cust) {
+        try {
+            $existing = sqlite_query("SELECT id FROM customers WHERE id = ?", [
+                $cust["id"],
+            ]);
+
+            if (empty($existing)) {
+                sqlite_execute(
+                    "
+                    INSERT INTO customers (id, name, status, discount_group_id, contract_start_date, lms_id, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+                ",
+                    [
+                        $cust["id"],
+                        $cust["name"],
+                        $cust["status"] ?: "active",
+                        $cust["discount_group_id"],
+                        $cust["contract_start_date"],
+                        $cust["lms_id"],
+                    ]
+                );
+            } else {
+                sqlite_execute(
+                    "
+                    UPDATE customers
+                    SET name = ?, status = ?, discount_group_id = ?, contract_start_date = ?, lms_id = ?, updated_at = datetime('now')
+                    WHERE id = ?
+                ",
+                    [
+                        $cust["name"],
+                        $cust["status"] ?: "active",
+                        $cust["discount_group_id"],
+                        $cust["contract_start_date"],
+                        $cust["lms_id"],
+                        $cust["id"],
+                    ]
+                );
+            }
+            $synced++;
+        } catch (Exception $e) {
+            $errors[] = "Customer {$cust["id"]}: " . $e->getMessage();
+        }
+    }
+
+    $status = empty($errors) ? "success" : "partial";
+    $notes = empty($errors) ? null : implode("; ", array_slice($errors, 0, 5));
+
+    sqlite_execute(
+        "INSERT INTO sync_log (entity_type, record_count, status, notes) VALUES ('customers', ?, ?, ?)",
+        [$synced, $status, $notes]
+    );
+
+    return [
+        "synced" => $synced,
+        "total" => count($remote_customers),
+        "errors" => $errors,
+    ];
+}
+
+/**
+ * Sync services from remote database
+ */
+function sync_services_from_remote()
+{
+    if (MOCK_MODE) {
+        $count = sqlite_query("SELECT COUNT(*) as cnt FROM services");
+        $count = $count[0]["cnt"];
+
+        sqlite_execute(
+            "INSERT INTO sync_log (entity_type, record_count, status, notes) VALUES ('services', ?, 'success', 'Mock mode - data already seeded')",
+            [$count]
+        );
+
+        return [
+            "synced" => 0,
+            "total" => $count,
+            "message" => "Mock mode - using seeded data",
+        ];
+    }
+
+    // Production: query remote DB
+    $remote_services = remote_db_query("
+        SELECT id, name, type
+        FROM services
+        ORDER BY name
+    ");
+
+    $synced = 0;
+    $errors = [];
+
+    foreach ($remote_services as $svc) {
+        try {
+            $existing = sqlite_query("SELECT id FROM services WHERE id = ?", [
+                $svc["id"],
+            ]);
+
+            if (empty($existing)) {
+                sqlite_execute(
+                    "
+                    INSERT INTO services (id, name, type, created_at, updated_at)
+                    VALUES (?, ?, ?, datetime('now'), datetime('now'))
+                ",
+                    [$svc["id"], $svc["name"], $svc["type"]]
+                );
+            } else {
+                sqlite_execute(
+                    "
+                    UPDATE services SET name = ?, type = ?, updated_at = datetime('now') WHERE id = ?
+                ",
+                    [$svc["name"], $svc["type"], $svc["id"]]
+                );
+            }
+            $synced++;
+        } catch (Exception $e) {
+            $errors[] = "Service {$svc["id"]}: " . $e->getMessage();
+        }
+    }
+
+    $status = empty($errors) ? "success" : "partial";
+    sqlite_execute(
+        "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('services', ?, ?)",
+        [$synced, $status]
+    );
+
+    return [
+        "synced" => $synced,
+        "total" => count($remote_services),
+        "errors" => $errors,
+    ];
+}
+
+/**
+ * Sync discount groups from remote database
+ */
+function sync_discount_groups_from_remote()
+{
+    if (MOCK_MODE) {
+        $count = sqlite_query("SELECT COUNT(*) as cnt FROM discount_groups");
+        $count = $count[0]["cnt"];
+
+        sqlite_execute(
+            "INSERT INTO sync_log (entity_type, record_count, status, notes) VALUES ('discount_groups', ?, 'success', 'Mock mode - data already seeded')",
+            [$count]
+        );
+
+        return [
+            "synced" => 0,
+            "total" => $count,
+            "message" => "Mock mode - using seeded data",
+        ];
+    }
+
+    // Production: query remote DB
+    $remote_groups = remote_db_query("
+        SELECT id, name
+        FROM discount_groups
+        ORDER BY name
+    ");
+
+    $synced = 0;
+    $errors = [];
+
+    foreach ($remote_groups as $group) {
+        try {
+            $existing = sqlite_query(
+                "SELECT id FROM discount_groups WHERE id = ?",
+                [$group["id"]]
+            );
+
+            if (empty($existing)) {
+                sqlite_execute(
+                    "
+                    INSERT INTO discount_groups (id, name, created_at, updated_at)
+                    VALUES (?, ?, datetime('now'), datetime('now'))
+                ",
+                    [$group["id"], $group["name"]]
+                );
+            } else {
+                sqlite_execute(
+                    "
+                    UPDATE discount_groups SET name = ?, updated_at = datetime('now') WHERE id = ?
+                ",
+                    [$group["name"], $group["id"]]
+                );
+            }
+            $synced++;
+        } catch (Exception $e) {
+            $errors[] = "Group {$group["id"]}: " . $e->getMessage();
+        }
+    }
+
+    $status = empty($errors) ? "success" : "partial";
+    sqlite_execute(
+        "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('discount_groups', ?, ?)",
+        [$synced, $status]
+    );
+
+    return [
+        "synced" => $synced,
+        "total" => count($remote_groups),
+        "errors" => $errors,
+    ];
+}
+
+/**
+ * Sync business rules from remote database
+ */
+function sync_business_rules_from_remote()
+{
+    if (MOCK_MODE) {
+        $count = sqlite_query("SELECT COUNT(*) as cnt FROM business_rules");
+        $count = $count[0]["cnt"];
+
+        sqlite_execute(
+            "INSERT INTO sync_log (entity_type, record_count, status, notes) VALUES ('business_rules', ?, 'success', 'Mock mode - data already seeded')",
+            [$count]
+        );
+
+        return [
+            "synced" => 0,
+            "total" => $count,
+            "message" => "Mock mode - using seeded data",
+        ];
+    }
+
+    // Production: query remote DB
+    // TODO: Confirm business rules schema in main database
+    $remote_rules = remote_db_query("
+        SELECT id, name, description, rule_type, parameters
+        FROM business_rules
+        WHERE active = 1
+        ORDER BY name
+    ");
+
+    $synced = 0;
+    $errors = [];
+
+    foreach ($remote_rules as $rule) {
+        try {
+            $existing = sqlite_query(
+                "SELECT id FROM business_rules WHERE id = ?",
+                [$rule["id"]]
+            );
+
+            if (empty($existing)) {
+                sqlite_execute(
+                    "
+                    INSERT INTO business_rules (id, name, description, rule_type, parameters, active, created_at)
+                    VALUES (?, ?, ?, ?, ?, 1, datetime('now'))
+                ",
+                    [
+                        $rule["id"],
+                        $rule["name"],
+                        $rule["description"],
+                        $rule["rule_type"],
+                        $rule["parameters"],
+                    ]
+                );
+            } else {
+                sqlite_execute(
+                    "
+                    UPDATE business_rules SET name = ?, description = ?, rule_type = ?, parameters = ? WHERE id = ?
+                ",
+                    [
+                        $rule["name"],
+                        $rule["description"],
+                        $rule["rule_type"],
+                        $rule["parameters"],
+                        $rule["id"],
+                    ]
+                );
+            }
+            $synced++;
+        } catch (Exception $e) {
+            $errors[] = "Rule {$rule["id"]}: " . $e->getMessage();
+        }
+    }
+
+    $status = empty($errors) ? "success" : "partial";
+    sqlite_execute(
+        "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('business_rules', ?, ?)",
+        [$synced, $status]
+    );
+
+    return [
+        "synced" => $synced,
+        "total" => count($remote_rules),
+        "errors" => $errors,
+    ];
+}
+
+/**
+ * Sync all master data from remote database
+ */
+function sync_all_from_remote()
+{
+    $results = [];
+
+    // Order matters - groups before customers (foreign key)
+    $results["discount_groups"] = sync_discount_groups_from_remote();
+    $results["customers"] = sync_customers_from_remote();
+    $results["services"] = sync_services_from_remote();
+    $results["lms"] = sync_lms_from_remote();
+    $results["cogs"] = sync_cogs_from_remote();
+    $results["business_rules"] = sync_business_rules_from_remote();
+
+    return $results;
+}
+
+/**
+ * Get sync status for all entities
+ */
+function get_sync_status()
+{
+    $entities = [
+        "customers",
+        "services",
+        "discount_groups",
+        "lms",
+        "cogs",
+        "business_rules",
+    ];
+    $status = [];
+
+    foreach ($entities as $entity) {
+        // Get last sync time
+        $last_sync = sqlite_query(
+            "SELECT synced_at, record_count, status, notes
+             FROM sync_log
+             WHERE entity_type = ?
+             ORDER BY synced_at DESC LIMIT 1",
+            [$entity]
+        );
+
+        // Get current count
+        $table = $entity;
+        if ($entity === "cogs") {
+            $table = "service_cogs";
+        }
+
+        $count = sqlite_query("SELECT COUNT(*) as cnt FROM $table");
+        $current_count = $count[0]["cnt"];
+
+        $status[$entity] = [
+            "entity" => $entity,
+            "display_name" => ucwords(str_replace("_", " ", $entity)),
+            "current_count" => $current_count,
+            "last_sync" => !empty($last_sync)
+                ? $last_sync[0]["synced_at"]
+                : null,
+            "last_sync_count" => !empty($last_sync)
+                ? $last_sync[0]["record_count"]
+                : null,
+            "last_status" => !empty($last_sync)
+                ? $last_sync[0]["status"]
+                : null,
+            "last_notes" => !empty($last_sync) ? $last_sync[0]["notes"] : null,
+        ];
+    }
+
+    return $status;
+}
+
+/**
+ * Get recent sync log entries
+ */
+function get_sync_log($limit = 20)
+{
+    return sqlite_query(
+        "SELECT * FROM sync_log ORDER BY synced_at DESC LIMIT ?",
+        [$limit]
+    );
+}
+
+/**
+ * Check if data needs sync (compare counts with remote)
+ * Returns array of entities that may be out of sync
+ */
+function check_sync_needed()
+{
+    if (MOCK_MODE) {
+        return [
+            "status" => "mock",
+            "message" => "Running in mock mode - sync check disabled",
+        ];
+    }
+
+    $out_of_sync = [];
+
+    // Quick count checks against remote DB
+    $checks = [
+        "customers" =>
+            "SELECT COUNT(*) as cnt FROM customers WHERE status != 'deleted'",
+        "services" => "SELECT COUNT(*) as cnt FROM services",
+        "discount_groups" => "SELECT COUNT(*) as cnt FROM discount_groups",
+    ];
+
+    foreach ($checks as $entity => $sql) {
+        $local = sqlite_query("SELECT COUNT(*) as cnt FROM $entity");
+        $local_count = $local[0]["cnt"];
+
+        $remote = remote_db_query($sql);
+        $remote_count = !empty($remote) ? $remote[0]["cnt"] : 0;
+
+        if ($local_count !== $remote_count) {
+            $out_of_sync[] = [
+                "entity" => $entity,
+                "local" => $local_count,
+                "remote" => $remote_count,
+                "diff" => $remote_count - $local_count,
+            ];
+        }
+    }
+
+    return [
+        "status" => empty($out_of_sync) ? "synced" : "needs_sync",
+        "out_of_sync" => $out_of_sync,
+    ];
+}
+
+/**
+ * Clear all data for a specific entity
+ */
+function clear_entity_data($entity)
+{
+    $allowed = [
+        "customers",
+        "services",
+        "discount_groups",
+        "lms",
+        "business_rules",
+        "pricing_tiers",
+        "customer_settings",
+        "customer_escalators",
+        "billing_reports",
+        "billing_report_lines",
+    ];
+
+    if (!in_array($entity, $allowed)) {
+        return ["success" => false, "message" => "Invalid entity: $entity"];
+    }
+
+    // Special handling for billing reports (cascade to lines)
+    if ($entity === "billing_reports") {
+        sqlite_execute("DELETE FROM billing_report_lines");
+        sqlite_execute("DELETE FROM billing_reports");
+        return [
+            "success" => true,
+            "message" => "Cleared billing reports and lines",
+        ];
+    }
+
+    $count = sqlite_query("SELECT COUNT(*) as cnt FROM $entity");
+    $deleted = $count[0]["cnt"];
+
+    sqlite_execute("DELETE FROM $entity");
+
+    return [
+        "success" => true,
+        "message" => "Cleared $deleted records from $entity",
+    ];
+}
+
+/**
+ * Get file system status (directories, permissions, file counts)
+ */
+function get_filesystem_status()
+{
+    $paths = [
+        "shared" => [
+            "path" => get_shared_path(),
+            "description" => "Shared Base",
+        ],
+        "archive" => [
+            "path" => get_archive_path(),
+            "description" => "Archive (billing CSVs)",
+        ],
+        "pending" => [
+            "path" => get_pending_path(),
+            "description" => "Pending (generated CSVs)",
+        ],
+        "generated" => [
+            "path" => get_generated_path(),
+            "description" => "Generated",
+        ],
+        "reports" => [
+            "path" => get_reports_path(),
+            "description" => "Reports Archive",
+        ],
+        "temp" => ["path" => get_temp_path(), "description" => "Temp Files"],
+    ];
+
+    $status = [];
+
+    foreach ($paths as $key => $info) {
+        $path = $info["path"];
+        $exists = is_dir($path);
+        $readable = $exists && is_readable($path);
+        $writable = $exists && is_writable($path);
+
+        $file_count = 0;
+        if ($exists && $readable) {
+            $files = glob($path . "/*.csv");
+            $file_count = $files !== false ? count($files) : 0;
+        }
+
+        $status[$key] = [
+            "path" => $path,
+            "description" => $info["description"],
+            "exists" => $exists,
+            "readable" => $readable,
+            "writable" => $writable,
+            "file_count" => $file_count,
+            "status" =>
+                $exists && $readable && $writable
+                    ? "ok"
+                    : ($exists
+                        ? "partial"
+                        : "missing"),
+        ];
+    }
+
+    return $status;
+}
+
+/**
+ * Get environment/configuration status
+ */
+function get_environment_status()
+{
+    return [
+        "code_environment" => defined("CODE_ENVIRONMENT")
+            ? CODE_ENVIRONMENT
+            : "unknown",
+        "env_description" => defined("ENV_DESCRIPTION")
+            ? ENV_DESCRIPTION
+            : "Unknown Environment",
+        "mock_mode" => MOCK_MODE,
+        "php_version" => PHP_VERSION,
+        "sqlite_version" => sqlite_db()->version()["versionString"],
+        "shared_base_path" => SHARED_BASE_PATH,
+        "db_path" => defined("SQLITE_DB_PATH") ? SQLITE_DB_PATH : "default",
+        "session_active" => session_status() === PHP_SESSION_ACTIVE,
+        "memory_limit" => ini_get("memory_limit"),
+        "max_execution_time" => ini_get("max_execution_time"),
+        "upload_max_filesize" => ini_get("upload_max_filesize"),
+        "remote_db_configured" =>
+            defined("REMOTE_DB_HOST") && REMOTE_DB_HOST !== "",
+        "remote_db_host" => defined("REMOTE_DB_HOST") ? REMOTE_DB_HOST : "",
+        "remote_db_name" => defined("REMOTE_DB_NAME") ? REMOTE_DB_NAME : "",
+    ];
 }
 
 // ============================================================
@@ -2445,6 +3404,240 @@ function get_rule_mask_history($customer_id = "")
     }
 
     return $results;
+}
+
+// ------------------------------------------------------------
+// BILLING REPORTS DATA FUNCTIONS
+// ------------------------------------------------------------
+
+/**
+ * Get ingestion reports from archive directory
+ * Categorized by: daily_humanreadable, monthly_humanreadable, monthly_ebcdic
+ *
+ * @return array Reports grouped by category
+ */
+function get_ingestion_reports()
+{
+    $archive_path = get_archive_path();
+    $reports = [
+        "daily_humanreadable" => [],
+        "monthly_humanreadable" => [],
+        "monthly_ebcdic" => [],
+    ];
+
+    if (!is_dir($archive_path)) {
+        return $reports;
+    }
+
+    $files = scandir($archive_path);
+    foreach ($files as $file) {
+        if ($file === "." || $file === "..") {
+            continue;
+        }
+        if (pathinfo($file, PATHINFO_EXTENSION) !== "csv") {
+            continue;
+        }
+
+        $filepath = $archive_path . "/" . $file;
+        $stat = stat($filepath);
+
+        $info = [
+            "name" => $file,
+            "path" => $filepath,
+            "size" => $stat["size"],
+            "modified" => $stat["mtime"],
+        ];
+
+        // Categorize based on filename pattern
+        // Daily: DataX_YYYY_MM_DD_humanreadable.csv
+        // Monthly humanreadable: DataX_YYYY_MM_YYYY_MM_humanreadable.csv
+        // Monthly EBCDIC: DataX_YYYY_MM_YYYY_MM_ebcdic.csv (or similar)
+        if (
+            preg_match(
+                '/^DataX_\d{4}_\d{1,2}_\d{1,2}_humanreadable\.csv$/',
+                $file
+            )
+        ) {
+            $reports["daily_humanreadable"][] = $info;
+        } elseif (
+            preg_match('/humanreadable\.csv$/', $file) &&
+            preg_match("/^DataX_\d{4}_\d{1,2}_\d{4}_\d{1,2}_/", $file)
+        ) {
+            $reports["monthly_humanreadable"][] = $info;
+        } elseif (preg_match('/ebcdic\.csv$/i', $file)) {
+            $reports["monthly_ebcdic"][] = $info;
+        }
+    }
+
+    // Sort each category by modified date descending
+    foreach ($reports as &$category) {
+        usort($category, function ($a, $b) {
+            return $b["modified"] - $a["modified"];
+        });
+    }
+
+    return $reports;
+}
+
+/**
+ * Get generated reports from database and filesystem
+ *
+ * @param string $type Optional filter by report type
+ * @return array Reports from generated_reports table
+ */
+function get_generated_reports($type = null)
+{
+    $where = $type ? "WHERE report_type = ?" : "";
+    $params = $type ? [$type] : [];
+
+    $reports = sqlite_query(
+        "SELECT * FROM generated_reports
+         $where
+         ORDER BY generated_at DESC",
+        $params
+    );
+
+    // Verify files still exist and update sizes
+    foreach ($reports as &$report) {
+        if (file_exists($report["file_path"])) {
+            $report["exists"] = true;
+            $report["current_size"] = filesize($report["file_path"]);
+        } else {
+            $report["exists"] = false;
+            $report["current_size"] = 0;
+        }
+    }
+
+    return $reports;
+}
+
+/**
+ * Get generated reports grouped by type for display
+ *
+ * @return array Reports grouped by type
+ */
+function get_generated_reports_grouped()
+{
+    $reports = get_generated_reports();
+    $grouped = [
+        "tier_pricing" => [],
+        "displayname_to_type" => [],
+        "custom" => [],
+    ];
+
+    foreach ($reports as $report) {
+        $type = $report["report_type"];
+        if (isset($grouped[$type])) {
+            $grouped[$type][] = $report;
+        } else {
+            $grouped["custom"][] = $report;
+        }
+    }
+
+    return $grouped;
+}
+
+/**
+ * Save a generated report to the archive and database
+ *
+ * @param string $type Report type (tier_pricing, displayname_to_type, custom)
+ * @param string $source_path Path to the generated file
+ * @param array $params Parameters used to generate (optional)
+ * @param string $notes Optional notes
+ * @param string $subtype Optional subtype for custom reports
+ * @return int|false Report ID on success, false on failure
+ */
+function archive_generated_report(
+    $type,
+    $source_path,
+    $params = [],
+    $notes = "",
+    $subtype = null
+) {
+    if (!file_exists($source_path)) {
+        return false;
+    }
+
+    $filename = basename($source_path);
+    $dest_dir = get_reports_path($type);
+
+    // Ensure directory exists
+    if (!is_dir($dest_dir)) {
+        mkdir($dest_dir, 0755, true);
+    }
+
+    $dest_path = $dest_dir . "/" . $filename;
+
+    // Copy file to archive (or move if from temp)
+    if (strpos($source_path, get_temp_path()) === 0) {
+        rename($source_path, $dest_path);
+    } else {
+        copy($source_path, $dest_path);
+    }
+
+    // Count records
+    $record_count = 0;
+    if (($handle = fopen($dest_path, "r")) !== false) {
+        while (fgetcsv($handle) !== false) {
+            $record_count++;
+        }
+        fclose($handle);
+        $record_count--; // Subtract header row
+    }
+
+    // Insert into database
+    sqlite_execute(
+        "INSERT INTO generated_reports (report_type, report_subtype, file_name, file_path, file_size, record_count, parameters, notes)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        [
+            $type,
+            $subtype,
+            $filename,
+            $dest_path,
+            filesize($dest_path),
+            $record_count,
+            json_encode($params),
+            $notes,
+        ]
+    );
+
+    return sqlite_last_insert_id();
+}
+
+/**
+ * Get a single generated report by ID
+ *
+ * @param int $id Report ID
+ * @return array|null Report data or null
+ */
+function get_generated_report($id)
+{
+    $rows = sqlite_query("SELECT * FROM generated_reports WHERE id = ?", [$id]);
+    return !empty($rows) ? $rows[0] : null;
+}
+
+/**
+ * Delete a generated report (file and database record)
+ *
+ * @param int $id Report ID
+ * @return bool Success
+ */
+function delete_generated_report($id)
+{
+    $report = get_generated_report($id);
+    if (!$report) {
+        return false;
+    }
+
+    // Delete file if exists
+    if (file_exists($report["file_path"])) {
+        unlink($report["file_path"]);
+    }
+
+    // Delete database record
+    sqlite_execute("DELETE FROM generated_reports WHERE id = ?", [$id]);
+
+    return true;
 }
 
 // ------------------------------------------------------------

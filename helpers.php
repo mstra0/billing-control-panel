@@ -27,8 +27,8 @@ function paginate($total, $page = 1, $per_page = ITEMS_PER_PAGE)
         "total_pages" => $total_pages,
         "has_prev" => $page > 1,
         "has_next" => $page < $total_pages,
-        "from" => $total > 0 ? (($page - 1) * $per_page) + 1 : 0,
-        "to" => min($page * $per_page, $total)
+        "from" => $total > 0 ? ($page - 1) * $per_page + 1 : 0,
+        "to" => min($page * $per_page, $total),
     ];
 }
 
@@ -48,10 +48,12 @@ function render_pagination($pagination, $base_url, $params = [])
     $total_pages = $pagination["total_pages"];
 
     // Build URL helper
-    $build_url = function($page) use ($base_url, $params) {
+    $build_url = function ($page) use ($base_url, $params) {
         $params["page"] = $page;
         $query = http_build_query($params);
-        return $base_url . (strpos($base_url, "?") !== false ? "&" : "?") . $query;
+        return $base_url .
+            (strpos($base_url, "?") !== false ? "&" : "?") .
+            $query;
     };
 
     echo '<div class="pagination">';
@@ -79,9 +81,9 @@ function render_pagination($pagination, $base_url, $params = [])
     // Middle pages
     for ($i = $start; $i <= $end; $i++) {
         if ($i == $current) {
-            echo '<span class="active">' . $i . '</span>';
+            echo '<span class="active">' . $i . "</span>";
         } else {
-            echo '<a href="' . h($build_url($i)) . '">' . $i . '</a>';
+            echo '<a href="' . h($build_url($i)) . '">' . $i . "</a>";
         }
     }
 
@@ -90,7 +92,11 @@ function render_pagination($pagination, $base_url, $params = [])
         if ($end < $total_pages - 1) {
             echo '<span class="ellipsis">...</span>';
         }
-        echo '<a href="' . h($build_url($total_pages)) . '">' . $total_pages . '</a>';
+        echo '<a href="' .
+            h($build_url($total_pages)) .
+            '">' .
+            $total_pages .
+            "</a>";
     }
 
     // Next
@@ -100,12 +106,17 @@ function render_pagination($pagination, $base_url, $params = [])
         echo '<span class="disabled">Next &raquo;</span>';
     }
 
-    echo '</div>';
+    echo "</div>";
 
     // Info text
     echo '<div class="pagination-info">';
-    echo 'Showing ' . $pagination["from"] . '-' . $pagination["to"] . ' of ' . $pagination["total"];
-    echo '</div>';
+    echo "Showing " .
+        $pagination["from"] .
+        "-" .
+        $pagination["to"] .
+        " of " .
+        $pagination["total"];
+    echo "</div>";
 }
 
 /**
@@ -116,7 +127,9 @@ function render_pagination($pagination, $base_url, $params = [])
 function render_search_bar($action, $options = [])
 {
     $search = isset($options["search"]) ? $options["search"] : "";
-    $placeholder = isset($options["placeholder"]) ? $options["placeholder"] : "Search...";
+    $placeholder = isset($options["placeholder"])
+        ? $options["placeholder"]
+        : "Search...";
     $filters = isset($options["filters"]) ? $options["filters"] : [];
     $extra_params = isset($options["params"]) ? $options["params"] : [];
 
@@ -125,11 +138,19 @@ function render_search_bar($action, $options = [])
 
     // Extra hidden params
     foreach ($extra_params as $key => $value) {
-        echo '<input type="hidden" name="' . h($key) . '" value="' . h($value) . '">';
+        echo '<input type="hidden" name="' .
+            h($key) .
+            '" value="' .
+            h($value) .
+            '">';
     }
 
     // Search input
-    echo '<input type="text" name="search" value="' . h($search) . '" placeholder="' . h($placeholder) . '">';
+    echo '<input type="text" name="search" value="' .
+        h($search) .
+        '" placeholder="' .
+        h($placeholder) .
+        '">';
 
     // Filter dropdowns
     foreach ($filters as $filter) {
@@ -140,10 +161,16 @@ function render_search_bar($action, $options = [])
 
         echo '<select name="' . h($name) . '">';
         foreach ($filter_options as $value => $text) {
-            $selected = ($current === (string)$value) ? ' selected' : '';
-            echo '<option value="' . h($value) . '"' . $selected . '>' . h($text) . '</option>';
+            $selected = $current === (string) $value ? " selected" : "";
+            echo '<option value="' .
+                h($value) .
+                '"' .
+                $selected .
+                ">" .
+                h($text) .
+                "</option>";
         }
-        echo '</select>';
+        echo "</select>";
     }
 
     echo '<button type="submit" class="btn">Search</button>';
@@ -157,10 +184,12 @@ function render_search_bar($action, $options = [])
         }
     }
     if ($has_active) {
-        echo '<a href="?action=' . h($action) . '" class="btn" style="background: #6c757d;">Clear</a>';
+        echo '<a href="?action=' .
+            h($action) .
+            '" class="btn" style="background: #6c757d;">Clear</a>';
     }
 
-    echo '</form>';
+    echo "</form>";
 }
 
 // ------------------------------------------------------------
@@ -211,6 +240,31 @@ function get_archive_path()
 }
 
 /**
+ * Get path for reports archive
+ *
+ * @param string $subdir Optional subdirectory (tier_pricing, displayname_to_type, custom, ingestion)
+ * @return string
+ */
+function get_reports_path($subdir = null)
+{
+    $base = get_shared_path() . "/reports";
+    if ($subdir) {
+        return $base . "/" . $subdir;
+    }
+    return $base;
+}
+
+/**
+ * Get path for temp files (regeneration, comparison)
+ *
+ * @return string
+ */
+function get_temp_path()
+{
+    return get_shared_path() . "/temp";
+}
+
+/**
  * Ensure all required directories exist
  *
  * @return array Errors if any directories couldn't be created
@@ -218,7 +272,17 @@ function get_archive_path()
 function ensure_directories()
 {
     $errors = [];
-    $paths = [get_generated_path(), get_pending_path(), get_archive_path()];
+    $paths = [
+        get_generated_path(),
+        get_pending_path(),
+        get_archive_path(),
+        get_reports_path(),
+        get_reports_path("tier_pricing"),
+        get_reports_path("displayname_to_type"),
+        get_reports_path("custom"),
+        get_reports_path("ingestion"),
+        get_temp_path(),
+    ];
 
     foreach ($paths as $path) {
         if (!is_dir($path)) {
@@ -229,6 +293,200 @@ function ensure_directories()
     }
 
     return $errors;
+}
+
+/**
+ * Fix shared directory - attempts to create or symlink the shared directory
+ *
+ * This is a STUB - customize for your production environment
+ * Options:
+ *   1. Create the directory structure locally
+ *   2. Create a symlink to an existing mount point
+ *   3. Mount a network share
+ *   4. Run a setup script
+ *
+ * @param string $path The expected shared directory path
+ * @return array ['success' => bool, 'message' => string]
+ */
+function fix_shared_directory($path)
+{
+    // Environment-aware directory fix
+    // Behavior depends on CODE_ENVIRONMENT: default, dev, rc, live, mock_prod
+
+    $env = defined("CODE_ENVIRONMENT") ? CODE_ENVIRONMENT : "default";
+    $subdirs = ["archive", "pending", "generated", "reports", "temp"];
+
+    switch ($env) {
+        case "default":
+            // Default: Create local default_shared folder (starts empty)
+            // User must click fix button to create the structure
+            return _fix_create_local_dirs($path, $subdirs);
+
+        case "dev":
+        case "mock_prod":
+            // Development/Mock: Just create local directories (test_shared)
+            return _fix_create_local_dirs($path, $subdirs);
+
+        case "rc":
+            // Release Candidate: Try create dirs, fall back to symlink
+            $result = _fix_create_local_dirs($path, $subdirs);
+            if ($result["success"]) {
+                return $result;
+            }
+            // Try symlink to a staging mount
+            return _fix_try_symlink($path, "/mnt/staging_share");
+
+        case "live":
+            // Production: Check mount, try remount, or fail gracefully
+            return _fix_production_share($path, $subdirs);
+
+        default:
+            // Unknown environment: treat like default
+            return _fix_create_local_dirs($path, $subdirs);
+    }
+}
+
+/**
+ * Helper: Create local directory structure
+ */
+function _fix_create_local_dirs($path, $subdirs)
+{
+    // Try to create the main directory
+    if (!is_dir($path)) {
+        if (!@mkdir($path, 0755, true)) {
+            return [
+                "success" => false,
+                "message" => "Could not create directory: $path",
+            ];
+        }
+    }
+
+    // Create subdirectories
+    $created = [];
+    $failed = [];
+    foreach ($subdirs as $subdir) {
+        $subpath = $path . "/" . $subdir;
+        if (!is_dir($subpath)) {
+            if (@mkdir($subpath, 0755, true)) {
+                $created[] = $subdir;
+            } else {
+                $failed[] = $subdir;
+            }
+        }
+    }
+
+    if (empty($failed)) {
+        $msg = empty($created)
+            ? "Directory structure already exists at: $path"
+            : "Created directory structure at: $path (" .
+                implode(", ", $created) .
+                ")";
+        return ["success" => true, "message" => $msg];
+    }
+
+    return [
+        "success" => false,
+        "message" =>
+            "Could not create subdirectories: " . implode(", ", $failed),
+    ];
+}
+
+/**
+ * Helper: Try to create symlink to existing mount
+ */
+function _fix_try_symlink($path, $target)
+{
+    // Check if target exists
+    if (!is_dir($target)) {
+        return [
+            "success" => false,
+            "message" => "Symlink target does not exist: $target",
+        ];
+    }
+
+    // Remove existing path if it's not a directory
+    if (file_exists($path) && !is_dir($path)) {
+        @unlink($path);
+    }
+
+    // Create symlink
+    if (!file_exists($path) && @symlink($target, $path)) {
+        return [
+            "success" => true,
+            "message" => "Created symlink: $path -> $target",
+        ];
+    }
+
+    return [
+        "success" => false,
+        "message" => "Could not create symlink from $path to $target",
+    ];
+}
+
+/**
+ * Helper: Fix production share (mount check, remount attempt)
+ */
+function _fix_production_share($path, $subdirs)
+{
+    // Check if already mounted and accessible
+    if (is_dir($path) && is_readable($path) && is_writable($path)) {
+        // Verify subdirs exist
+        $missing = [];
+        foreach ($subdirs as $subdir) {
+            if (!is_dir($path . "/" . $subdir)) {
+                $missing[] = $subdir;
+            }
+        }
+        if (empty($missing)) {
+            return [
+                "success" => true,
+                "message" => "Production share is mounted and accessible at: $path",
+            ];
+        }
+        // Try to create missing subdirs
+        foreach ($missing as $subdir) {
+            @mkdir($path . "/" . $subdir, 0755, true);
+        }
+        return [
+            "success" => true,
+            "message" =>
+                "Created missing subdirectories: " . implode(", ", $missing),
+        ];
+    }
+
+    // Check if mount point exists but not mounted
+    if (is_dir($path) && !is_readable($path)) {
+        // Attempt remount via script (if available)
+        $mount_script = __DIR__ . "/scripts/mount_share.sh";
+        if (file_exists($mount_script) && is_executable($mount_script)) {
+            exec(
+                "bash " . escapeshellarg($mount_script) . " 2>&1",
+                $output,
+                $return_code
+            );
+            if ($return_code === 0) {
+                return [
+                    "success" => true,
+                    "message" => "Remounted production share via script",
+                ];
+            }
+            return [
+                "success" => false,
+                "message" => "Mount script failed: " . implode("\n", $output),
+            ];
+        }
+
+        return [
+            "success" => false,
+            "message" => "Share appears unmounted. Please run: mount $path (or check /etc/fstab)",
+        ];
+    }
+
+    // Path doesn't exist at all
+    return [
+        "success" => false,
+        "message" => "Production share path does not exist: $path. Check mount configuration.",
+    ];
 }
 
 // ------------------------------------------------------------
@@ -454,10 +712,14 @@ function csv_count_rows($filepath)
 function csv_escape($value)
 {
     if ($value === null) {
-        return '';
+        return "";
     }
-    $value = (string)$value;
-    if (strpos($value, ',') !== false || strpos($value, '"') !== false || strpos($value, "\n") !== false) {
+    $value = (string) $value;
+    if (
+        strpos($value, ",") !== false ||
+        strpos($value, '"') !== false ||
+        strpos($value, "\n") !== false
+    ) {
         return '"' . str_replace('"', '""', $value) . '"';
     }
     return $value;
@@ -502,7 +764,7 @@ function list_files(
                 "name" => basename($filepath),
                 "size" => filesize($filepath),
                 "modified" => filemtime($filepath),
-                "readable" => is_readable($filepath)
+                "readable" => is_readable($filepath),
             ];
         }
     }
@@ -587,7 +849,7 @@ function handle_config_upload($uploaded_file, $description = "")
     $result = [
         "success" => false,
         "message" => "",
-        "filename" => ""
+        "filename" => "",
     ];
 
     if ($uploaded_file["error"] !== UPLOAD_ERR_OK) {
@@ -598,7 +860,7 @@ function handle_config_upload($uploaded_file, $description = "")
             UPLOAD_ERR_NO_FILE => "No file was uploaded",
             UPLOAD_ERR_NO_TMP_DIR => "Missing temporary folder",
             UPLOAD_ERR_CANT_WRITE => "Failed to write file to disk",
-            UPLOAD_ERR_EXTENSION => "Upload stopped by extension"
+            UPLOAD_ERR_EXTENSION => "Upload stopped by extension",
         ];
         $result["message"] = isset($errors[$uploaded_file["error"]])
             ? $errors[$uploaded_file["error"]]
@@ -628,7 +890,8 @@ function handle_config_upload($uploaded_file, $description = "")
 
     $pending_path = get_pending_path() . "/" . $filename;
     if (!move_uploaded_file($uploaded_file["tmp_name"], $pending_path)) {
-        $result["message"] = "Failed to move uploaded file to pending directory";
+        $result["message"] =
+            "Failed to move uploaded file to pending directory";
         return $result;
     }
 
@@ -664,11 +927,14 @@ function download_file($filepath, $download_name = null)
     $mime = "text/csv";
     $ext = strtolower(pathinfo($filepath, PATHINFO_EXTENSION));
     if ($ext === "xlsx") {
-        $mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        $mime =
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
     }
 
     header("Content-Type: " . $mime);
-    header("Content-Disposition: attachment; filename=\"" . $download_name . "\"");
+    header(
+        "Content-Disposition: attachment; filename=\"" . $download_name . "\""
+    );
     header("Content-Length: " . filesize($filepath));
     header("Cache-Control: no-cache, must-revalidate");
     header("Pragma: no-cache");
@@ -693,7 +959,7 @@ function is_valid_filepath($filepath)
     $allowed_dirs = [
         realpath(get_generated_path()),
         realpath(get_pending_path()),
-        realpath(get_archive_path())
+        realpath(get_archive_path()),
     ];
 
     foreach ($allowed_dirs as $dir) {
