@@ -45,7 +45,7 @@ function get_dashboard_alerts()
 
     // 3. Paused customers reminder
     $paused = sqlite_query(
-        "SELECT id, name FROM customers WHERE status = 'paused'"
+        "SELECT id, name FROM customers WHERE status = 'paused'",
     );
     foreach ($paused as $p) {
         $alerts[] = [
@@ -89,7 +89,7 @@ function get_upcoming_escalators($days = 30)
     $customers = sqlite_query(
         "SELECT DISTINCT c.id, c.name FROM customers c
          INNER JOIN customer_escalators ce ON c.id = ce.customer_id
-         WHERE c.status = 'active'"
+         WHERE c.status = 'active'",
     );
 
     $today = date("Y-m-d");
@@ -118,8 +118,8 @@ function get_upcoming_escalators($days = 30)
                     $start_date .
                         " + " .
                         ($year - 1) .
-                        " years + $delay_months months"
-                )
+                        " years + $delay_months months",
+                ),
             );
 
             // Check if it's within the window
@@ -153,7 +153,7 @@ function get_customers_with_masked_rules()
     $customers = sqlite_query(
         "SELECT DISTINCT c.id, c.name FROM customers c
          INNER JOIN business_rules br ON c.id = br.customer_id
-         WHERE c.status = 'active'"
+         WHERE c.status = 'active'",
     );
 
     foreach ($customers as $customer) {
@@ -195,7 +195,7 @@ function get_upcoming_annualized_resets($days = 30)
          AND cs.effective_date = (
              SELECT MAX(cs2.effective_date) FROM customer_settings cs2
              WHERE cs2.customer_id = cs.customer_id AND cs2.effective_date <= date('now')
-         )"
+         )",
     );
 
     $today = date("Y-m-d");
@@ -253,7 +253,7 @@ function get_month_events($year, $month)
     $customers = sqlite_query(
         "SELECT DISTINCT c.id, c.name, c.contract_start_date FROM customers c
          INNER JOIN customer_escalators ce ON c.id = ce.customer_id
-         WHERE c.status = 'active'"
+         WHERE c.status = 'active'",
     );
 
     foreach ($customers as $customer) {
@@ -280,8 +280,8 @@ function get_month_events($year, $month)
                     $start_date .
                         " + " .
                         ($esc_year - 1) .
-                        " years + $delay_months months"
-                )
+                        " years + $delay_months months",
+                ),
             );
 
             // Check if this anniversary falls in our month
@@ -311,7 +311,7 @@ function get_month_events($year, $month)
          AND cs.effective_date = (
              SELECT MAX(cs2.effective_date) FROM customer_settings cs2
              WHERE cs2.customer_id = cs.customer_id AND cs2.effective_date <= date('now')
-         )"
+         )",
     );
 
     foreach ($settings as $setting) {
@@ -333,14 +333,14 @@ function get_month_events($year, $month)
 
     // Get paused customers
     $paused = sqlite_query(
-        "SELECT id, name FROM customers WHERE status = 'paused'"
+        "SELECT id, name FROM customers WHERE status = 'paused'",
     );
     $events["paused_customers"] = $paused;
 
     // Check for warnings
     // - Customers without LMS
     $no_lms = sqlite_query(
-        "SELECT id, name FROM customers WHERE status = 'active' AND (lms_id IS NULL OR lms_id = 0)"
+        "SELECT id, name FROM customers WHERE status = 'active' AND (lms_id IS NULL OR lms_id = 0)",
     );
     foreach ($no_lms as $c) {
         $events["warnings"][] = [
@@ -362,7 +362,7 @@ function is_month_complete($year, $month)
     $result = sqlite_query(
         "SELECT COUNT(*) as cnt FROM billing_reports
          WHERE report_type = 'monthly' AND report_year = ? AND report_month = ?",
-        [$year, $month]
+        [$year, $month],
     );
     return $result[0]["cnt"] > 0;
 }
@@ -440,7 +440,7 @@ function get_new_customers_since($since_date)
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          WHERE c.created_at >= ?
          ORDER BY c.created_at DESC",
-        [$since_date]
+        [$since_date],
     );
 }
 
@@ -460,7 +460,7 @@ function get_config_changes_since($since_date)
          JOIN services s ON pt.service_id = s.id
          WHERE pt.effective_date >= ? AND pt.level = 'customer'
          ORDER BY pt.effective_date DESC",
-        [$since_date]
+        [$since_date],
     );
     foreach ($pricing as $p) {
         $changes[] = [
@@ -481,7 +481,7 @@ function get_config_changes_since($since_date)
          JOIN customers c ON cs.customer_id = c.id
          WHERE cs.effective_date >= ?
          ORDER BY cs.effective_date DESC",
-        [$since_date]
+        [$since_date],
     );
     foreach ($settings as $s) {
         $changes[] = [
@@ -517,7 +517,7 @@ function get_mtd_summary($year, $month)
          WHERE br.report_type = 'daily'
          AND br.report_year = ?
          AND br.report_month = ?",
-        [$year, $month]
+        [$year, $month],
     );
 
     return $result[0];
@@ -540,7 +540,7 @@ function get_mtd_daily_breakdown($year, $month)
          AND br.report_month = ?
          GROUP BY br.report_date
          ORDER BY br.report_date",
-        [$year, $month]
+        [$year, $month],
     );
 }
 
@@ -564,7 +564,7 @@ function get_mtd_service_breakdown($year, $month)
          AND br.report_month = ?
          GROUP BY brl.efx_code, s.name
          ORDER BY revenue DESC",
-        [$year, $month]
+        [$year, $month],
     );
 }
 
@@ -586,7 +586,7 @@ function get_mtd_customer_breakdown($year, $month)
          AND br.report_month = ?
          GROUP BY brl.customer_id, brl.customer_name
          ORDER BY revenue DESC",
-        [$year, $month]
+        [$year, $month],
     );
 }
 
@@ -614,7 +614,7 @@ function get_previous_month_mtd($year, $month, $day)
          AND br.report_year = ?
          AND br.report_month = ?
          AND CAST(substr(br.report_date, 9, 2) AS INTEGER) <= ?",
-        [$prev_year, $prev_month, $day]
+        [$prev_year, $prev_month, $day],
     );
 
     return $result[0];
@@ -638,7 +638,7 @@ function get_default_tiers($service_id)
          WHERE level = 'default' AND level_id IS NULL AND service_id = ?
          AND effective_date <= date('now')
          ORDER BY effective_date DESC, volume_start ASC",
-        [$service_id]
+        [$service_id],
     );
 }
 
@@ -652,7 +652,7 @@ function get_current_default_tiers($service_id)
         "SELECT MAX(effective_date) as max_date FROM pricing_tiers
          WHERE level = 'default' AND level_id IS NULL AND service_id = ?
          AND effective_date <= date('now')",
-        [$service_id]
+        [$service_id],
     );
 
     if (empty($latest) || !$latest[0]["max_date"]) {
@@ -664,7 +664,7 @@ function get_current_default_tiers($service_id)
          WHERE level = 'default' AND level_id IS NULL AND service_id = ?
          AND effective_date = ?
          ORDER BY volume_start ASC",
-        [$service_id, $latest[0]["max_date"]]
+        [$service_id, $latest[0]["max_date"]],
     );
 }
 
@@ -687,7 +687,7 @@ function save_default_tiers($service_id, $tiers, $effective_date = null)
                 $tier["volume_end"],
                 $tier["price_per_inquiry"],
                 $effective_date,
-            ]
+            ],
         );
     }
 
@@ -703,7 +703,7 @@ function get_current_group_tiers($group_id, $service_id)
         "SELECT MAX(effective_date) as max_date FROM pricing_tiers
          WHERE level = 'group' AND level_id = ? AND service_id = ?
          AND effective_date <= date('now')",
-        [$group_id, $service_id]
+        [$group_id, $service_id],
     );
 
     if (empty($latest) || !$latest[0]["max_date"]) {
@@ -715,7 +715,7 @@ function get_current_group_tiers($group_id, $service_id)
          WHERE level = 'group' AND level_id = ? AND service_id = ?
          AND effective_date = ?
          ORDER BY volume_start ASC",
-        [$group_id, $service_id, $latest[0]["max_date"]]
+        [$group_id, $service_id, $latest[0]["max_date"]],
     );
 }
 
@@ -726,7 +726,7 @@ function save_group_tiers(
     $group_id,
     $service_id,
     $tiers,
-    $effective_date = null
+    $effective_date = null,
 ) {
     if ($effective_date === null) {
         $effective_date = date("Y-m-d");
@@ -743,7 +743,7 @@ function save_group_tiers(
                 $tier["volume_end"],
                 $tier["price_per_inquiry"],
                 $effective_date,
-            ]
+            ],
         );
     }
 
@@ -794,7 +794,7 @@ function get_current_customer_tiers($customer_id, $service_id)
         "SELECT MAX(effective_date) as max_date FROM pricing_tiers
          WHERE level = 'customer' AND level_id = ? AND service_id = ?
          AND effective_date <= date('now')",
-        [$customer_id, $service_id]
+        [$customer_id, $service_id],
     );
 
     if (empty($latest) || !$latest[0]["max_date"]) {
@@ -806,7 +806,7 @@ function get_current_customer_tiers($customer_id, $service_id)
          WHERE level = 'customer' AND level_id = ? AND service_id = ?
          AND effective_date = ?
          ORDER BY volume_start ASC",
-        [$customer_id, $service_id, $latest[0]["max_date"]]
+        [$customer_id, $service_id, $latest[0]["max_date"]],
     );
 }
 
@@ -817,7 +817,7 @@ function save_customer_tiers(
     $customer_id,
     $service_id,
     $tiers,
-    $effective_date = null
+    $effective_date = null,
 ) {
     if ($effective_date === null) {
         $effective_date = date("Y-m-d");
@@ -834,7 +834,7 @@ function save_customer_tiers(
                 $tier["volume_end"],
                 $tier["price_per_inquiry"],
                 $effective_date,
-            ]
+            ],
         );
     }
 
@@ -859,7 +859,7 @@ function get_effective_customer_tiers($customer_id, $service_id)
     // Check if customer belongs to a group
     $customer = sqlite_query(
         "SELECT discount_group_id FROM customers WHERE id = ?",
-        [$customer_id]
+        [$customer_id],
     );
 
     if (!empty($customer) && $customer[0]["discount_group_id"]) {
@@ -896,7 +896,7 @@ function get_default_tiers_as_of($service_id, $as_of_date)
         "SELECT MAX(effective_date) as max_date FROM pricing_tiers
          WHERE level = 'default' AND level_id IS NULL AND service_id = ?
          AND effective_date <= ?",
-        [$service_id, $as_of_date]
+        [$service_id, $as_of_date],
     );
 
     if (empty($latest) || !$latest[0]["max_date"]) {
@@ -908,7 +908,7 @@ function get_default_tiers_as_of($service_id, $as_of_date)
          WHERE level = 'default' AND level_id IS NULL AND service_id = ?
          AND effective_date = ?
          ORDER BY volume_start ASC",
-        [$service_id, $latest[0]["max_date"]]
+        [$service_id, $latest[0]["max_date"]],
     );
 }
 
@@ -921,7 +921,7 @@ function get_group_tiers_as_of($group_id, $service_id, $as_of_date)
         "SELECT MAX(effective_date) as max_date FROM pricing_tiers
          WHERE level = 'group' AND level_id = ? AND service_id = ?
          AND effective_date <= ?",
-        [$group_id, $service_id, $as_of_date]
+        [$group_id, $service_id, $as_of_date],
     );
 
     if (empty($latest) || !$latest[0]["max_date"]) {
@@ -933,7 +933,7 @@ function get_group_tiers_as_of($group_id, $service_id, $as_of_date)
          WHERE level = 'group' AND level_id = ? AND service_id = ?
          AND effective_date = ?
          ORDER BY volume_start ASC",
-        [$group_id, $service_id, $latest[0]["max_date"]]
+        [$group_id, $service_id, $latest[0]["max_date"]],
     );
 }
 
@@ -946,7 +946,7 @@ function get_customer_tiers_as_of($customer_id, $service_id, $as_of_date)
         "SELECT MAX(effective_date) as max_date FROM pricing_tiers
          WHERE level = 'customer' AND level_id = ? AND service_id = ?
          AND effective_date <= ?",
-        [$customer_id, $service_id, $as_of_date]
+        [$customer_id, $service_id, $as_of_date],
     );
 
     if (empty($latest) || !$latest[0]["max_date"]) {
@@ -958,7 +958,7 @@ function get_customer_tiers_as_of($customer_id, $service_id, $as_of_date)
          WHERE level = 'customer' AND level_id = ? AND service_id = ?
          AND effective_date = ?
          ORDER BY volume_start ASC",
-        [$customer_id, $service_id, $latest[0]["max_date"]]
+        [$customer_id, $service_id, $latest[0]["max_date"]],
     );
 }
 
@@ -971,7 +971,7 @@ function get_customer_settings_as_of($customer_id, $as_of_date)
         "SELECT * FROM customer_settings
          WHERE customer_id = ? AND effective_date <= ?
          ORDER BY effective_date DESC, id DESC LIMIT 1",
-        [$customer_id, $as_of_date]
+        [$customer_id, $as_of_date],
     );
 
     if (!empty($settings)) {
@@ -995,7 +995,7 @@ function get_escalators_as_of($customer_id, $as_of_date)
     $latest = sqlite_query(
         "SELECT MAX(effective_date) as max_date FROM customer_escalators
          WHERE customer_id = ? AND effective_date <= ?",
-        [$customer_id, $as_of_date]
+        [$customer_id, $as_of_date],
     );
 
     if (empty($latest) || !$latest[0]["max_date"]) {
@@ -1006,7 +1006,7 @@ function get_escalators_as_of($customer_id, $as_of_date)
         "SELECT * FROM customer_escalators
          WHERE customer_id = ? AND effective_date = ?
          ORDER BY year_number ASC",
-        [$customer_id, $latest[0]["max_date"]]
+        [$customer_id, $latest[0]["max_date"]],
     );
 }
 
@@ -1018,7 +1018,7 @@ function get_total_delay_months_as_of($customer_id, $year_number, $as_of_date)
     $delays = sqlite_query(
         "SELECT SUM(delay_months) as total FROM escalator_delays
          WHERE customer_id = ? AND year_number = ? AND applied_date <= ?",
-        [$customer_id, $year_number, $as_of_date]
+        [$customer_id, $year_number, $as_of_date],
     );
 
     return !empty($delays) && $delays[0]["total"]
@@ -1039,7 +1039,7 @@ function get_customer_group_as_of($customer_id, $as_of_date)
          FROM customers c
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          WHERE c.id = ?",
-        [$customer_id]
+        [$customer_id],
     );
 
     if (empty($customer)) {
@@ -1062,7 +1062,7 @@ function get_service_by_efx_code($efx_code)
          INNER JOIN transaction_types tt ON tt.service_id = s.id
          WHERE tt.efx_code = ?
          LIMIT 1",
-        [$efx_code]
+        [$efx_code],
     );
 
     return !empty($result) ? $result[0] : null;
@@ -1086,7 +1086,7 @@ function get_effective_tiers_as_of($customer_id, $service_id, $as_of_date)
     $customer_tiers = get_customer_tiers_as_of(
         $customer_id,
         $service_id,
-        $as_of_date
+        $as_of_date,
     );
     if (!empty($customer_tiers)) {
         foreach ($customer_tiers as &$tier) {
@@ -1113,7 +1113,7 @@ function get_effective_tiers_as_of($customer_id, $service_id, $as_of_date)
         $group_tiers = get_group_tiers_as_of(
             $group_info["group_id"],
             $service_id,
-            $as_of_date
+            $as_of_date,
         );
         if (!empty($group_tiers)) {
             foreach ($group_tiers as &$tier) {
@@ -1220,7 +1220,7 @@ function get_escalator_year_on_date($customer_id, $as_of_date)
     $delay_months = get_total_delay_months_as_of(
         $customer_id,
         $raw_year,
-        $as_of_date
+        $as_of_date,
     );
 
     // Calculate effective year considering delays
@@ -1252,7 +1252,7 @@ function get_current_customer_settings($customer_id)
         "SELECT * FROM customer_settings
          WHERE customer_id = ? AND effective_date <= date('now')
          ORDER BY effective_date DESC, id DESC LIMIT 1",
-        [$customer_id]
+        [$customer_id],
     );
 
     if (!empty($settings)) {
@@ -1297,7 +1297,7 @@ function save_customer_settings($customer_id, $settings)
             $settings["look_period_months"] !== ""
                 ? (int) $settings["look_period_months"]
                 : null,
-        ]
+        ],
     );
 
     return true;
@@ -1349,7 +1349,7 @@ function get_customers_with_minimums()
              SELECT MAX(cs2.effective_date) FROM customer_settings cs2
              WHERE cs2.customer_id = cs.customer_id AND cs2.effective_date <= date('now')
          )
-         ORDER BY c.name"
+         ORDER BY c.name",
     );
 }
 
@@ -1366,7 +1366,7 @@ function get_current_escalators($customer_id)
     $latest = sqlite_query(
         "SELECT MAX(effective_date) as max_date FROM customer_escalators
          WHERE customer_id = ? AND effective_date <= date('now')",
-        [$customer_id]
+        [$customer_id],
     );
 
     if (empty($latest) || !$latest[0]["max_date"]) {
@@ -1377,7 +1377,7 @@ function get_current_escalators($customer_id)
         "SELECT * FROM customer_escalators
          WHERE customer_id = ? AND effective_date = ?
          ORDER BY year_number ASC",
-        [$customer_id, $latest[0]["max_date"]]
+        [$customer_id, $latest[0]["max_date"]],
     );
 }
 
@@ -1403,7 +1403,7 @@ function save_escalators($customer_id, $escalators, $escalator_start_date)
                     ? (float) $esc["fixed_adjustment"]
                     : 0,
                 $effective_date,
-            ]
+            ],
         );
     }
 
@@ -1419,7 +1419,7 @@ function get_escalator_delays($customer_id)
         "SELECT * FROM escalator_delays
          WHERE customer_id = ?
          ORDER BY year_number ASC, applied_date DESC",
-        [$customer_id]
+        [$customer_id],
     );
 }
 
@@ -1431,7 +1431,7 @@ function apply_escalator_delay($customer_id, $year_number, $delay_months = 1)
     sqlite_execute(
         "INSERT INTO escalator_delays (customer_id, year_number, delay_months, applied_date)
          VALUES (?, ?, ?, date('now'))",
-        [$customer_id, $year_number, $delay_months]
+        [$customer_id, $year_number, $delay_months],
     );
     return true;
 }
@@ -1443,7 +1443,7 @@ function save_escalator_delay(
     $customer_id,
     $year_number,
     $delay_months = 1,
-    $reason = null
+    $reason = null,
 ) {
     return apply_escalator_delay($customer_id, $year_number, $delay_months);
 }
@@ -1456,7 +1456,7 @@ function get_total_delay_months($customer_id, $year_number)
     $delays = sqlite_query(
         "SELECT SUM(delay_months) as total FROM escalator_delays
          WHERE customer_id = ? AND year_number = ?",
-        [$customer_id, $year_number]
+        [$customer_id, $year_number],
     );
 
     return !empty($delays) && $delays[0]["total"]
@@ -1491,7 +1491,7 @@ function get_lms($lms_id)
 function get_default_commission_rate()
 {
     $rows = sqlite_query(
-        "SELECT value FROM system_settings WHERE key = 'default_commission_rate'"
+        "SELECT value FROM system_settings WHERE key = 'default_commission_rate'",
     );
     return !empty($rows) ? (float) $rows[0]["value"] : 10.0; // Default 10%
 }
@@ -1505,7 +1505,7 @@ function save_default_commission_rate($rate)
     $result = sqlite_execute(
         "UPDATE system_settings SET value = ?, updated_at = datetime('now')
          WHERE key = 'default_commission_rate'",
-        [$rate]
+        [$rate],
     );
 
     // If no row updated, insert
@@ -1513,7 +1513,7 @@ function save_default_commission_rate($rate)
     if ($changes === 0) {
         sqlite_execute(
             "INSERT INTO system_settings (key, value, updated_at) VALUES ('default_commission_rate', ?, datetime('now'))",
-            [$rate]
+            [$rate],
         );
     }
     return true;
@@ -1542,13 +1542,13 @@ function save_lms($id, $name, $commission_rate = null)
     if ($existing) {
         sqlite_execute(
             "UPDATE lms SET name = ?, commission_rate = ?, updated_at = datetime('now') WHERE id = ?",
-            [$name, $commission_rate, $id]
+            [$name, $commission_rate, $id],
         );
     } else {
         sqlite_execute(
             "INSERT INTO lms (id, name, commission_rate, last_synced, created_at, updated_at)
              VALUES (?, ?, ?, datetime('now'), datetime('now'), datetime('now'))",
-            [$id, $name, $commission_rate]
+            [$id, $name, $commission_rate],
         );
     }
     return true;
@@ -1592,13 +1592,13 @@ function sync_lms_from_remote()
                 sqlite_execute(
                     "INSERT INTO lms (id, name, status, last_synced, created_at, updated_at)
                      VALUES (?, ?, ?, datetime('now'), datetime('now'), datetime('now'))",
-                    [$lms["id"], $lms["name"], $lms["status"]]
+                    [$lms["id"], $lms["name"], $lms["status"]],
                 );
             } else {
                 // Update name and status, preserve local commission_rate
                 sqlite_execute(
                     "UPDATE lms SET name = ?, status = ?, last_synced = datetime('now'), updated_at = datetime('now') WHERE id = ?",
-                    [$lms["name"], $lms["status"], $lms["id"]]
+                    [$lms["name"], $lms["status"], $lms["id"]],
                 );
             }
         }
@@ -1606,7 +1606,7 @@ function sync_lms_from_remote()
         // Log the sync
         sqlite_execute(
             "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('lms', ?, 'success')",
-            [count($mock_lms)]
+            [count($mock_lms)],
         );
 
         return count($mock_lms);
@@ -1614,7 +1614,7 @@ function sync_lms_from_remote()
 
     // Production: query remote api_lms_software table
     $remote_lms = remote_db_query(
-        "SELECT lms_software_id, name, active FROM api_lms_software ORDER BY name"
+        "SELECT lms_software_id, name, active FROM api_lms_software ORDER BY name",
     );
 
     foreach ($remote_lms as $lms) {
@@ -1630,7 +1630,7 @@ function sync_lms_from_remote()
                     $lms["name"],
                     $status,
                     $lms["active"] ? 1 : 0,
-                ]
+                ],
             );
         } else {
             sqlite_execute(
@@ -1640,43 +1640,43 @@ function sync_lms_from_remote()
                     $status,
                     $lms["active"] ? 1 : 0,
                     $lms["lms_software_id"],
-                ]
+                ],
             );
         }
     }
 
     sqlite_execute(
         "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('lms', ?, 'success')",
-        [count($remote_lms)]
+        [count($remote_lms)],
     );
 
     // Also sync decision connectors from api_decision_connector
     $remote_connectors = remote_db_query(
-        "SELECT decision_connector_id, name FROM api_decision_connector ORDER BY name"
+        "SELECT decision_connector_id, name FROM api_decision_connector ORDER BY name",
     );
 
     foreach ($remote_connectors as $conn) {
         $existing = sqlite_query(
             "SELECT id FROM decision_connectors WHERE id = ?",
-            [$conn["decision_connector_id"]]
+            [$conn["decision_connector_id"]],
         );
         if (empty($existing)) {
             sqlite_execute(
                 "INSERT INTO decision_connectors (id, name, last_synced, created_at, updated_at)
                  VALUES (?, ?, datetime('now'), datetime('now'), datetime('now'))",
-                [$conn["decision_connector_id"], $conn["name"]]
+                [$conn["decision_connector_id"], $conn["name"]],
             );
         } else {
             sqlite_execute(
                 "UPDATE decision_connectors SET name = ?, last_synced = datetime('now'), updated_at = datetime('now') WHERE id = ?",
-                [$conn["name"], $conn["decision_connector_id"]]
+                [$conn["name"], $conn["decision_connector_id"]],
             );
         }
     }
 
     sqlite_execute(
         "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('decision_connectors', ?, 'success')",
-        [count($remote_connectors)]
+        [count($remote_connectors)],
     );
 
     return count($remote_lms) + count($remote_connectors);
@@ -1693,7 +1693,7 @@ function get_customers_by_lms($lms_id)
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          WHERE c.lms_id = ?
          ORDER BY c.name",
-        [$lms_id]
+        [$lms_id],
     );
 }
 
@@ -1707,7 +1707,7 @@ function get_customers_without_lms()
          FROM customers c
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          WHERE c.lms_id IS NULL OR c.lms_id = 0
-         ORDER BY c.name"
+         ORDER BY c.name",
     );
 }
 
@@ -1718,7 +1718,7 @@ function assign_customer_lms($customer_id, $lms_id)
 {
     sqlite_execute(
         "UPDATE customers SET lms_id = ?, updated_at = datetime('now') WHERE id = ?",
-        [$lms_id, $customer_id]
+        [$lms_id, $customer_id],
     );
     return true;
 }
@@ -1732,7 +1732,7 @@ function get_service_cogs($service_id)
         "SELECT cogs_rate FROM service_cogs
          WHERE service_id = ? AND effective_date <= date('now')
          ORDER BY effective_date DESC, id DESC LIMIT 1",
-        [$service_id]
+        [$service_id],
     );
     return !empty($rows) ? (float) $rows[0]["cogs_rate"] : 0.0;
 }
@@ -1748,7 +1748,7 @@ function save_service_cogs($service_id, $cogs_rate, $effective_date = null)
 
     sqlite_execute(
         "INSERT INTO service_cogs (service_id, cogs_rate, effective_date) VALUES (?, ?, ?)",
-        [$service_id, $cogs_rate, $effective_date]
+        [$service_id, $cogs_rate, $effective_date],
     );
     return true;
 }
@@ -1776,7 +1776,7 @@ function sync_cogs_from_remote()
 
         sqlite_execute(
             "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('cogs', ?, 'success')",
-            [$count]
+            [$count],
         );
 
         return $count;
@@ -1784,7 +1784,7 @@ function sync_cogs_from_remote()
 
     // Production: query remote DB
     $remote_cogs = remote_db_query(
-        "SELECT service_id, cogs_rate FROM service_cogs"
+        "SELECT service_id, cogs_rate FROM service_cogs",
     );
     $count = 0;
 
@@ -1795,7 +1795,7 @@ function sync_cogs_from_remote()
 
     sqlite_execute(
         "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('cogs', ?, 'success')",
-        [count($remote_cogs)]
+        [count($remote_cogs)],
     );
 
     return count($remote_cogs);
@@ -1818,7 +1818,7 @@ function sync_customers_from_remote()
 
         sqlite_execute(
             "INSERT INTO sync_log (entity_type, record_count, status, notes) VALUES ('customers', ?, 'success', 'Mock mode - data already seeded')",
-            [$count]
+            [$count],
         );
 
         return [
@@ -1835,7 +1835,7 @@ function sync_customers_from_remote()
             cust_name,
             active,
             visible,
-            billible,
+            billable,
             decommisioned,
             locked,
             lms_software_id,
@@ -1878,10 +1878,10 @@ function sync_customers_from_remote()
                         $cust["decision_connect_id"],
                         $cust["active"] ? 1 : 0,
                         $cust["visible"] ? 1 : 0,
-                        $cust["billible"] ? 1 : 0,
+                        $cust["billable"] ? 1 : 0,
                         $cust["decommisioned"] ? 1 : 0,
                         $cust["locked"] ? 1 : 0,
-                    ]
+                    ],
                 );
             } else {
                 sqlite_execute(
@@ -1899,11 +1899,11 @@ function sync_customers_from_remote()
                         $cust["decision_connect_id"],
                         $cust["active"] ? 1 : 0,
                         $cust["visible"] ? 1 : 0,
-                        $cust["billible"] ? 1 : 0,
+                        $cust["billable"] ? 1 : 0,
                         $cust["decommisioned"] ? 1 : 0,
                         $cust["locked"] ? 1 : 0,
                         $cust["cust_id"],
-                    ]
+                    ],
                 );
             }
             $synced++;
@@ -1917,7 +1917,7 @@ function sync_customers_from_remote()
 
     sqlite_execute(
         "INSERT INTO sync_log (entity_type, record_count, status, notes) VALUES ('customers', ?, ?, ?)",
-        [$synced, $status, $notes]
+        [$synced, $status, $notes],
     );
 
     return [
@@ -1938,7 +1938,7 @@ function sync_services_from_remote()
 
         sqlite_execute(
             "INSERT INTO sync_log (entity_type, record_count, status, notes) VALUES ('services', ?, 'success', 'Mock mode - data already seeded')",
-            [$count]
+            [$count],
         );
 
         return [
@@ -1970,14 +1970,14 @@ function sync_services_from_remote()
                     INSERT INTO services (id, name, type, created_at, updated_at)
                     VALUES (?, ?, ?, datetime('now'), datetime('now'))
                 ",
-                    [$svc["id"], $svc["name"], $svc["type"]]
+                    [$svc["id"], $svc["name"], $svc["type"]],
                 );
             } else {
                 sqlite_execute(
                     "
                     UPDATE services SET name = ?, type = ?, updated_at = datetime('now') WHERE id = ?
                 ",
-                    [$svc["name"], $svc["type"], $svc["id"]]
+                    [$svc["name"], $svc["type"], $svc["id"]],
                 );
             }
             $synced++;
@@ -1989,7 +1989,7 @@ function sync_services_from_remote()
     $status = empty($errors) ? "success" : "partial";
     sqlite_execute(
         "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('services', ?, ?)",
-        [$synced, $status]
+        [$synced, $status],
     );
 
     return [
@@ -2010,7 +2010,7 @@ function sync_discount_groups_from_remote()
 
         sqlite_execute(
             "INSERT INTO sync_log (entity_type, record_count, status, notes) VALUES ('discount_groups', ?, 'success', 'Mock mode - data already seeded')",
-            [$count]
+            [$count],
         );
 
         return [
@@ -2034,7 +2034,7 @@ function sync_discount_groups_from_remote()
         try {
             $existing = sqlite_query(
                 "SELECT id FROM discount_groups WHERE id = ?",
-                [$group["id"]]
+                [$group["id"]],
             );
 
             if (empty($existing)) {
@@ -2043,14 +2043,14 @@ function sync_discount_groups_from_remote()
                     INSERT INTO discount_groups (id, name, created_at, updated_at)
                     VALUES (?, ?, datetime('now'), datetime('now'))
                 ",
-                    [$group["id"], $group["name"]]
+                    [$group["id"], $group["name"]],
                 );
             } else {
                 sqlite_execute(
                     "
                     UPDATE discount_groups SET name = ?, updated_at = datetime('now') WHERE id = ?
                 ",
-                    [$group["name"], $group["id"]]
+                    [$group["name"], $group["id"]],
                 );
             }
             $synced++;
@@ -2062,7 +2062,7 @@ function sync_discount_groups_from_remote()
     $status = empty($errors) ? "success" : "partial";
     sqlite_execute(
         "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('discount_groups', ?, ?)",
-        [$synced, $status]
+        [$synced, $status],
     );
 
     return [
@@ -2083,7 +2083,7 @@ function sync_business_rules_from_remote()
 
         sqlite_execute(
             "INSERT INTO sync_log (entity_type, record_count, status, notes) VALUES ('business_rules', ?, 'success', 'Mock mode - data already seeded')",
-            [$count]
+            [$count],
         );
 
         return [
@@ -2107,7 +2107,7 @@ function sync_business_rules_from_remote()
         try {
             $existing = sqlite_query(
                 "SELECT id FROM business_rules WHERE id = ?",
-                [$rule["business_rule_id"]]
+                [$rule["business_rule_id"]],
             );
 
             if (empty($existing)) {
@@ -2116,12 +2116,12 @@ function sync_business_rules_from_remote()
                     INSERT INTO business_rules (id, name, active, created_at)
                     VALUES (?, ?, 1, datetime('now'))
                     ",
-                    [$rule["business_rule_id"], $rule["business_rule_name"]]
+                    [$rule["business_rule_id"], $rule["business_rule_name"]],
                 );
             } else {
                 sqlite_execute(
                     "UPDATE business_rules SET name = ? WHERE id = ?",
-                    [$rule["business_rule_name"], $rule["business_rule_id"]]
+                    [$rule["business_rule_name"], $rule["business_rule_id"]],
                 );
             }
             $synced++;
@@ -2142,13 +2142,13 @@ function sync_business_rules_from_remote()
             // Check if relationship exists
             $existing = sqlite_query(
                 "SELECT id FROM customer_business_rules WHERE customer_id = ? AND business_rule_id = ?",
-                [$rel["cust_id"], $rel["business_rule_id"]]
+                [$rel["cust_id"], $rel["business_rule_id"]],
             );
 
             if (empty($existing)) {
                 sqlite_execute(
                     "INSERT INTO customer_business_rules (customer_id, business_rule_id, created_at) VALUES (?, ?, datetime('now'))",
-                    [$rel["cust_id"], $rel["business_rule_id"]]
+                    [$rel["cust_id"], $rel["business_rule_id"]],
                 );
                 $rel_synced++;
             }
@@ -2160,7 +2160,7 @@ function sync_business_rules_from_remote()
     $status = empty($errors) ? "success" : "partial";
     sqlite_execute(
         "INSERT INTO sync_log (entity_type, record_count, status, notes) VALUES ('business_rules', ?, ?, ?)",
-        [$synced, $status, "Also synced {$rel_synced} customer relationships"]
+        [$synced, $status, "Also synced {$rel_synced} customer relationships"],
     );
 
     return [
@@ -2211,7 +2211,7 @@ function get_sync_status()
              FROM sync_log
              WHERE entity_type = ?
              ORDER BY synced_at DESC LIMIT 1",
-            [$entity]
+            [$entity],
         );
 
         // Get current count
@@ -2250,7 +2250,7 @@ function get_sync_log($limit = 20)
 {
     return sqlite_query(
         "SELECT * FROM sync_log ORDER BY synced_at DESC LIMIT ?",
-        [$limit]
+        [$limit],
     );
 }
 
@@ -2454,7 +2454,7 @@ function parse_billing_filename($filename)
         preg_match(
             "/^DataX_(\d{4})_(\d{2})_(\d{4})_(\d{2})_/",
             $filename,
-            $matches
+            $matches,
         )
     ) {
         return [
@@ -2635,7 +2635,7 @@ function import_billing_report($filename, $csv_content, $report_type = null)
         "%04d-%02d-%02d",
         $file_info["year"],
         $file_info["month"],
-        $file_info["day"] ? $file_info["day"] : 1
+        $file_info["day"] ? $file_info["day"] : 1,
     );
 
     // Check for duplicate import
@@ -2649,7 +2649,7 @@ function import_billing_report($filename, $csv_content, $report_type = null)
             $file_info["month"],
             $report_date,
             $report_type,
-        ]
+        ],
     );
 
     if (!empty($existing) && $report_type === "monthly") {
@@ -2671,7 +2671,7 @@ function import_billing_report($filename, $csv_content, $report_type = null)
             $report_date,
             $filename,
             count($parsed["rows"]),
-        ]
+        ],
     );
     $report_id = sqlite_last_id();
     $result["report_id"] = $report_id;
@@ -2696,7 +2696,7 @@ function import_billing_report($filename, $csv_content, $report_type = null)
                 $row["revenue"],
                 $row["EFX_code"],
                 $row["billing_id"],
-            ]
+            ],
         );
         $result["rows_imported"]++;
     }
@@ -2732,7 +2732,7 @@ function get_billing_report_lines($report_id)
 {
     return sqlite_query(
         "SELECT * FROM billing_report_lines WHERE report_id = ? ORDER BY customer_name, tran_displayname",
-        [$report_id]
+        [$report_id],
     );
 }
 
@@ -2754,7 +2754,7 @@ function delete_billing_report($report_id)
 function get_billing_summary_by_customer(
     $year,
     $month,
-    $report_type = "monthly"
+    $report_type = "monthly",
 ) {
     return sqlite_query(
         "SELECT
@@ -2768,7 +2768,7 @@ function get_billing_summary_by_customer(
          WHERE br.report_year = ? AND br.report_month = ? AND br.report_type = ?
          GROUP BY brl.customer_id, brl.customer_name
          ORDER BY total_revenue DESC",
-        [$year, $month, $report_type]
+        [$year, $month, $report_type],
     );
 }
 
@@ -2782,7 +2782,7 @@ function get_billing_summary_by_customer(
 function get_all_transaction_types()
 {
     return sqlite_query(
-        "SELECT * FROM transaction_types ORDER BY type, display_name"
+        "SELECT * FROM transaction_types ORDER BY type, display_name",
     );
 }
 
@@ -2793,7 +2793,7 @@ function get_transaction_type_by_efx($efx_code)
 {
     $result = sqlite_query(
         "SELECT * FROM transaction_types WHERE efx_code = ? LIMIT 1",
-        [$efx_code]
+        [$efx_code],
     );
     return !empty($result) ? $result[0] : null;
 }
@@ -2806,18 +2806,18 @@ function save_transaction_type(
     $display_name,
     $efx_code,
     $efx_displayname = null,
-    $service_id = null
+    $service_id = null,
 ) {
     // Check if exists
     $existing = sqlite_query(
         "SELECT id FROM transaction_types WHERE efx_code = ? AND display_name = ?",
-        [$efx_code, $display_name]
+        [$efx_code, $display_name],
     );
 
     if (!empty($existing)) {
         sqlite_execute(
             "UPDATE transaction_types SET type = ?, efx_displayname = ?, service_id = ? WHERE id = ?",
-            [$type, $efx_displayname, $service_id, $existing[0]["id"]]
+            [$type, $efx_displayname, $service_id, $existing[0]["id"]],
         );
         return $existing[0]["id"];
     }
@@ -2825,7 +2825,7 @@ function save_transaction_type(
     sqlite_execute(
         "INSERT INTO transaction_types (type, display_name, efx_code, efx_displayname, service_id)
          VALUES (?, ?, ?, ?, ?)",
-        [$type, $display_name, $efx_code, $efx_displayname, $service_id]
+        [$type, $display_name, $efx_code, $efx_displayname, $service_id],
     );
 
     return sqlite_db()->lastInsertRowID();
@@ -2864,7 +2864,7 @@ function import_transaction_types_csv($csv_content)
             $type,
             $display_name,
             $efx_code,
-            $efx_displayname
+            $efx_displayname,
         );
         $imported++;
     }
@@ -2880,7 +2880,7 @@ function get_effective_billing_flags(
     $service_id,
     $efx_code,
     $customer_id = null,
-    $group_id = null
+    $group_id = null,
 ) {
     // Default flags
     $flags = [
@@ -2897,7 +2897,7 @@ function get_effective_billing_flags(
          AND service_id = ? AND efx_code = ?
          AND effective_date <= date('now')
          ORDER BY effective_date DESC, id DESC LIMIT 1",
-        [$service_id, $efx_code]
+        [$service_id, $efx_code],
     );
 
     if (!empty($default_flags)) {
@@ -2913,7 +2913,7 @@ function get_effective_billing_flags(
              AND service_id = ? AND efx_code = ?
              AND effective_date <= date('now')
              ORDER BY effective_date DESC, id DESC LIMIT 1",
-            [$group_id, $service_id, $efx_code]
+            [$group_id, $service_id, $efx_code],
         );
 
         if (!empty($group_flags)) {
@@ -2930,7 +2930,7 @@ function get_effective_billing_flags(
              AND service_id = ? AND efx_code = ?
              AND effective_date <= date('now')
              ORDER BY effective_date DESC, id DESC LIMIT 1",
-            [$customer_id, $service_id, $efx_code]
+            [$customer_id, $service_id, $efx_code],
         );
 
         if (!empty($customer_flags)) {
@@ -2953,7 +2953,7 @@ function save_billing_flags(
     $by_hit,
     $zero_null,
     $bav_by_trans,
-    $effective_date = null
+    $effective_date = null,
 ) {
     if ($effective_date === null) {
         $effective_date = date("Y-m-d");
@@ -2971,7 +2971,7 @@ function save_billing_flags(
             $zero_null ? 1 : 0,
             $bav_by_trans ? 1 : 0,
             $effective_date,
-        ]
+        ],
     );
 
     return true;
@@ -2988,7 +2988,7 @@ function save_billing_flags(
 function calculate_escalated_price(
     $base_price,
     $customer_id,
-    $as_of_date = null
+    $as_of_date = null,
 ) {
     if ($as_of_date === null) {
         $as_of_date = date("Y-m-d");
@@ -3097,7 +3097,7 @@ function generate_tier_pricing_csv($options = [])
          FROM customers c
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          $status_filter
-         ORDER BY c.name"
+         ORDER BY c.name",
     );
 
     if (empty($customers)) {
@@ -3161,7 +3161,7 @@ function generate_tier_pricing_csv($options = [])
             // Get EFX codes for this service from transaction_types
             $service_efx_codes = sqlite_query(
                 "SELECT DISTINCT efx_code FROM transaction_types WHERE service_id = ?",
-                [$service_id]
+                [$service_id],
             );
 
             // If no mapped EFX codes, use service name as EFX code placeholder
@@ -3182,7 +3182,7 @@ function generate_tier_pricing_csv($options = [])
                     $service_id,
                     $efx_code,
                     $cust_id,
-                    $group_id
+                    $group_id,
                 );
 
                 foreach ($tiers as $tier) {
@@ -3192,7 +3192,7 @@ function generate_tier_pricing_csv($options = [])
                     $adj_price = calculate_escalated_price(
                         $base_price,
                         $cust_id,
-                        $as_of_date
+                        $as_of_date,
                     );
 
                     $row = [
@@ -3235,7 +3235,7 @@ function get_customer_rules($customer_id)
 {
     return sqlite_query(
         "SELECT * FROM business_rules WHERE customer_id = ? ORDER BY rule_name",
-        [$customer_id]
+        [$customer_id],
     );
 }
 
@@ -3248,7 +3248,7 @@ function get_rule_mask_status($customer_id, $rule_name)
         "SELECT is_masked FROM business_rule_masks
          WHERE customer_id = ? AND rule_name = ? AND effective_date <= date('now')
          ORDER BY effective_date DESC, id DESC LIMIT 1",
-        [$customer_id, $rule_name]
+        [$customer_id, $rule_name],
     );
 
     return !empty($mask) ? (bool) $mask[0]["is_masked"] : false;
@@ -3262,7 +3262,7 @@ function toggle_rule_mask($customer_id, $rule_name, $is_masked)
     sqlite_execute(
         "INSERT INTO business_rule_masks (customer_id, rule_name, is_masked, effective_date)
          VALUES (?, ?, ?, date('now'))",
-        [$customer_id, $rule_name, $is_masked ? 1 : 0]
+        [$customer_id, $rule_name, $is_masked ? 1 : 0],
     );
     return true;
 }
@@ -3295,7 +3295,7 @@ function get_pricing_history($customer_id = "")
          $where
          ORDER BY pt.created_at DESC
          LIMIT 100",
-        $params
+        $params,
     );
 
     foreach ($rows as $row) {
@@ -3338,7 +3338,7 @@ function get_settings_history($customer_id = "")
          $where
          ORDER BY cs.created_at DESC
          LIMIT 100",
-        $params
+        $params,
     );
 
     foreach ($rows as $row) {
@@ -3385,7 +3385,7 @@ function get_escalator_history($customer_id = "")
          $where
          ORDER BY ce.created_at DESC
          LIMIT 100",
-        $params
+        $params,
     );
 
     foreach ($rows as $row) {
@@ -3418,7 +3418,7 @@ function get_escalator_history($customer_id = "")
          $delay_where
          ORDER BY ed.created_at DESC
          LIMIT 50",
-        $delay_params
+        $delay_params,
     );
 
     foreach ($delays as $row) {
@@ -3457,7 +3457,7 @@ function get_rule_mask_history($customer_id = "")
          $where
          ORDER BY brm.created_at DESC
          LIMIT 100",
-        $params
+        $params,
     );
 
     foreach ($rows as $row) {
@@ -3527,7 +3527,7 @@ function get_ingestion_reports()
         if (
             preg_match(
                 '/^DataX_\d{4}_\d{1,2}_\d{1,2}_humanreadable\.csv$/',
-                $file
+                $file,
             )
         ) {
             $reports["daily_humanreadable"][] = $info;
@@ -3566,7 +3566,7 @@ function get_generated_reports($type = null)
         "SELECT * FROM generated_reports
          $where
          ORDER BY generated_at DESC",
-        $params
+        $params,
     );
 
     // Verify files still exist and update sizes
@@ -3624,7 +3624,7 @@ function archive_generated_report(
     $source_path,
     $params = [],
     $notes = "",
-    $subtype = null
+    $subtype = null,
 ) {
     if (!file_exists($source_path)) {
         return false;
@@ -3670,7 +3670,7 @@ function archive_generated_report(
             $record_count,
             json_encode($params),
             $notes,
-        ]
+        ],
     );
 
     return sqlite_last_insert_id();

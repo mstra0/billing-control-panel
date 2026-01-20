@@ -440,6 +440,7 @@ function clear_database()
 {
     seed_log("Clearing database...");
 
+    // Tables in dependency order (children first, then parents)
     $tables = [
         "billing_report_lines",
         "billing_reports",
@@ -454,21 +455,29 @@ function clear_database()
         "transaction_types",
         "customers",
         "discount_groups",
+        "decision_connectors",
         "lms",
         "services",
         "system_settings",
     ];
 
+    // DROP tables to ensure schema is fresh
     foreach ($tables as $table) {
         try {
-            sqlite_execute("DELETE FROM $table");
+            sqlite_execute("DROP TABLE IF EXISTS $table");
         } catch (Exception $e) {
-            // Table may not exist, skip it
-            seed_log("  Warning: Could not clear $table: " . $e->getMessage());
+            seed_log("  Warning: Could not drop $table: " . $e->getMessage());
         }
     }
 
-    seed_log("  Cleared " . count($tables) . " tables");
+    seed_log("  Dropped " . count($tables) . " tables");
+
+    // Recreate tables with current schema
+    seed_log("  Recreating tables with current schema...");
+    require_once __DIR__ . "/db.php";
+    init_db();
+
+    seed_log("  Tables recreated successfully");
 }
 
 function get_database_stats()
@@ -498,7 +507,7 @@ function get_database_stats()
 
     // Active customers
     $result = sqlite_query(
-        "SELECT COUNT(*) as cnt FROM customers WHERE status = 'active'"
+        "SELECT COUNT(*) as cnt FROM customers WHERE status = 'active'",
     );
     $stats["customers_active"] = [
         "label" => "Active Customers",
@@ -529,18 +538,18 @@ function run_seed($config, $clear_first = false)
     $today = date("Y-m-d");
     $history_start = date(
         "Y-m-d",
-        strtotime("-{$config["days_of_history"]} days")
+        strtotime("-{$config["days_of_history"]} days"),
     );
     $pricing_effective_date = date(
         "Y-m-d",
-        strtotime("-" . ($config["days_of_history"] + 30) . " days")
+        strtotime("-" . ($config["days_of_history"] + 30) . " days"),
     );
 
     seed_log("Seeding with configuration:");
     seed_log("  Days of history: {$config["days_of_history"]}");
     seed_log("  Customers: {$config["customer_count"]}");
     seed_log(
-        "  Variance: {$config["exact_match_pct"]}% exact, {$config["small_variance_pct"]}% small, {$config["large_variance_pct"]}% large"
+        "  Variance: {$config["exact_match_pct"]}% exact, {$config["small_variance_pct"]}% small, {$config["large_variance_pct"]}% large",
     );
     seed_log("  Pricing effective from: $pricing_effective_date");
     seed_log("  Billing history: $history_start to $today");
@@ -582,7 +591,7 @@ function run_seed($config, $clear_first = false)
                     $efx_code,
                     substr($efx_code, 0, 15),
                     $service["id"],
-                ]
+                ],
             );
             $transaction_types[] = [
                 "efx_code" => $efx_code,
@@ -626,13 +635,13 @@ function run_seed($config, $clear_first = false)
                 $config["commission_min"] +
                     (mt_rand(0, 100) / 100) *
                         ($config["commission_max"] - $config["commission_min"]),
-                2
+                2,
             )
             : null;
 
         sqlite_execute(
             "INSERT INTO lms (id, name, status, commission_rate) VALUES (?, ?, 'active', ?)",
-            [$id, $name, $commission]
+            [$id, $name, $commission],
         );
         $lms_list[] = ["id" => $id, "name" => $name];
     }
@@ -665,13 +674,13 @@ function run_seed($config, $clear_first = false)
         // Contract start 1-4 years ago
         $contract_start = date(
             "Y-m-d",
-            strtotime("-" . mt_rand(365, 365 * 4) . " days")
+            strtotime("-" . mt_rand(365, 365 * 4) . " days"),
         );
 
         sqlite_execute(
             "INSERT INTO customers (id, name, discount_group_id, lms_id, status, contract_start_date)
              VALUES (?, ?, ?, ?, ?, ?)",
-            [$id, $name, $group_id, $lms_id, $status, $contract_start]
+            [$id, $name, $group_id, $lms_id, $status, $contract_start],
         );
 
         $customers[] = [
@@ -691,7 +700,7 @@ function run_seed($config, $clear_first = false)
             count($customers) .
             " customers (" .
             count($active_customers) .
-            " active)"
+            " active)",
     );
 
     // ----------------------------------------------------------------
@@ -717,7 +726,7 @@ function run_seed($config, $clear_first = false)
                     $tier["volume_start"],
                     $tier["volume_end"],
                     $tier["price"],
-                ]
+                ],
             );
             $tier_count++;
         }
@@ -738,7 +747,7 @@ function run_seed($config, $clear_first = false)
         // Override 30-70% of services
         $override_count = mt_rand(
             (int) ($config["service_count"] * 0.3),
-            (int) ($config["service_count"] * 0.7)
+            (int) ($config["service_count"] * 0.7),
         );
         $service_ids = array_column($services, "id");
         shuffle($service_ids);
@@ -748,7 +757,7 @@ function run_seed($config, $clear_first = false)
             // Get default tiers for this service
             $default_tiers = sqlite_query(
                 "SELECT * FROM pricing_tiers WHERE level = 'default' AND service_id = ? ORDER BY volume_start",
-                [$service_id]
+                [$service_id],
             );
 
             // Apply discount (5-20%)
@@ -765,7 +774,7 @@ function run_seed($config, $clear_first = false)
                         $tier["volume_start"],
                         $tier["volume_end"],
                         round($tier["price_per_inquiry"] * $discount, 4),
-                    ]
+                    ],
                 );
                 $group_tier_count++;
             }
@@ -793,7 +802,7 @@ function run_seed($config, $clear_first = false)
         foreach ($override_service_ids as $service_id) {
             $default_tiers = sqlite_query(
                 "SELECT * FROM pricing_tiers WHERE level = 'default' AND service_id = ? ORDER BY volume_start",
-                [$service_id]
+                [$service_id],
             );
 
             // Customer modifier (-25% to +10%)
@@ -810,7 +819,7 @@ function run_seed($config, $clear_first = false)
                         $tier["volume_start"],
                         $tier["volume_end"],
                         round($tier["price_per_inquiry"] * $modifier, 4),
-                    ]
+                    ],
                 );
                 $customer_tier_count++;
             }
@@ -844,13 +853,13 @@ function run_seed($config, $clear_first = false)
                             (mt_rand(0, 100) / 100) *
                                 ($config["minimum_max"] -
                                     $config["minimum_min"]),
-                        2
+                        2,
                     )
                     : null,
                 $has_annualized ? 1 : 0,
                 $has_annualized ? $customer["contract_start_date"] : null,
                 $has_annualized ? (mt_rand(0, 1) ? 3 : 6) : null,
-            ]
+            ],
         );
         $settings_count++;
     }
@@ -888,7 +897,7 @@ function run_seed($config, $clear_first = false)
                     $year,
                     $pct,
                     $fixed,
-                ]
+                ],
             );
             $escalator_count++;
         }
@@ -898,13 +907,13 @@ function run_seed($config, $clear_first = false)
             sqlite_execute(
                 "INSERT INTO escalator_delays (customer_id, year_number, delay_months, applied_date)
                  VALUES (?, 2, ?, ?)",
-                [$customer["id"], mt_rand(1, 3), $pricing_effective_date]
+                [$customer["id"], mt_rand(1, 3), $pricing_effective_date],
             );
             $delay_count++;
         }
     }
     seed_log(
-        "   Created $escalator_count escalator records ($delay_count with delays)"
+        "   Created $escalator_count escalator records ($delay_count with delays)",
     );
 
     // ----------------------------------------------------------------
@@ -915,14 +924,14 @@ function run_seed($config, $clear_first = false)
     foreach ($services as $service) {
         $avg_price = sqlite_query(
             "SELECT AVG(price_per_inquiry) as avg FROM pricing_tiers WHERE level = 'default' AND service_id = ?",
-            [$service["id"]]
+            [$service["id"]],
         )[0]["avg"];
 
         $cogs = round($avg_price * $config["cogs_margin"], 4);
 
         sqlite_execute(
             "INSERT INTO service_cogs (service_id, cogs_rate, effective_date) VALUES (?, ?, ?)",
-            [$service["id"], $cogs, $pricing_effective_date]
+            [$service["id"], $cogs, $pricing_effective_date],
         );
     }
     seed_log("   Created COGS for " . count($services) . " services");
@@ -933,7 +942,7 @@ function run_seed($config, $clear_first = false)
     seed_log("12. Creating system settings...");
     sqlite_execute(
         "INSERT OR REPLACE INTO system_settings (key, value) VALUES ('default_commission_rate', ?)",
-        [(string) $config["default_commission_rate"]]
+        [(string) $config["default_commission_rate"]],
     );
     seed_log("   Created system settings");
 
@@ -971,7 +980,7 @@ function run_seed($config, $clear_first = false)
         sqlite_execute(
             "INSERT INTO billing_reports (report_type, report_year, report_month, report_date, record_count)
              VALUES ('daily', ?, ?, ?, 0)",
-            [$report_year, $report_month, $report_date]
+            [$report_year, $report_month, $report_date],
         );
         $report_id = sqlite_db()->lastInsertRowID();
         $report_count++;
@@ -983,11 +992,11 @@ function run_seed($config, $clear_first = false)
             // Pick random transaction types for this customer
             $num_types = mt_rand(
                 $config["tx_types_per_customer_min"],
-                $config["tx_types_per_customer_max"]
+                $config["tx_types_per_customer_max"],
             );
             $selected_types = array_rand(
                 $transaction_types,
-                min($num_types, count($transaction_types))
+                min($num_types, count($transaction_types)),
             );
             if (!is_array($selected_types)) {
                 $selected_types = [$selected_types];
@@ -1001,7 +1010,7 @@ function run_seed($config, $clear_first = false)
                 if (mt_rand(1, 100) <= $config["count_high_volume_pct"]) {
                     $count = mt_rand(
                         $config["count_max"],
-                        $config["count_high_volume_max"]
+                        $config["count_high_volume_max"],
                     );
                 }
 
@@ -1010,7 +1019,7 @@ function run_seed($config, $clear_first = false)
                     $report_date,
                     $customer_id,
                     $tx_type["efx_code"],
-                    $count
+                    $count,
                 );
 
                 $expected_price = $audit["expected_unit_price"];
@@ -1059,7 +1068,7 @@ function run_seed($config, $clear_first = false)
                 // Get customer name
                 $customer_name = sqlite_query(
                     "SELECT name FROM customers WHERE id = ?",
-                    [$customer_id]
+                    [$customer_id],
                 )[0]["name"];
 
                 // Generate billing ID
@@ -1068,7 +1077,7 @@ function run_seed($config, $clear_first = false)
                     $report_year,
                     $report_month,
                     $report_day,
-                    $report_line_count + 1
+                    $report_line_count + 1,
                 );
 
                 // Insert line
@@ -1094,7 +1103,7 @@ function run_seed($config, $clear_first = false)
                         $revenue,
                         $tx_type["efx_code"],
                         $billing_id,
-                    ]
+                    ],
                 );
 
                 $report_line_count++;
@@ -1105,7 +1114,7 @@ function run_seed($config, $clear_first = false)
         // Update report record count
         sqlite_execute(
             "UPDATE billing_reports SET record_count = ? WHERE id = ?",
-            [$report_line_count, $report_id]
+            [$report_line_count, $report_id],
         );
 
         // Progress indicator
@@ -1121,7 +1130,7 @@ function run_seed($config, $clear_first = false)
 
     // Get distinct year/months from daily reports
     $months = sqlite_query(
-        "SELECT DISTINCT report_year, report_month FROM billing_reports WHERE report_type = 'daily' ORDER BY report_year, report_month"
+        "SELECT DISTINCT report_year, report_month FROM billing_reports WHERE report_type = 'daily' ORDER BY report_year, report_month",
     );
 
     foreach ($months as $month) {
@@ -1133,7 +1142,7 @@ function run_seed($config, $clear_first = false)
         sqlite_execute(
             "INSERT INTO billing_reports (report_type, report_year, report_month, report_date, record_count)
              VALUES ('monthly', ?, ?, ?, 0)",
-            [$year, $mo, $report_date]
+            [$year, $mo, $report_date],
         );
         $monthly_report_id = sqlite_db()->lastInsertRowID();
         $report_count++;
@@ -1151,7 +1160,7 @@ function run_seed($config, $clear_first = false)
              WHERE br.report_type = 'daily' AND br.report_year = ? AND br.report_month = ?
              GROUP BY brl.customer_id, brl.efx_code
              ORDER BY brl.customer_id, brl.efx_code",
-            [$year, $mo]
+            [$year, $mo],
         );
 
         $monthly_line_count = 0;
@@ -1164,7 +1173,7 @@ function run_seed($config, $clear_first = false)
                 "M%04d%02d%05d",
                 $year,
                 $mo,
-                $monthly_line_count + 1
+                $monthly_line_count + 1,
             );
 
             sqlite_execute(
@@ -1184,7 +1193,7 @@ function run_seed($config, $clear_first = false)
                     $agg["total_revenue"],
                     $agg["efx_code"],
                     $billing_id,
-                ]
+                ],
             );
             $monthly_line_count++;
             $line_count++;
@@ -1192,7 +1201,7 @@ function run_seed($config, $clear_first = false)
 
         sqlite_execute(
             "UPDATE billing_reports SET record_count = ? WHERE id = ?",
-            [$monthly_line_count, $monthly_report_id]
+            [$monthly_line_count, $monthly_report_id],
         );
     }
 
@@ -1216,22 +1225,22 @@ function run_seed($config, $clear_first = false)
     seed_log(
         "  Exact matches: $match_count (" .
             round(($match_count / max(1, $line_count)) * 100, 1) .
-            "%)"
+            "%)",
     );
     seed_log(
         "  Small variance: $small_var_count (" .
             round(($small_var_count / max(1, $line_count)) * 100, 1) .
-            "%)"
+            "%)",
     );
     seed_log(
         "  Large variance: $large_var_count (" .
             round(($large_var_count / max(1, $line_count)) * 100, 1) .
-            "%)"
+            "%)",
     );
     seed_log(
         "  Calc errors: $error_count (" .
             round(($error_count / max(1, $line_count)) * 100, 1) .
-            "%)"
+            "%)",
     );
     seed_log("");
 
@@ -1255,7 +1264,7 @@ function run_seed($config, $clear_first = false)
 if ($is_cli && $confirmed) {
     $result = run_seed(
         $SEED_CONFIG,
-        isset($clear_first) ? $clear_first : false
+        isset($clear_first) ? $clear_first : false,
     );
 
     if ($result["success"]) {
