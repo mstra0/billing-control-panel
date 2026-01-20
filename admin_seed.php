@@ -127,9 +127,12 @@ require_once __DIR__ . "/data.php";
 function seed_log($message)
 {
     global $is_cli, $seed_log_buffer;
-    if ($is_cli) {
+    if (isset($is_cli) && $is_cli) {
         echo $message . "\n";
     } else {
+        if (!isset($seed_log_buffer)) {
+            $seed_log_buffer = [];
+        }
         $seed_log_buffer[] = $message;
     }
 }
@@ -457,7 +460,12 @@ function clear_database()
     ];
 
     foreach ($tables as $table) {
-        sqlite_execute("DELETE FROM $table");
+        try {
+            sqlite_execute("DELETE FROM $table");
+        } catch (Exception $e) {
+            // Table may not exist, skip it
+            seed_log("  Warning: Could not clear $table: " . $e->getMessage());
+        }
     }
 
     seed_log("  Cleared " . count($tables) . " tables");
@@ -675,10 +683,9 @@ function run_seed($config, $clear_first = false)
         ];
     }
 
-    $active_customers = array_filter(
-        $customers,
-        function($c) { return $c["status"] === "active"; }
-    );
+    $active_customers = array_filter($customers, function ($c) {
+        return $c["status"] === "active";
+    });
     seed_log(
         "   Created " .
             count($customers) .
@@ -1246,7 +1253,10 @@ function run_seed($config, $clear_first = false)
 // ============================================================
 
 if ($is_cli && $confirmed) {
-    $result = run_seed($SEED_CONFIG, isset($clear_first) ? $clear_first : false);
+    $result = run_seed(
+        $SEED_CONFIG,
+        isset($clear_first) ? $clear_first : false
+    );
 
     if ($result["success"]) {
         echo "\nDone!\n";

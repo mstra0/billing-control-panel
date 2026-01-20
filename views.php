@@ -41028,8 +41028,8 @@ define("REMOTE_DB_PASS", "secure_password");
             <h4>Clear Entire Database</h4>
             <p>This will permanently delete ALL data from the database. This action cannot be undone.</p>
 
-            <form method="POST" action="?action=admin_clear" class="form-inline" onsubmit="return this.confirm.value === 'CLEAR';">
-                <input type="text" name="confirm" placeholder="Type 'CLEAR'" autocomplete="off">
+            <form method="POST" action="?action=admin_clear" class="form-inline" onsubmit="return this.elements['confirm_text'].value === 'CLEAR';">
+                <input type="text" name="confirm_text" placeholder="Type 'CLEAR'" autocomplete="off">
                 <button type="submit" class="btn btn-danger">Clear All Data</button>
             </form>
         </div>
@@ -41099,7 +41099,160 @@ define("REMOTE_DB_PASS", "secure_password");
     <?php endif; ?>
 
 <?php render_footer();
-} // ============================================================
+}
+
+/**
+ * Render remote database explorer (for debugging sync issues)
+ */
+function render_admin_explore_remote($data)
+{
+    render_header("Explore Remote Database - Admin");
+    ?>
+    <style>
+        .explore-container { max-width: 1400px; margin: 0 auto; }
+        .explore-header { background: linear-gradient(135deg, #8e44ad, #9b59b6); color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .explore-header h1 { margin: 0 0 10px 0; }
+        .explore-header p { margin: 0; opacity: 0.9; }
+        .filter-form { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .filter-form input[type="text"] { padding: 10px; width: 300px; border: 1px solid #ddd; border-radius: 4px; }
+        .filter-form button { padding: 10px 20px; background: #8e44ad; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .filter-form button:hover { background: #7d3c98; }
+        .tables-list { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-height: 400px; overflow-y: auto; }
+        .tables-list h3 { margin-top: 0; }
+        .table-link { display: inline-block; padding: 5px 10px; margin: 3px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; font-family: monospace; font-size: 13px; }
+        .table-link:hover { background: #8e44ad; color: white; }
+        .table-link.selected { background: #8e44ad; color: white; }
+        .table-detail { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .table-detail h3 { margin-top: 0; color: #8e44ad; }
+        .columns-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .columns-table th, .columns-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #eee; }
+        .columns-table th { background: #f8f9fa; font-weight: 600; }
+        .sample-data { overflow-x: auto; }
+        .sample-data table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .sample-data th, .sample-data td { padding: 6px 10px; text-align: left; border: 1px solid #ddd; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sample-data th { background: #f0f0f0; }
+        .error-box { background: #fee; border: 1px solid #c00; color: #900; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .success-box { background: #efe; border: 1px solid #0a0; color: #060; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .back-link { display: inline-block; margin-bottom: 20px; color: #8e44ad; }
+    </style>
+
+    <div class="explore-container">
+        <a href="?action=admin&tab=sync" class="back-link">&larr; Back to Admin</a>
+
+        <div class="explore-header">
+            <h1>Remote Database Explorer</h1>
+            <p>Database: <strong><?php echo h($data["db_name"]); ?></strong> |
+               Status: <?php echo $data["connected"] ? '<span style="color:#afa">Connected</span>' : '<span style="color:#faa">Not Connected</span>'; ?></p>
+        </div>
+
+        <?php if ($data["error"]): ?>
+        <div class="error-box">
+            <strong>Error:</strong> <?php echo h($data["error"]); ?>
+        </div>
+        <?php endif; ?>
+
+        <div class="filter-form">
+            <form method="GET">
+                <input type="hidden" name="action" value="admin_explore_remote">
+                <label><strong>Filter tables:</strong></label>
+                <input type="text" name="filter" value="<?php echo h($data["filter"]); ?>" placeholder="e.g. customer, billing, service...">
+                <button type="submit">Search</button>
+                <?php if (!empty($data["filter"])): ?>
+                <a href="?action=admin_explore_remote" style="margin-left: 10px;">Clear filter</a>
+                <?php endif; ?>
+            </form>
+            <p style="margin: 10px 0 0 0; color: #666; font-size: 13px;">
+                Enter a substring to filter table names. Leave empty to see all tables.
+            </p>
+        </div>
+
+        <?php if ($data["connected"] && !empty($data["tables"])): ?>
+        <div class="tables-list">
+            <h3>Tables (<?php echo count($data["tables"]); ?> found<?php echo !empty($data["filter"]) ? ' matching "' . h($data["filter"]) . '"' : ''; ?>)</h3>
+            <?php foreach ($data["tables"] as $t): ?>
+            <a href="?action=admin_explore_remote&filter=<?php echo urlencode($data["filter"]); ?>&table=<?php echo urlencode($t); ?>"
+               class="table-link <?php echo $t === $data["selected_table"] ? 'selected' : ''; ?>">
+                <?php echo h($t); ?>
+            </a>
+            <?php endforeach; ?>
+        </div>
+        <?php elseif ($data["connected"]): ?>
+        <div class="tables-list">
+            <h3>No tables found<?php echo !empty($data["filter"]) ? ' matching "' . h($data["filter"]) . '"' : ''; ?></h3>
+            <p>Try a different filter or <a href="?action=admin_explore_remote">clear the filter</a> to see all tables.</p>
+        </div>
+        <?php endif; ?>
+
+        <?php if (!empty($data["selected_table"])): ?>
+        <div class="table-detail">
+            <h3>Table: <?php echo h($data["selected_table"]); ?></h3>
+
+            <?php if (!empty($data["columns"])): ?>
+            <h4>Columns (<?php echo count($data["columns"]); ?>)</h4>
+            <table class="columns-table">
+                <tr>
+                    <th>Column Name</th>
+                    <th>Type</th>
+                    <th>Nullable</th>
+                    <th>Key</th>
+                </tr>
+                <?php foreach ($data["columns"] as $col): ?>
+                <tr>
+                    <td><code><?php echo h($col["COLUMN_NAME"]); ?></code></td>
+                    <td><?php echo h($col["DATA_TYPE"]); ?></td>
+                    <td><?php echo $col["IS_NULLABLE"] === "YES" ? "Yes" : "No"; ?></td>
+                    <td><?php echo h($col["COLUMN_KEY"]); ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </table>
+            <?php endif; ?>
+
+            <?php if (!empty($data["sample_data"])): ?>
+            <h4>Sample Data (first 10 rows)</h4>
+            <div class="sample-data">
+                <table>
+                    <tr>
+                        <?php foreach (array_keys($data["sample_data"][0]) as $col): ?>
+                        <th><?php echo h($col); ?></th>
+                        <?php endforeach; ?>
+                    </tr>
+                    <?php foreach ($data["sample_data"] as $row): ?>
+                    <tr>
+                        <?php foreach ($row as $val): ?>
+                        <td title="<?php echo h($val); ?>"><?php echo h(substr($val, 0, 50)); ?></td>
+                        <?php endforeach; ?>
+                    </tr>
+                    <?php endforeach; ?>
+                </table>
+            </div>
+            <?php elseif (!empty($data["columns"])): ?>
+            <p><em>No data in this table or unable to query.</em></p>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+
+        <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+            <h4 style="margin-top: 0;">Common Search Terms</h4>
+            <p>Try filtering by:
+                <a href="?action=admin_explore_remote&filter=customer">customer</a> |
+                <a href="?action=admin_explore_remote&filter=client">client</a> |
+                <a href="?action=admin_explore_remote&filter=service">service</a> |
+                <a href="?action=admin_explore_remote&filter=product">product</a> |
+                <a href="?action=admin_explore_remote&filter=billing">billing</a> |
+                <a href="?action=admin_explore_remote&filter=price">price</a> |
+                <a href="?action=admin_explore_remote&filter=discount">discount</a> |
+                <a href="?action=admin_explore_remote&filter=group">group</a> |
+                <a href="?action=admin_explore_remote&filter=lms">lms</a> |
+                <a href="?action=admin_explore_remote&filter=cost">cost</a> |
+                <a href="?action=admin_explore_remote&filter=cog">cog</a> |
+                <a href="?action=admin_explore_remote&filter=rule">rule</a>
+            </p>
+        </div>
+    </div>
+<?php render_footer();
+}
+
+// ============================================================
 // END PHASE 4
 // ============================================================
 // ============================================================

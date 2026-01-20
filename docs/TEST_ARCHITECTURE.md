@@ -179,7 +179,7 @@ Integration testing these would require mocking HTTP context. Focus on unit test
 ├── tests/
 │   ├── bootstrap.php          # Test framework, helpers, DB setup
 │   ├── fixtures.php           # Test data factories
-│   ├── run_tests.php          # Test runner (CLI + browser)
+│   ├── qa_dashboard.php          # Test runner (CLI + browser)
 │   │
 │   ├── unit/
 │   │   ├── test_escalators.php       # calculate_escalated_price, delays
@@ -584,7 +584,7 @@ test_summary();
 ```bash
 # Run all tests
 cd /home/user/dev/PHP
-podman exec -i kind_dijkstra php /var/www/html/tests/run_tests.php
+podman exec -i kind_dijkstra php /var/www/html/tests/qa_dashboard.php
 
 # Run specific test file
 podman exec -i kind_dijkstra php /var/www/html/tests/unit/test_escalators.php
@@ -592,7 +592,7 @@ podman exec -i kind_dijkstra php /var/www/html/tests/unit/test_escalators.php
 
 ### Browser Execution
 
-Navigate to: `http://localhost:8080/tests/run_tests.php`
+Navigate to: `http://localhost:8080/tests/qa_dashboard.php`
 
 ---
 

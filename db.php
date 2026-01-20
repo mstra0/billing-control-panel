@@ -2,9 +2,67 @@
 // ============================================================
 // DATABASE LAYER
 // SQLite database functions, schema, migrations
+// Remote MySQL/MariaDB connection for production sync
 // ============================================================
 
 $_sqlite_db = null;
+$_remote_db = null;
+
+/**
+ * Get remote database connection (singleton)
+ * Connects to MySQL/MariaDB production database
+ *
+ * @return mysqli
+ * @throws Exception If connection fails or not configured
+ */
+function remote_db_connect()
+{
+    global $_remote_db;
+
+    // Return existing connection if available
+    if ($_remote_db !== null) {
+        // Check if connection is still alive
+        if ($_remote_db->ping()) {
+            return $_remote_db;
+        }
+        // Connection lost, will reconnect below
+        $_remote_db = null;
+    }
+
+    // Check if remote DB is configured
+    $host = defined("REMOTE_DB_HOST") ? REMOTE_DB_HOST : "";
+
+    if (empty($host)) {
+        throw new Exception(
+            "Remote database not configured. Set REMOTE_DB_HOST, REMOTE_DB_NAME, " .
+                "REMOTE_DB_USER, and REMOTE_DB_PASS in control_panel.php environment config."
+        );
+    }
+
+    // Get connection parameters
+    $port = defined("REMOTE_DB_PORT") ? (int) REMOTE_DB_PORT : 3306;
+    $dbname = defined("REMOTE_DB_NAME") ? REMOTE_DB_NAME : "";
+    $user = defined("REMOTE_DB_USER") ? REMOTE_DB_USER : "";
+    $pass = defined("REMOTE_DB_PASS") ? REMOTE_DB_PASS : "";
+
+    // Create connection
+    $_remote_db = new mysqli($host, $user, $pass, $dbname, $port);
+
+    // Check connection
+    if ($_remote_db->connect_error) {
+        $error = $_remote_db->connect_error;
+        $_remote_db = null;
+        throw new Exception("Remote database connection failed: " . $error);
+    }
+
+    // Set charset
+    $_remote_db->set_charset("utf8mb4");
+
+    // Set timeout (30 seconds)
+    $_remote_db->options(MYSQLI_OPT_CONNECT_TIMEOUT, 30);
+
+    return $_remote_db;
+}
 
 /**
  * Execute a SELECT query on REMOTE database, return array of rows
@@ -12,38 +70,174 @@ $_sqlite_db = null;
  * @param string $sql    SQL query with ? placeholders
  * @param array  $params Parameters to bind
  * @return array         Array of associative arrays
- * @throws Exception     If remote DB is not configured (in production mode)
+ * @throws Exception     If remote DB is not configured or query fails
  */
 function remote_db_query($sql, $params = [])
 {
-    // Check if remote DB is configured
-    $host = defined("REMOTE_DB_HOST") ? REMOTE_DB_HOST : "";
+    $conn = remote_db_connect();
 
-    if (empty($host)) {
-        // Not configured - this is an error in production environments
-        throw new Exception(
-            "Remote database not configured. Set REMOTE_DB_HOST, REMOTE_DB_NAME, " .
-                "REMOTE_DB_USER, and REMOTE_DB_PASS in environment config."
-        );
+    // If no params, execute directly
+    if (empty($params)) {
+        $result = $conn->query($sql);
+
+        if ($result === false) {
+            throw new Exception("Remote DB query failed: " . $conn->error);
+        }
+
+        $rows = [];
+        while ($row = $result->fetch_assoc()) {
+            $rows[] = $row;
+        }
+        $result->free();
+        return $rows;
     }
 
-    // TODO: Implement actual remote database connection
-    // Example for MySQL/MariaDB:
-    //
-    // $dsn = "mysql:host=" . REMOTE_DB_HOST . ";dbname=" . REMOTE_DB_NAME . ";charset=utf8mb4";
-    // $pdo = new PDO($dsn, REMOTE_DB_USER, REMOTE_DB_PASS, [
-    //     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    //     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    // ]);
-    // $stmt = $pdo->prepare($sql);
-    // $stmt->execute($params);
-    // return $stmt->fetchAll();
+    // Prepare statement for parameterized query
+    $stmt = $conn->prepare($sql);
 
-    throw new Exception(
-        "Remote database connection not implemented. " .
-            "Edit db.php remote_db_query() to connect to: " .
-            $host
-    );
+    if ($stmt === false) {
+        throw new Exception("Remote DB prepare failed: " . $conn->error);
+    }
+
+    // Build type string (s=string, i=integer, d=double, b=blob)
+    // Default to string for all params (safest)
+    $types = "";
+    foreach ($params as $param) {
+        if (is_int($param)) {
+            $types .= "i";
+        } elseif (is_float($param)) {
+            $types .= "d";
+        } else {
+            $types .= "s";
+        }
+    }
+
+    // Bind parameters (PHP 5.6 compatible - no spread operator)
+    if (count($params) > 0) {
+        $bind_params = [$types];
+        for ($i = 0; $i < count($params); $i++) {
+            $bind_params[] = &$params[$i];
+        }
+        call_user_func_array([$stmt, "bind_param"], $bind_params);
+    }
+
+    // Execute
+    if (!$stmt->execute()) {
+        $error = $stmt->error;
+        $stmt->close();
+        throw new Exception("Remote DB execute failed: " . $error);
+    }
+
+    // Get results
+    $result = $stmt->get_result();
+
+    if ($result === false) {
+        // No result set (INSERT/UPDATE/DELETE) - shouldn't happen for sync queries
+        $stmt->close();
+        return [];
+    }
+
+    $rows = [];
+    while ($row = $result->fetch_assoc()) {
+        $rows[] = $row;
+    }
+
+    $result->free();
+    $stmt->close();
+
+    return $rows;
+}
+
+/**
+ * Close remote database connection
+ * Call this when done with sync operations
+ */
+function remote_db_close()
+{
+    global $_remote_db;
+
+    if ($_remote_db !== null) {
+        $_remote_db->close();
+        $_remote_db = null;
+    }
+}
+
+/**
+ * List all tables in remote database, optionally filtered by substring
+ *
+ * @param string $filter Optional substring to filter table names (case-insensitive)
+ * @return array Array of table names
+ */
+function remote_db_list_tables($filter = "")
+{
+    $conn = remote_db_connect();
+
+    // Get database name
+    $dbname = defined("REMOTE_DB_NAME") ? REMOTE_DB_NAME : "";
+
+    $sql =
+        "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ?";
+    $params = [$dbname];
+
+    if (!empty($filter)) {
+        $sql .= " AND TABLE_NAME LIKE ?";
+        $params[] = "%" . $filter . "%";
+    }
+
+    $sql .= " ORDER BY TABLE_NAME";
+
+    $rows = remote_db_query($sql, $params);
+
+    $tables = [];
+    foreach ($rows as $row) {
+        $tables[] = $row["TABLE_NAME"];
+    }
+
+    return $tables;
+}
+
+/**
+ * Get columns for a remote database table
+ *
+ * @param string $table Table name
+ * @return array Array of column info (name, type, nullable, key)
+ */
+function remote_db_describe_table($table)
+{
+    $conn = remote_db_connect();
+    $dbname = defined("REMOTE_DB_NAME") ? REMOTE_DB_NAME : "";
+
+    $sql = "SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE, COLUMN_KEY
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?
+            ORDER BY ORDINAL_POSITION";
+
+    return remote_db_query($sql, [$dbname, $table]);
+}
+
+/**
+ * Format table list for error display
+ * Groups tables and shows count
+ *
+ * @param array $tables Array of table names
+ * @param int $max_show Maximum tables to show before truncating
+ * @return string Formatted string
+ */
+function format_table_list($tables, $max_show = 50)
+{
+    $count = count($tables);
+
+    if ($count === 0) {
+        return "(no tables found)";
+    }
+
+    if ($count <= $max_show) {
+        return implode(", ", $tables) . " (total: $count)";
+    }
+
+    $shown = array_slice($tables, 0, $max_show);
+    $remaining = $count - $max_show;
+    return implode(", ", $shown) . "... (+$remaining more, total: $count)";
 }
 
 /**
@@ -534,7 +728,7 @@ function sqlite_get_current($table, $conditions)
 function sqlite_get_all_current(
     $table,
     $group_by,
-    $conditions = [],
+    $conditions = array(),
     $page = 1,
     $per_page = ITEMS_PER_PAGE
 ) {

@@ -9,9 +9,7 @@ function action_dashboard()
     // Get counts for dashboard
     $services = sqlite_query("SELECT COUNT(*) as cnt FROM services");
     $groups = sqlite_query("SELECT COUNT(*) as cnt FROM discount_groups");
-    $customers_active = sqlite_query(
-        "SELECT COUNT(*) as cnt FROM customers WHERE status = 'active'"
-    );
+    $customers_active = sqlite_query("SELECT COUNT(*) as cnt FROM customers WHERE status = 'active'");
     $customers_all = sqlite_query("SELECT COUNT(*) as cnt FROM customers");
 
     // Get alerts
@@ -74,11 +72,7 @@ function action_upload_config()
         $result = handle_config_upload($_FILES["config_file"]);
 
         if ($result["success"]) {
-            set_flash(
-                "success",
-                $result["message"] . " (" . $result["filename"] . ")"
-            );
-            redirect("list_pending");
+            set_flash("success", $result["message"] . " (" . $result["filename"] . ")");
             return;
         } else {
             $data["error"] = $result["message"];
@@ -4282,7 +4276,51 @@ function action_admin_sync()
     try {
         $result = $func();
     } catch (Exception $e) {
-        set_flash("error", "Sync failed: " . $e->getMessage());
+        $error_msg = "Sync failed: " . $e->getMessage();
+
+        // Try to show available tables to help debug
+        try {
+            $tables = remote_db_list_tables();
+            $table_count = count($tables);
+
+            // Show tables that might be relevant
+            $keywords = [
+                "customer",
+                "client",
+                "service",
+                "product",
+                "lms",
+                "group",
+                "discount",
+                "cog",
+                "cost",
+                "rule",
+                "billing",
+            ];
+            $relevant = [];
+            foreach ($tables as $t) {
+                foreach ($keywords as $kw) {
+                    if (stripos($t, $kw) !== false) {
+                        $relevant[] = $t;
+                        break;
+                    }
+                }
+            }
+
+            if (!empty($relevant)) {
+                $error_msg .=
+                    " | Possibly relevant tables (" .
+                    count($relevant) .
+                    " of $table_count): " .
+                    implode(", ", array_slice($relevant, 0, 30));
+            } else {
+                $error_msg .= " | Connected to database with $table_count tables. Use ?action=admin_explore_remote to browse.";
+            }
+        } catch (Exception $e2) {
+            // Ignore - couldn't list tables
+        }
+
+        set_flash("error", $error_msg);
         redirect("admin", ["tab" => "sync"]);
         return;
     }
@@ -4394,6 +4432,49 @@ function action_admin_clear()
 
     set_flash("success", "Database cleared successfully");
     redirect("admin");
+}
+
+/**
+ * Explore remote database tables (for debugging sync issues)
+ */
+function action_admin_explore_remote()
+{
+    $filter = get_param("filter", "");
+    $table = get_param("table", "");
+
+    $data = [
+        "filter" => $filter,
+        "selected_table" => $table,
+        "tables" => [],
+        "columns" => [],
+        "sample_data" => [],
+        "error" => null,
+        "connected" => false,
+        "db_name" => defined("REMOTE_DB_NAME")
+            ? REMOTE_DB_NAME
+            : "(not configured)",
+    ];
+
+    try {
+        $data["tables"] = remote_db_list_tables($filter);
+        $data["connected"] = true;
+
+        if (!empty($table) && in_array($table, $data["tables"])) {
+            $data["columns"] = remote_db_describe_table($table);
+
+            try {
+                $data["sample_data"] = remote_db_query(
+                    "SELECT * FROM `" . $table . "` LIMIT 10"
+                );
+            } catch (Exception $e) {
+                $data["sample_data"] = [];
+            }
+        }
+    } catch (Exception $e) {
+        $data["error"] = $e->getMessage();
+    }
+
+    render_admin_explore_remote($data);
 }
 
 /**
@@ -4580,6 +4661,7 @@ function route()
         // Admin
         "admin" => "action_admin",
         "admin_sync" => "action_admin_sync",
+        "admin_explore_remote" => "action_admin_explore_remote",
         "admin_clear" => "action_admin_clear",
         "admin_clear_entity" => "action_admin_clear_entity",
         "admin_reseed" => "action_admin_reseed",

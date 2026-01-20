@@ -43,68 +43,75 @@ define("CODE_ENVIRONMENT", $_detected_env);
 // ------------------------------------------------------------
 
 // Environment configurations: paths and settings per environment
-$_env_configs = [
+$_env_configs = array(
     // Default: local default_shared folder, starts EMPTY, requires fix button
     // This is what you get if no CODE_ENVIRONMENT is set
-    "default" => [
+    "default" => array(
         "shared_base_path" => __DIR__ . "/default_shared",
         "default_mock_mode" => false,
         "db_path" => __DIR__ . "/default_shared/control_panel.db",
         "remote_db_host" => "",
+        "remote_db_port" => 3306,
         "remote_db_name" => "",
         "remote_db_user" => "",
         "remote_db_pass" => "",
-        "description" => "Default (local folder, no test data)",
-    ],
+        "description" => "Default (local folder, no test data)"
+    ),
 
     // Development: local test_shared folder, always mock mode
-    "dev" => [
+    "dev" => array(
         "shared_base_path" => __DIR__ . "/test_shared",
         "default_mock_mode" => true,
         "db_path" => __DIR__ . "/test_shared/control_panel.db",
         "remote_db_host" => "",
+        "remote_db_port" => 3306,
         "remote_db_name" => "",
         "remote_db_user" => "",
         "remote_db_pass" => "",
-        "description" => "Development (local test data)",
-    ],
+        "description" => "Development (local test data)"
+    ),
 
     // Release Candidate: staging paths, can toggle mock
-    "rc" => [
+    // >>> FILL IN YOUR STAGING/RC DATABASE CREDENTIALS HERE <<<
+    "rc" => array(
         "shared_base_path" => "/var/www/rc/shared",
         "default_mock_mode" => true,
         "db_path" => "/var/www/rc/data/control_panel.db",
-        "remote_db_host" => "staging-db.internal",
-        "remote_db_name" => "billing_staging",
-        "remote_db_user" => "billing_ro",
-        "remote_db_pass" => getenv("RC_DB_PASS") ?: "",
-        "description" => "Release Candidate (staging)",
-    ],
+        "remote_db_host" => "{{RC_DB_HOST}}",
+        "remote_db_port" => 3306,
+        "remote_db_name" => "{{RC_DB_DATABASE}}",
+        "remote_db_user" => "{{RC_DB_USERNAME}}",
+        "remote_db_pass" => getenv("RC_DB_PASS") ?: "{{RC_DB_PASSWORD}}",
+        "description" => "Release Candidate (staging)"
+    ),
 
     // Live/Production: real paths, real database
-    "live" => [
+    // >>> FILL IN YOUR PRODUCTION DATABASE CREDENTIALS HERE <<<
+    "live" => array(
         "shared_base_path" => "/mnt/billing_share",
         "default_mock_mode" => false,
         "db_path" => "/var/www/billing/data/control_panel.db",
-        "remote_db_host" => "prod-db.internal",
-        "remote_db_name" => "billing_prod",
-        "remote_db_user" => "billing_ro",
-        "remote_db_pass" => getenv("PROD_DB_PASS") ?: "",
-        "description" => "Production (live data)",
-    ],
+        "remote_db_host" => "{{PROD_DB_HOST}}",
+        "remote_db_port" => 3306,
+        "remote_db_name" => "{{PROD_DB_DATABASE}}",
+        "remote_db_user" => "{{PROD_DB_USERNAME}}",
+        "remote_db_pass" => getenv("PROD_DB_PASS") ?: "{{PROD_DB_PASSWORD}}",
+        "description" => "Production (live data)"
+    ),
 
     // Mock Production: simulates production structure WITH test data
-    "mock_prod" => [
+    "mock_prod" => array(
         "shared_base_path" => __DIR__ . "/test_shared",
         "default_mock_mode" => true,
         "db_path" => __DIR__ . "/test_shared/control_panel.db",
         "remote_db_host" => "",
+        "remote_db_port" => 3306,
         "remote_db_name" => "",
         "remote_db_user" => "",
         "remote_db_pass" => "",
-        "description" => "Mock Production (local with test data)",
-    ],
-];
+        "description" => "Mock Production (local with test data)"
+    )
+);
 
 // Get current environment config
 $_current_config = $_env_configs[CODE_ENVIRONMENT];
@@ -121,6 +128,7 @@ define("SQLITE_DB_PATH", $_current_config["db_path"]);
 
 // Remote database connection (for production sync)
 define("REMOTE_DB_HOST", $_current_config["remote_db_host"]);
+define("REMOTE_DB_PORT", $_current_config["remote_db_port"]);
 define("REMOTE_DB_NAME", $_current_config["remote_db_name"]);
 define("REMOTE_DB_USER", $_current_config["remote_db_user"]);
 define("REMOTE_DB_PASS", $_current_config["remote_db_pass"]);
