@@ -206,6 +206,16 @@ function get_shared_path()
     if (MOCK_MODE) {
         return dirname(__FILE__) . "/test_shared";
     }
+
+    // Fall back to local test_shared if SHARED_BASE_PATH doesn't exist or isn't writable
+    if (!is_dir(SHARED_BASE_PATH) || !is_writable(SHARED_BASE_PATH)) {
+        $fallback = dirname(__FILE__) . "/test_shared";
+        if (!is_dir($fallback)) {
+            mkdir($fallback, 0755, true);
+        }
+        return $fallback;
+    }
+
     return SHARED_BASE_PATH;
 }
 
