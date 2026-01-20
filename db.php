@@ -257,6 +257,12 @@ function sqlite_db()
             $db_path = get_shared_path() . "/control_panel.db";
         }
 
+        // Ensure directory exists before creating database
+        $db_dir = dirname($db_path);
+        if (!is_dir($db_dir)) {
+            mkdir($db_dir, 0755, true);
+        }
+
         $_sqlite_db = new SQLite3($db_path);
         $_sqlite_db->enableExceptions(true);
         $_sqlite_db->busyTimeout(5000);

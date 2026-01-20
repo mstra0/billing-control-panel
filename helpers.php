@@ -226,7 +226,11 @@ function get_shared_path()
  */
 function get_generated_path()
 {
-    return get_shared_path() . "/generated";
+    $path = get_shared_path() . "/generated";
+    if (!is_dir($path)) {
+        mkdir($path, 0755, true);
+    }
+    return $path;
 }
 
 /**
@@ -236,7 +240,11 @@ function get_generated_path()
  */
 function get_pending_path()
 {
-    return get_shared_path() . "/pending";
+    $path = get_shared_path() . "/pending";
+    if (!is_dir($path)) {
+        mkdir($path, 0755, true);
+    }
+    return $path;
 }
 
 /**
@@ -246,7 +254,11 @@ function get_pending_path()
  */
 function get_archive_path()
 {
-    return get_shared_path() . "/archive";
+    $path = get_shared_path() . "/archive";
+    if (!is_dir($path)) {
+        mkdir($path, 0755, true);
+    }
+    return $path;
 }
 
 /**
@@ -258,8 +270,15 @@ function get_archive_path()
 function get_reports_path($subdir = null)
 {
     $base = get_shared_path() . "/reports";
+    if (!is_dir($base)) {
+        mkdir($base, 0755, true);
+    }
     if ($subdir) {
-        return $base . "/" . $subdir;
+        $path = $base . "/" . $subdir;
+        if (!is_dir($path)) {
+            mkdir($path, 0755, true);
+        }
+        return $path;
     }
     return $base;
 }
@@ -271,7 +290,11 @@ function get_reports_path($subdir = null)
  */
 function get_temp_path()
 {
-    return get_shared_path() . "/temp";
+    $path = get_shared_path() . "/temp";
+    if (!is_dir($path)) {
+        mkdir($path, 0755, true);
+    }
+    return $path;
 }
 
 /**
