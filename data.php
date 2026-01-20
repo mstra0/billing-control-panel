@@ -1612,26 +1612,35 @@ function sync_lms_from_remote()
         return count($mock_lms);
     }
 
-    // Production: query remote DB
-    // SOURCE: connectors table (+ second source TBD)
-    // TODO: Update query when second source is identified
+    // Production: query remote api_lms_software table
     $remote_lms = remote_db_query(
-        "SELECT id, name, status FROM connectors ORDER BY name"
+        "SELECT lms_software_id, name, active FROM api_lms_software ORDER BY name"
     );
 
     foreach ($remote_lms as $lms) {
-        $status = isset($lms["status"]) ? $lms["status"] : "active";
-        $existing = get_lms($lms["id"]);
+        // Map active flag to status
+        $status = $lms["active"] ? "active" : "paused";
+        $existing = get_lms($lms["lms_software_id"]);
         if (!$existing) {
             sqlite_execute(
-                "INSERT INTO lms (id, name, status, last_synced, created_at, updated_at)
-                 VALUES (?, ?, ?, datetime('now'), datetime('now'), datetime('now'))",
-                [$lms["id"], $lms["name"], $status]
+                "INSERT INTO lms (id, name, status, remote_active, last_synced, created_at, updated_at)
+                 VALUES (?, ?, ?, ?, datetime('now'), datetime('now'), datetime('now'))",
+                [
+                    $lms["lms_software_id"],
+                    $lms["name"],
+                    $status,
+                    $lms["active"] ? 1 : 0,
+                ]
             );
         } else {
             sqlite_execute(
-                "UPDATE lms SET name = ?, status = ?, last_synced = datetime('now'), updated_at = datetime('now') WHERE id = ?",
-                [$lms["name"], $status, $lms["id"]]
+                "UPDATE lms SET name = ?, status = ?, remote_active = ?, last_synced = datetime('now'), updated_at = datetime('now') WHERE id = ?",
+                [
+                    $lms["name"],
+                    $status,
+                    $lms["active"] ? 1 : 0,
+                    $lms["lms_software_id"],
+                ]
             );
         }
     }
@@ -1641,7 +1650,36 @@ function sync_lms_from_remote()
         [count($remote_lms)]
     );
 
-    return count($remote_lms);
+    // Also sync decision connectors from api_decision_connector
+    $remote_connectors = remote_db_query(
+        "SELECT decision_connector_id, name FROM api_decision_connector ORDER BY name"
+    );
+
+    foreach ($remote_connectors as $conn) {
+        $existing = sqlite_query(
+            "SELECT id FROM decision_connectors WHERE id = ?",
+            [$conn["decision_connector_id"]]
+        );
+        if (empty($existing)) {
+            sqlite_execute(
+                "INSERT INTO decision_connectors (id, name, last_synced, created_at, updated_at)
+                 VALUES (?, ?, datetime('now'), datetime('now'), datetime('now'))",
+                [$conn["decision_connector_id"], $conn["name"]]
+            );
+        } else {
+            sqlite_execute(
+                "UPDATE decision_connectors SET name = ?, last_synced = datetime('now'), updated_at = datetime('now') WHERE id = ?",
+                [$conn["name"], $conn["decision_connector_id"]]
+            );
+        }
+    }
+
+    sqlite_execute(
+        "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('decision_connectors', ?, 'success')",
+        [count($remote_connectors)]
+    );
+
+    return count($remote_lms) + count($remote_connectors);
 }
 
 /**
@@ -1790,19 +1828,20 @@ function sync_customers_from_remote()
         ];
     }
 
-    // Production: query remote DB
-    // TODO: Update with actual table/column names from main database
+    // Production: query remote api_cust table
     $remote_customers = remote_db_query("
         SELECT
-            id,
-            name,
-            status,
-            discount_group_id,
-            contract_start_date,
-            lms_id
-        FROM customers
-        WHERE status != 'deleted'
-        ORDER BY name
+            cust_id,
+            cust_name,
+            active,
+            visible,
+            billible,
+            decommisioned,
+            locked,
+            lms_software_id,
+            decision_connect_id
+        FROM api_cust
+        ORDER BY cust_name
     ");
 
     $synced = 0;
@@ -1810,45 +1849,66 @@ function sync_customers_from_remote()
 
     foreach ($remote_customers as $cust) {
         try {
+            // Derive local status from remote flags
+            // For now: decommissioned=1 -> 'decommissioned', active=0 -> 'paused', else 'active'
+            $status = "active";
+            if ($cust["decommisioned"]) {
+                $status = "decommissioned";
+            } elseif (!$cust["active"]) {
+                $status = "paused";
+            }
+
             $existing = sqlite_query("SELECT id FROM customers WHERE id = ?", [
-                $cust["id"],
+                $cust["cust_id"],
             ]);
 
             if (empty($existing)) {
                 sqlite_execute(
                     "
-                    INSERT INTO customers (id, name, status, discount_group_id, contract_start_date, lms_id, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-                ",
+                    INSERT INTO customers (id, name, status, lms_id, decision_connect_id,
+                        remote_active, remote_visible, remote_billable, remote_decommissioned, remote_locked,
+                        created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+                    ",
                     [
-                        $cust["id"],
-                        $cust["name"],
-                        $cust["status"] ?: "active",
-                        $cust["discount_group_id"],
-                        $cust["contract_start_date"],
-                        $cust["lms_id"],
+                        $cust["cust_id"],
+                        $cust["cust_name"],
+                        $status,
+                        $cust["lms_software_id"],
+                        $cust["decision_connect_id"],
+                        $cust["active"] ? 1 : 0,
+                        $cust["visible"] ? 1 : 0,
+                        $cust["billible"] ? 1 : 0,
+                        $cust["decommisioned"] ? 1 : 0,
+                        $cust["locked"] ? 1 : 0,
                     ]
                 );
             } else {
                 sqlite_execute(
                     "
                     UPDATE customers
-                    SET name = ?, status = ?, discount_group_id = ?, contract_start_date = ?, lms_id = ?, updated_at = datetime('now')
+                    SET name = ?, status = ?, lms_id = ?, decision_connect_id = ?,
+                        remote_active = ?, remote_visible = ?, remote_billable = ?,
+                        remote_decommissioned = ?, remote_locked = ?, updated_at = datetime('now')
                     WHERE id = ?
-                ",
+                    ",
                     [
-                        $cust["name"],
-                        $cust["status"] ?: "active",
-                        $cust["discount_group_id"],
-                        $cust["contract_start_date"],
-                        $cust["lms_id"],
-                        $cust["id"],
+                        $cust["cust_name"],
+                        $status,
+                        $cust["lms_software_id"],
+                        $cust["decision_connect_id"],
+                        $cust["active"] ? 1 : 0,
+                        $cust["visible"] ? 1 : 0,
+                        $cust["billible"] ? 1 : 0,
+                        $cust["decommisioned"] ? 1 : 0,
+                        $cust["locked"] ? 1 : 0,
+                        $cust["cust_id"],
                     ]
                 );
             }
             $synced++;
         } catch (Exception $e) {
-            $errors[] = "Customer {$cust["id"]}: " . $e->getMessage();
+            $errors[] = "Customer {$cust["cust_id"]}: " . $e->getMessage();
         }
     }
 
@@ -2033,13 +2093,11 @@ function sync_business_rules_from_remote()
         ];
     }
 
-    // Production: query remote DB
-    // TODO: Confirm business rules schema in main database
+    // Production: query remote api_business_rule table
     $remote_rules = remote_db_query("
-        SELECT id, name, description, rule_type, parameters
-        FROM business_rules
-        WHERE active = 1
-        ORDER BY name
+        SELECT business_rule_id, business_rule_name
+        FROM api_business_rule
+        ORDER BY business_rule_name
     ");
 
     $synced = 0;
@@ -2049,52 +2107,66 @@ function sync_business_rules_from_remote()
         try {
             $existing = sqlite_query(
                 "SELECT id FROM business_rules WHERE id = ?",
-                [$rule["id"]]
+                [$rule["business_rule_id"]]
             );
 
             if (empty($existing)) {
                 sqlite_execute(
                     "
-                    INSERT INTO business_rules (id, name, description, rule_type, parameters, active, created_at)
-                    VALUES (?, ?, ?, ?, ?, 1, datetime('now'))
-                ",
-                    [
-                        $rule["id"],
-                        $rule["name"],
-                        $rule["description"],
-                        $rule["rule_type"],
-                        $rule["parameters"],
-                    ]
+                    INSERT INTO business_rules (id, name, active, created_at)
+                    VALUES (?, ?, 1, datetime('now'))
+                    ",
+                    [$rule["business_rule_id"], $rule["business_rule_name"]]
                 );
             } else {
                 sqlite_execute(
-                    "
-                    UPDATE business_rules SET name = ?, description = ?, rule_type = ?, parameters = ? WHERE id = ?
-                ",
-                    [
-                        $rule["name"],
-                        $rule["description"],
-                        $rule["rule_type"],
-                        $rule["parameters"],
-                        $rule["id"],
-                    ]
+                    "UPDATE business_rules SET name = ? WHERE id = ?",
+                    [$rule["business_rule_name"], $rule["business_rule_id"]]
                 );
             }
             $synced++;
         } catch (Exception $e) {
-            $errors[] = "Rule {$rule["id"]}: " . $e->getMessage();
+            $errors[] = "Rule {$rule["business_rule_id"]}: " . $e->getMessage();
+        }
+    }
+
+    // Also sync customer-business rule relationships from api_cust_business_rule_rel
+    $remote_rels = remote_db_query("
+        SELECT cust_business_rule_rel_id, cust_id, business_rule_id
+        FROM api_cust_business_rule_rel
+    ");
+
+    $rel_synced = 0;
+    foreach ($remote_rels as $rel) {
+        try {
+            // Check if relationship exists
+            $existing = sqlite_query(
+                "SELECT id FROM customer_business_rules WHERE customer_id = ? AND business_rule_id = ?",
+                [$rel["cust_id"], $rel["business_rule_id"]]
+            );
+
+            if (empty($existing)) {
+                sqlite_execute(
+                    "INSERT INTO customer_business_rules (customer_id, business_rule_id, created_at) VALUES (?, ?, datetime('now'))",
+                    [$rel["cust_id"], $rel["business_rule_id"]]
+                );
+                $rel_synced++;
+            }
+        } catch (Exception $e) {
+            // Ignore relationship errors (customer or rule may not exist yet)
         }
     }
 
     $status = empty($errors) ? "success" : "partial";
     sqlite_execute(
-        "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('business_rules', ?, ?)",
-        [$synced, $status]
+        "INSERT INTO sync_log (entity_type, record_count, status, notes) VALUES ('business_rules', ?, ?, ?)",
+        [$synced, $status, "Also synced {$rel_synced} customer relationships"]
     );
 
     return [
         "synced" => $synced,
         "total" => count($remote_rules),
+        "relationships_synced" => $rel_synced,
         "errors" => $errors,
     ];
 }

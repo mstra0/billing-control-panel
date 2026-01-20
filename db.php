@@ -376,7 +376,14 @@ function sqlite_init_schema()
         name TEXT NOT NULL,
         discount_group_id INTEGER,
         lms_id INTEGER REFERENCES lms(id),
+        decision_connect_id INTEGER,
         status TEXT DEFAULT 'active' CHECK(status IN ('active', 'paused', 'decommissioned')),
+        -- Raw status flags from remote api_cust (for future use)
+        remote_active INTEGER DEFAULT 1,
+        remote_visible INTEGER DEFAULT 1,
+        remote_billable INTEGER DEFAULT 1,
+        remote_decommissioned INTEGER DEFAULT 0,
+        remote_locked INTEGER DEFAULT 0,
         contract_start_date TEXT,
         created_at TEXT DEFAULT (datetime('now')),
         updated_at TEXT DEFAULT (datetime('now'))
@@ -502,17 +509,31 @@ function sqlite_init_schema()
     );
 
     -- ============================================================
-    -- BUSINESS RULES (append-only masks)
+    -- BUSINESS RULES - from api_business_rule
     -- ============================================================
 
     CREATE TABLE IF NOT EXISTS business_rules (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        active INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT (datetime('now')),
+        updated_at TEXT DEFAULT (datetime('now'))
+    );
+
+    -- Customer-to-business-rule relationship - from api_cust_business_rule_rel
+    CREATE TABLE IF NOT EXISTS customer_business_rules (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         customer_id INTEGER NOT NULL,
-        rule_name TEXT NOT NULL,
-        rule_description TEXT,
-        synced_at TEXT DEFAULT (datetime('now')),
-        FOREIGN KEY (customer_id) REFERENCES customers(id)
+        business_rule_id INTEGER NOT NULL,
+        created_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (customer_id) REFERENCES customers(id),
+        FOREIGN KEY (business_rule_id) REFERENCES business_rules(id),
+        UNIQUE(customer_id, business_rule_id)
     );
+
+    -- ============================================================
+    -- BUSINESS RULE MASKS (append-only local overrides)
+    -- ============================================================
 
     CREATE TABLE IF NOT EXISTS business_rule_masks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -528,14 +549,27 @@ function sqlite_init_schema()
         ON business_rule_masks(customer_id, rule_name, effective_date);
 
     -- ============================================================
-    -- LMS (Loan Management System)
+    -- LMS (Loan Management System) - from api_lms_software
     -- ============================================================
 
     CREATE TABLE IF NOT EXISTS lms (
         id INTEGER PRIMARY KEY,
         name TEXT NOT NULL,
         status TEXT DEFAULT 'active' CHECK(status IN ('active', 'paused', 'decommissioned')),
+        remote_active INTEGER DEFAULT 1,
         commission_rate REAL,
+        last_synced TEXT,
+        created_at TEXT DEFAULT (datetime('now')),
+        updated_at TEXT DEFAULT (datetime('now'))
+    );
+
+    -- ============================================================
+    -- Decision Connectors - from api_decision_connector
+    -- ============================================================
+
+    CREATE TABLE IF NOT EXISTS decision_connectors (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
         last_synced TEXT,
         created_at TEXT DEFAULT (datetime('now')),
         updated_at TEXT DEFAULT (datetime('now'))
@@ -728,7 +762,7 @@ function sqlite_get_current($table, $conditions)
 function sqlite_get_all_current(
     $table,
     $group_by,
-    $conditions = array(),
+    $conditions = [],
     $page = 1,
     $per_page = ITEMS_PER_PAGE
 ) {

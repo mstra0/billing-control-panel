@@ -9,7 +9,9 @@ function action_dashboard()
     // Get counts for dashboard
     $services = sqlite_query("SELECT COUNT(*) as cnt FROM services");
     $groups = sqlite_query("SELECT COUNT(*) as cnt FROM discount_groups");
-    $customers_active = sqlite_query("SELECT COUNT(*) as cnt FROM customers WHERE status = 'active'");
+    $customers_active = sqlite_query(
+        "SELECT COUNT(*) as cnt FROM customers WHERE status = 'active'",
+    );
     $customers_all = sqlite_query("SELECT COUNT(*) as cnt FROM customers");
 
     // Get alerts
@@ -72,7 +74,10 @@ function action_upload_config()
         $result = handle_config_upload($_FILES["config_file"]);
 
         if ($result["success"]) {
-            set_flash("success", $result["message"] . " (" . $result["filename"] . ")");
+            set_flash(
+                "success",
+                $result["message"] . " (" . $result["filename"] . ")",
+            );
             return;
         } else {
             $data["error"] = $result["message"];
@@ -239,7 +244,7 @@ function action_export_pricing()
         foreach ($services as $service) {
             $tiers = get_current_customer_tiers(
                 $customer["id"],
-                $service["id"]
+                $service["id"],
             );
             foreach ($tiers as $tier) {
                 $rows[] = [
@@ -351,7 +356,7 @@ function action_export_escalators()
         foreach ($escalators as $esc) {
             $total_delay = get_total_delay_months(
                 $customer["id"],
-                $esc["year_number"]
+                $esc["year_number"],
             );
             $rows[] = [
                 "customer_id" => $customer["id"],
@@ -476,7 +481,7 @@ function action_pricing_defaults_edit()
             save_default_tiers($service_id, $tiers);
             set_flash(
                 "success",
-                "Default pricing saved for " . $service["name"]
+                "Default pricing saved for " . $service["name"],
             );
             redirect("pricing_defaults");
             return;
@@ -508,7 +513,7 @@ function action_pricing_groups()
         // Count members
         $count = sqlite_query(
             "SELECT COUNT(*) as cnt FROM customers WHERE discount_group_id = ?",
-            [$group["id"]]
+            [$group["id"]],
         );
         $group["member_count"] = $count[0]["cnt"];
 
@@ -516,7 +521,7 @@ function action_pricing_groups()
         $overrides = sqlite_query(
             "SELECT COUNT(DISTINCT service_id) as cnt FROM pricing_tiers
              WHERE level = 'group' AND level_id = ? AND effective_date <= date('now')",
-            [$group["id"]]
+            [$group["id"]],
         );
         $group["override_count"] = $overrides[0]["cnt"];
     }
@@ -588,7 +593,7 @@ function action_pricing_group_edit()
                 "success",
                 "Override cleared for " .
                     $service["name"] .
-                    ". Group now inherits from defaults."
+                    ". Group now inherits from defaults.",
             );
             redirect("pricing_group_edit", ["group_id" => $group_id]);
             return;
@@ -684,7 +689,7 @@ function action_pricing_customers()
          $where_str
          ORDER BY c.name
          LIMIT ? OFFSET ?",
-        $query_params
+        $query_params,
     );
 
     $data = [
@@ -715,7 +720,7 @@ function action_pricing_customer_edit()
          FROM customers c
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          WHERE c.id = ?",
-        [$customer_id]
+        [$customer_id],
     );
 
     if (empty($customers)) {
@@ -737,7 +742,7 @@ function action_pricing_customer_edit()
                 "uses_annualized" => get_param("uses_annualized", 0),
                 "annualized_start_date" => get_param(
                     "annualized_start_date",
-                    ""
+                    "",
                 ),
                 "look_period_months" => get_param("look_period_months", ""),
             ];
@@ -778,7 +783,7 @@ function action_pricing_customer_edit()
         foreach ($services as &$svc) {
             $svc["tiers"] = get_effective_customer_tiers(
                 $customer_id,
-                $svc["id"]
+                $svc["id"],
             );
             $svc["has_override"] =
                 !empty($svc["tiers"]) &&
@@ -823,7 +828,7 @@ function action_pricing_customer_edit()
                     $service["name"] .
                     ". Customer now inherits from " .
                     ($customer["discount_group_id"] ? "group" : "defaults") .
-                    "."
+                    ".",
             );
             redirect("pricing_customer_edit", ["customer_id" => $customer_id]);
             return;
@@ -853,7 +858,7 @@ function action_pricing_customer_edit()
             save_customer_tiers($customer_id, $service_id, $tiers);
             set_flash(
                 "success",
-                "Customer pricing saved for " . $service["name"]
+                "Customer pricing saved for " . $service["name"],
             );
             redirect("pricing_customer_edit", ["customer_id" => $customer_id]);
             return;
@@ -899,7 +904,7 @@ function action_ingestion()
         if ($file["error"] !== UPLOAD_ERR_OK) {
             set_flash(
                 "error",
-                "File upload failed: error code " . $file["error"]
+                "File upload failed: error code " . $file["error"],
             );
             redirect("ingestion");
             return;
@@ -913,12 +918,12 @@ function action_ingestion()
         if ($import_result["success"]) {
             set_flash(
                 "success",
-                "Imported {$import_result["rows_imported"]} rows from $filename"
+                "Imported {$import_result["rows_imported"]} rows from $filename",
             );
         } else {
             set_flash(
                 "error",
-                "Import failed: " . implode(", ", $import_result["errors"])
+                "Import failed: " . implode(", ", $import_result["errors"]),
             );
         }
 
@@ -938,12 +943,12 @@ function action_ingestion()
             if ($import_result["success"]) {
                 set_flash(
                     "success",
-                    "Imported {$import_result["rows_imported"]} rows from $filename"
+                    "Imported {$import_result["rows_imported"]} rows from $filename",
                 );
             } else {
                 set_flash(
                     "error",
-                    "Import failed: " . implode(", ", $import_result["errors"])
+                    "Import failed: " . implode(", ", $import_result["errors"]),
                 );
             }
         } else {
@@ -983,7 +988,7 @@ function action_ingestion()
         } elseif ($success_count > 0) {
             set_flash(
                 "warning",
-                "Imported $success_count files, $error_count failed"
+                "Imported $success_count files, $error_count failed",
             );
         } else {
             set_flash("error", "All imports failed");
@@ -1041,7 +1046,7 @@ function action_ingestion()
             SUM(record_count) as total_rows,
             MIN(report_date) as earliest,
             MAX(report_date) as latest
-         FROM billing_reports"
+         FROM billing_reports",
     );
 
     $data = [
@@ -1091,7 +1096,7 @@ function action_ingestion_view()
          WHERE report_id = ?
          GROUP BY customer_id, customer_name
          ORDER BY total_revenue DESC",
-        [$report_id]
+        [$report_id],
     );
 
     $data = [
@@ -1124,7 +1129,7 @@ function action_line_audit()
     if (!isset($audit["line_id"])) {
         set_flash(
             "error",
-            isset($audit["error"]) ? $audit["error"] : "Line not found"
+            isset($audit["error"]) ? $audit["error"] : "Line not found",
         );
         redirect("ingestion");
         return;
@@ -1162,7 +1167,7 @@ function action_report_audit()
     if (!(isset($audit["success"]) ? $audit["success"] : true)) {
         set_flash(
             "error",
-            isset($audit["error"]) ? $audit["error"] : "Report not found"
+            isset($audit["error"]) ? $audit["error"] : "Report not found",
         );
         redirect("ingestion");
         return;
@@ -1231,12 +1236,12 @@ function action_ingestion_bulk()
         if ($success_count > 0 && $error_count === 0) {
             set_flash(
                 "success",
-                "Successfully imported all $success_count files"
+                "Successfully imported all $success_count files",
             );
         } elseif ($success_count > 0) {
             set_flash(
                 "warning",
-                "Imported $success_count files, $error_count failed"
+                "Imported $success_count files, $error_count failed",
             );
         } else {
             set_flash("error", "All $error_count files failed to import");
@@ -1256,7 +1261,7 @@ function action_ingestion_bulk()
                 // Check if already imported
                 $existing = sqlite_query(
                     "SELECT id FROM billing_reports WHERE file_path = ?",
-                    [$filename]
+                    [$filename],
                 );
 
                 if (!empty($existing)) {
@@ -1291,18 +1296,18 @@ function action_ingestion_bulk()
             $success = count(
                 array_filter($results, function ($r) {
                     return $r["success"];
-                })
+                }),
             );
             $skipped = count(
                 array_filter($results, function ($r) {
                     return isset($r["skipped"]) && $r["skipped"];
-                })
+                }),
             );
             $failed = count($results) - $success - $skipped;
 
             set_flash(
                 "info",
-                "Scanned directory: $success imported, $skipped already existed, $failed failed"
+                "Scanned directory: $success imported, $skipped already existed, $failed failed",
             );
         } else {
             set_flash("error", "Archive directory not found: $scan_path");
@@ -1318,7 +1323,7 @@ function action_ingestion_bulk()
             MAX(report_date) as latest,
             SUM(CASE WHEN report_type = 'monthly' THEN 1 ELSE 0 END) as monthly_count,
             SUM(CASE WHEN report_type = 'daily' THEN 1 ELSE 0 END) as daily_count
-         FROM billing_reports"
+         FROM billing_reports",
     );
 
     $data = [
@@ -1365,7 +1370,7 @@ function action_generation()
         $filename = "tier_pricing_" . date("Ymd_His") . ".csv";
         header("Content-Type: text/csv");
         header(
-            "Content-Disposition: attachment; filename=\"" . $filename . "\""
+            "Content-Disposition: attachment; filename=\"" . $filename . "\"",
         );
         header("Content-Length: " . strlen($result["csv_content"]));
         echo $result["csv_content"];
@@ -1409,14 +1414,14 @@ function action_generation()
                 "tier_pricing",
                 $file_path,
                 $archive_params,
-                "Generated from Generation page"
+                "Generated from Generation page",
             );
 
             $archive_msg = $report_id ? " and archived to reports" : "";
             set_flash(
                 "success",
                 "Generated $filename with {$result["row_count"]} rows and saved to pending directory" .
-                    $archive_msg
+                    $archive_msg,
             );
         } else {
             set_flash("error", "Failed to write file to pending directory");
@@ -1446,11 +1451,11 @@ function action_generation()
 
     // Get counts for info display
     $active_customers = sqlite_query(
-        "SELECT COUNT(*) as cnt FROM customers WHERE status = 'active'"
+        "SELECT COUNT(*) as cnt FROM customers WHERE status = 'active'",
     );
     $services_count = sqlite_query("SELECT COUNT(*) as cnt FROM services");
     $transaction_types_count = sqlite_query(
-        "SELECT COUNT(*) as cnt FROM transaction_types"
+        "SELECT COUNT(*) as cnt FROM transaction_types",
     );
 
     // Get recent generations (from pending directory)
@@ -1514,12 +1519,12 @@ function action_generation_types()
             set_flash(
                 "warning",
                 "Imported {$result["imported"]} types with errors: " .
-                    implode(", ", $result["errors"])
+                    implode(", ", $result["errors"]),
             );
         } else {
             set_flash(
                 "success",
-                "Imported {$result["imported"]} transaction types"
+                "Imported {$result["imported"]} transaction types",
             );
         }
 
@@ -1551,7 +1556,7 @@ function action_generation_types()
             $display_name,
             $efx_code,
             $efx_displayname,
-            $service_id
+            $service_id,
         );
         set_flash("success", "Transaction type saved");
         redirect("generation_types");
@@ -1613,7 +1618,7 @@ function action_billing_flags()
             set_flash("error", "Service and EFX code are required");
             redirect(
                 "billing_flags&level=$level" .
-                    ($level_id ? "&level_id=$level_id" : "")
+                    ($level_id ? "&level_id=$level_id" : ""),
             );
             return;
         }
@@ -1625,13 +1630,13 @@ function action_billing_flags()
             $efx_code,
             $by_hit,
             $zero_null,
-            $bav_by_trans
+            $bav_by_trans,
         );
 
         set_flash("success", "Billing flags saved");
         redirect(
             "billing_flags&level=$level" .
-                ($level_id ? "&level_id=$level_id" : "")
+                ($level_id ? "&level_id=$level_id" : ""),
         );
         return;
     }
@@ -1645,7 +1650,7 @@ function action_billing_flags()
         set_flash("success", "Override cleared");
         redirect(
             "billing_flags&level=$level" .
-                ($level_id ? "&level_id=$level_id" : "")
+                ($level_id ? "&level_id=$level_id" : ""),
         );
         return;
     }
@@ -1665,7 +1670,7 @@ function action_billing_flags()
          LEFT JOIN services s ON sbf.service_id = s.id
          WHERE sbf.level = ? AND $level_id_cond
          ORDER BY sbf.service_id, sbf.efx_code, sbf.effective_date DESC",
-        [$level]
+        [$level],
     );
 
     // Group by service+efx_code and get only current (latest)
@@ -1679,10 +1684,10 @@ function action_billing_flags()
 
     // Get groups and customers for level selector
     $groups = sqlite_query(
-        "SELECT id, name FROM discount_groups ORDER BY name"
+        "SELECT id, name FROM discount_groups ORDER BY name",
     );
     $customers = sqlite_query(
-        "SELECT id, name FROM customers WHERE status = 'active' ORDER BY name"
+        "SELECT id, name FROM customers WHERE status = 'active' ORDER BY name",
     );
 
     // Get level entity info
@@ -1908,7 +1913,7 @@ function action_lms_report()
                 "SELECT SUM(revenue) as total_revenue, SUM(count) as total_count
                  FROM billing_report_lines
                  WHERE customer_id = ? AND year = ? AND month = ?",
-                [$customer["id"], $year, $month]
+                [$customer["id"], $year, $month],
             );
 
             $customer_revenue =
@@ -1990,14 +1995,14 @@ function action_minimums()
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          LEFT JOIN customer_settings cs ON c.id = cs.customer_id
          WHERE cs.monthly_minimum IS NOT NULL AND cs.monthly_minimum > 0
-         ORDER BY c.name"
+         ORDER BY c.name",
     );
 
     // Get summary stats
     $stats = sqlite_query(
         "SELECT COUNT(*) as count, SUM(monthly_minimum) as total_minimums, AVG(monthly_minimum) as avg_minimum
          FROM customer_settings
-         WHERE monthly_minimum IS NOT NULL AND monthly_minimum > 0"
+         WHERE monthly_minimum IS NOT NULL AND monthly_minimum > 0",
     );
 
     $pagination = paginate(count($customers_with_minimums), $page);
@@ -2028,7 +2033,7 @@ function action_annualized()
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          LEFT JOIN customer_settings cs ON c.id = cs.customer_id
          WHERE cs.uses_annualized = 1
-         ORDER BY c.name"
+         ORDER BY c.name",
     );
 
     // Calculate next reset date for each customer
@@ -2049,7 +2054,7 @@ function action_annualized()
     $stats = sqlite_query(
         "SELECT COUNT(*) as count
          FROM customer_settings
-         WHERE uses_annualized = 1"
+         WHERE uses_annualized = 1",
     );
 
     // Get upcoming resets (next 30 days)
@@ -2086,7 +2091,7 @@ function action_customer_pricing()
          FROM customers c
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          WHERE c.id = ?",
-        [$customer_id]
+        [$customer_id],
     );
 
     if (empty($customer)) {
@@ -2112,7 +2117,7 @@ function action_customer_pricing()
         if ($customer["discount_group_id"]) {
             $group_tiers = get_current_group_tiers(
                 $customer["discount_group_id"],
-                $service_id
+                $service_id,
             );
         }
 
@@ -2212,7 +2217,7 @@ function action_customer_pricing()
     foreach ($escalators as &$esc) {
         $esc["total_delay"] = get_total_delay_months(
             $customer_id,
-            $esc["year_number"]
+            $esc["year_number"],
         );
     }
     unset($esc);
@@ -2289,7 +2294,7 @@ function action_escalators()
          WHERE 1=1 $where_str
          ORDER BY c.name
          LIMIT ? OFFSET ?",
-        $query_params
+        $query_params,
     );
 
     // Get escalator counts for each customer
@@ -2331,7 +2336,7 @@ function action_escalator_edit()
          FROM customers c
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          WHERE c.id = ?",
-        [$customer_id]
+        [$customer_id],
     );
 
     if (empty($customers)) {
@@ -2345,7 +2350,7 @@ function action_escalator_edit()
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $escalator_start_date = get_param(
             "escalator_start_date",
-            $customer["contract_start_date"]
+            $customer["contract_start_date"],
         );
         $year_numbers = isset($_POST["year_number"])
             ? $_POST["year_number"]
@@ -2390,7 +2395,7 @@ function action_escalator_edit()
     foreach ($escalators as &$esc) {
         $esc["total_delay"] = get_total_delay_months(
             $customer_id,
-            $esc["year_number"]
+            $esc["year_number"],
         );
     }
 
@@ -2419,7 +2424,7 @@ function action_escalator_delay()
     apply_escalator_delay($customer_id, $year_number, 1);
     set_flash(
         "success",
-        "Escalator for Year " . $year_number . " delayed by 1 month"
+        "Escalator for Year " . $year_number . " delayed by 1 month",
     );
     redirect("escalator_edit", ["customer_id" => $customer_id]);
 }
@@ -2471,7 +2476,7 @@ function action_business_rules()
          WHERE 1=1 $where_str
          ORDER BY c.name
          LIMIT ? OFFSET ?",
-        $query_params
+        $query_params,
     );
 
     // Get rule counts for each customer
@@ -2553,20 +2558,20 @@ function action_business_rules_all()
     foreach ($rules as &$rule) {
         $rule["is_masked"] = get_rule_mask_status(
             $rule["customer_id"],
-            $rule["rule_name"]
+            $rule["rule_name"],
         );
     }
 
     // Get summary stats
     $stats = [
         "total_rules" => sqlite_query(
-            "SELECT COUNT(*) as cnt FROM business_rules"
+            "SELECT COUNT(*) as cnt FROM business_rules",
         )[0]["cnt"],
         "masked_rules" => sqlite_query(
-            "SELECT COUNT(*) as cnt FROM business_rule_masks WHERE is_masked = 1"
+            "SELECT COUNT(*) as cnt FROM business_rule_masks WHERE is_masked = 1",
         )[0]["cnt"],
         "customers_with_rules" => sqlite_query(
-            "SELECT COUNT(DISTINCT customer_id) as cnt FROM business_rules"
+            "SELECT COUNT(DISTINCT customer_id) as cnt FROM business_rules",
         )[0]["cnt"],
     ];
 
@@ -2600,7 +2605,7 @@ function action_business_rule_edit()
          FROM customers c
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          WHERE c.id = ?",
-        [$customer_id]
+        [$customer_id],
     );
 
     if (empty($customers)) {
@@ -2615,7 +2620,7 @@ function action_business_rule_edit()
     foreach ($rules as &$rule) {
         $rule["is_masked"] = get_rule_mask_status(
             $customer_id,
-            $rule["rule_name"]
+            $rule["rule_name"],
         );
     }
 
@@ -3096,7 +3101,7 @@ function action_regenerate_report()
                 "compare_reports&temp_file=" .
                     urlencode($filename) .
                     "&compare_id=" .
-                    $compare_id
+                    $compare_id,
             );
             return;
         }
@@ -3312,7 +3317,7 @@ function action_billing_intelligence()
 
     // Get date range from ingested data
     $date_range = sqlite_query(
-        "SELECT MIN(report_date) as earliest, MAX(report_date) as latest FROM billing_reports"
+        "SELECT MIN(report_date) as earliest, MAX(report_date) as latest FROM billing_reports",
     );
     $earliest = isset($date_range[0]["earliest"])
         ? $date_range[0]["earliest"]
@@ -3334,7 +3339,7 @@ function action_billing_intelligence()
             COUNT(DISTINCT brl.customer_id) as unique_customers,
             COUNT(DISTINCT brl.efx_code) as unique_services
          FROM billing_reports br
-         LEFT JOIN billing_report_lines brl ON br.id = brl.report_id"
+         LEFT JOIN billing_report_lines brl ON br.id = brl.report_id",
     );
     $stats = isset($overall_stats[0]) ? $overall_stats[0] : [];
 
@@ -3349,7 +3354,7 @@ function action_billing_intelligence()
     // ========================================
     $lms_performance = get_lms_performance_metrics(
         $current_year,
-        $current_month
+        $current_month,
     );
 
     // ========================================
@@ -3357,7 +3362,7 @@ function action_billing_intelligence()
     // ========================================
     $tier_proximity = get_tier_proximity_analysis(
         $current_year,
-        $current_month
+        $current_month,
     );
 
     // Get monthly breakdown (for reference)
@@ -3373,7 +3378,7 @@ function action_billing_intelligence()
          JOIN billing_reports br ON brl.report_id = br.id
          GROUP BY brl.year, brl.month
          ORDER BY brl.year DESC, brl.month DESC
-         LIMIT 6"
+         LIMIT 6",
     );
 
     // Run audit on a sample to get variance stats
@@ -3430,7 +3435,7 @@ function get_lms_performance_metrics($year, $month)
     // Get EFX code to service mapping
     $efx_to_service = [];
     $types = sqlite_query(
-        "SELECT efx_code, service_id FROM transaction_types WHERE service_id IS NOT NULL"
+        "SELECT efx_code, service_id FROM transaction_types WHERE service_id IS NOT NULL",
     );
     foreach ($types as $t) {
         $efx_to_service[$t["efx_code"]] = $t["service_id"];
@@ -3456,7 +3461,7 @@ function get_lms_performance_metrics($year, $month)
         $customer_ids = array_column($customers, "id");
         $customer_id_placeholders = implode(
             ",",
-            array_fill(0, count($customer_ids), "?")
+            array_fill(0, count($customer_ids), "?"),
         );
 
         // Get billing data for this LMS's customers for the period
@@ -3470,7 +3475,7 @@ function get_lms_performance_metrics($year, $month)
              WHERE brl.customer_id IN ($customer_id_placeholders)
                AND brl.year = ? AND brl.month = ?
              GROUP BY brl.efx_code",
-            $params
+            $params,
         );
 
         $lms_revenue = 0;
@@ -3559,13 +3564,13 @@ function get_tier_proximity_analysis($year, $month)
          JOIN billing_reports br ON brl.report_id = br.id
          WHERE brl.year = ? AND brl.month = ?
          GROUP BY brl.customer_id, brl.customer_name, brl.efx_code",
-        [$year, $month]
+        [$year, $month],
     );
 
     // Get EFX code to service mapping
     $efx_to_service = [];
     $types = sqlite_query(
-        "SELECT efx_code, service_id FROM transaction_types WHERE service_id IS NOT NULL"
+        "SELECT efx_code, service_id FROM transaction_types WHERE service_id IS NOT NULL",
     );
     foreach ($types as $t) {
         $efx_to_service[$t["efx_code"]] = $t["service_id"];
@@ -3644,7 +3649,7 @@ function get_tier_proximity_analysis($year, $month)
                 $daily_rate > 0 ? $distance_to_next / $daily_rate : PHP_INT_MAX;
             $hit_probability = min(
                 100,
-                ($days_remaining / max(1, $days_needed)) * 100
+                ($days_remaining / max(1, $days_needed)) * 100,
             );
         } elseif ($mtd_count >= $next_tier_threshold) {
             $hit_probability = 100;
@@ -3707,18 +3712,18 @@ function get_tier_proximity_analysis($year, $month)
         "likely_to_upgrade" => count(
             array_filter($proximity_data, function ($p) {
                 return $p["hit_probability_pct"] >= 70;
-            })
+            }),
         ),
         "possible_upgrade" => count(
             array_filter($proximity_data, function ($p) {
                 return $p["hit_probability_pct"] >= 30 &&
                     $p["hit_probability_pct"] < 70;
-            })
+            }),
         ),
         "unlikely_upgrade" => count(
             array_filter($proximity_data, function ($p) {
                 return $p["hit_probability_pct"] < 30;
-            })
+            }),
         ),
     ];
 }
@@ -3733,7 +3738,7 @@ function get_billing_variance_stats()
 
     $lines = sqlite_query(
         "SELECT id FROM billing_report_lines ORDER BY RANDOM() LIMIT ?",
-        [$sample_size]
+        [$sample_size],
     );
 
     $matches = 0;
@@ -3795,7 +3800,7 @@ function action_billing_month()
          FROM billing_report_lines brl
          JOIN billing_reports br ON brl.report_id = br.id
          WHERE brl.year = ? AND brl.month = ?",
-        [$year, $month]
+        [$year, $month],
     );
 
     // Get daily breakdown (from daily reports)
@@ -3810,7 +3815,7 @@ function action_billing_month()
          WHERE brl.year = ? AND brl.month = ? AND br.report_type = 'daily'
          GROUP BY br.report_date
          ORDER BY br.report_date",
-        [$year, $month]
+        [$year, $month],
     );
 
     // Get customer breakdown for this month
@@ -3825,7 +3830,7 @@ function action_billing_month()
          WHERE brl.year = ? AND brl.month = ?
          GROUP BY brl.customer_id, brl.customer_name
          ORDER BY revenue DESC",
-        [$year, $month]
+        [$year, $month],
     );
 
     // Get service breakdown for this month
@@ -3841,7 +3846,7 @@ function action_billing_month()
          WHERE brl.year = ? AND brl.month = ?
          GROUP BY brl.efx_code
          ORDER BY revenue DESC",
-        [$year, $month]
+        [$year, $month],
     );
 
     // Get reports for this month
@@ -3850,7 +3855,7 @@ function action_billing_month()
          FROM billing_reports br
          WHERE br.report_year = ? AND br.report_month = ?
          ORDER BY br.report_date DESC",
-        [$year, $month]
+        [$year, $month],
     );
 
     $data = [
@@ -3886,7 +3891,7 @@ function action_billing_customer()
          FROM billing_report_lines
          WHERE customer_id = ?
          LIMIT 1",
-        [$customer_id]
+        [$customer_id],
     );
 
     if (empty($customer_info)) {
@@ -3908,7 +3913,7 @@ function action_billing_customer()
          FROM billing_report_lines brl
          JOIN billing_reports br ON brl.report_id = br.id
          WHERE brl.customer_id = ?",
-        [$customer_id]
+        [$customer_id],
     );
 
     // Get monthly trend for this customer
@@ -3922,7 +3927,7 @@ function action_billing_customer()
          WHERE brl.customer_id = ?
          GROUP BY brl.year, brl.month
          ORDER BY brl.year DESC, brl.month DESC",
-        [$customer_id]
+        [$customer_id],
     );
 
     // Get service breakdown for this customer
@@ -3938,7 +3943,7 @@ function action_billing_customer()
          WHERE brl.customer_id = ?
          GROUP BY brl.efx_code
          ORDER BY revenue DESC",
-        [$customer_id]
+        [$customer_id],
     );
 
     // Get recent line items
@@ -3949,7 +3954,7 @@ function action_billing_customer()
          WHERE brl.customer_id = ?
          ORDER BY br.report_date DESC, brl.id DESC
          LIMIT 50",
-        [$customer_id]
+        [$customer_id],
     );
 
     $data = [
@@ -3986,7 +3991,7 @@ function action_billing_customer_daily()
          FROM billing_report_lines
          WHERE customer_id = ?
          LIMIT 1",
-        [$customer_id]
+        [$customer_id],
     );
 
     if (empty($customer_info)) {
@@ -4004,7 +4009,7 @@ function action_billing_customer_daily()
          LEFT JOIN transaction_types tt ON brl.efx_code = tt.efx_code
          WHERE brl.customer_id = ? AND brl.year = ? AND brl.month = ?
          ORDER BY brl.efx_code",
-        [$customer_id, $year, $month]
+        [$customer_id, $year, $month],
     );
 
     // Build EFX filter condition
@@ -4031,7 +4036,7 @@ function action_billing_customer_daily()
            $efx_filter
          GROUP BY br.report_date
          ORDER BY br.report_date",
-        $params
+        $params,
     );
 
     // Calculate delta (true daily count) by subtracting previous day
@@ -4067,7 +4072,7 @@ function action_billing_customer_daily()
          WHERE brl.customer_id = ?
            AND brl.year = ? AND brl.month = ?
            $efx_filter",
-        $params
+        $params,
     );
 
     // Calculate stats from chart data
@@ -4086,7 +4091,7 @@ function action_billing_customer_daily()
          JOIN billing_reports br ON brl.report_id = br.id
          WHERE brl.customer_id = ? AND br.report_type = 'daily'
          ORDER BY brl.year DESC, brl.month DESC",
-        [$customer_id]
+        [$customer_id],
     );
 
     // Days in month for projections
@@ -4153,7 +4158,7 @@ function action_billing_service()
          FROM transaction_types tt
          LEFT JOIN services s ON tt.service_id = s.id
          WHERE tt.efx_code = ?",
-        [$efx_code]
+        [$efx_code],
     );
 
     $service = isset($service_info[0])
@@ -4174,7 +4179,7 @@ function action_billing_service()
          FROM billing_report_lines brl
          JOIN billing_reports br ON brl.report_id = br.id
          WHERE brl.efx_code = ?",
-        [$efx_code]
+        [$efx_code],
     );
 
     // Get monthly trend for this service
@@ -4189,7 +4194,7 @@ function action_billing_service()
          WHERE brl.efx_code = ?
          GROUP BY brl.year, brl.month
          ORDER BY brl.year DESC, brl.month DESC",
-        [$efx_code]
+        [$efx_code],
     );
 
     // Get customer breakdown for this service
@@ -4204,7 +4209,7 @@ function action_billing_service()
          WHERE brl.efx_code = ?
          GROUP BY brl.customer_id, brl.customer_name
          ORDER BY revenue DESC",
-        [$efx_code]
+        [$efx_code],
     );
 
     $data = [
@@ -4342,13 +4347,13 @@ function action_admin_sync()
                 : "Synced {$result["synced"]} of {$result["total"]} records";
             set_flash(
                 "success",
-                ucfirst(str_replace("_", " ", $entity)) . ": " . $msg
+                ucfirst(str_replace("_", " ", $entity)) . ": " . $msg,
             );
         } else {
             set_flash(
                 "success",
                 ucfirst(str_replace("_", " ", $entity)) .
-                    ": Synced $result records"
+                    ": Synced $result records",
             );
         }
     }
@@ -4373,7 +4378,7 @@ function action_admin_clear_entity()
     if ($confirm !== $entity) {
         set_flash(
             "error",
-            "Confirmation did not match. Type the entity name to confirm."
+            "Confirmation did not match. Type the entity name to confirm.",
         );
         redirect("admin", ["tab" => "data"]);
         return;
@@ -4402,7 +4407,7 @@ function action_admin_fix_directories()
     } else {
         set_flash(
             "error",
-            "Some directories could not be created: " . implode(", ", $errors)
+            "Some directories could not be created: " . implode(", ", $errors),
         );
     }
 
@@ -4420,7 +4425,7 @@ function action_admin_clear()
         return;
     }
 
-    $confirm = get_param("confirm");
+    $confirm = get_param("confirm_text");
     if ($confirm !== "CLEAR") {
         set_flash("error", "You must type CLEAR to confirm");
         redirect("admin");
@@ -4464,7 +4469,7 @@ function action_admin_explore_remote()
 
             try {
                 $data["sample_data"] = remote_db_query(
-                    "SELECT * FROM `" . $table . "` LIMIT 10"
+                    "SELECT * FROM `" . $table . "` LIMIT 10",
                 );
             } catch (Exception $e) {
                 $data["sample_data"] = [];
@@ -4514,8 +4519,8 @@ function action_admin_reseed()
                 $result["lines"],
                 ($result["matches"] / max(1, $result["lines"])) * 100,
                 ($result["small_variances"] / max(1, $result["lines"])) * 100,
-                ($result["large_variances"] / max(1, $result["lines"])) * 100
-            )
+                ($result["large_variances"] / max(1, $result["lines"])) * 100,
+            ),
         );
     } else {
         set_flash("error", "Seeding failed");
@@ -4900,7 +4905,7 @@ function init_mock_data()
         csv_write(
             $filepath,
             $pending_config["rows"],
-            $pending_config["headers"]
+            $pending_config["headers"],
         );
     }
 } // ------------------------------------------------------------
