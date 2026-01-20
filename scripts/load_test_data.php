@@ -11,8 +11,8 @@
  */
 
 // Check for confirmation flag
-$confirmed = in_array('--confirm', $argv);
-$no_backup = in_array('--no-backup', $argv);
+$confirmed = in_array("--confirm", $argv);
+$no_backup = in_array("--no-backup", $argv);
 
 if (!$confirmed) {
     echo "WARNING: This will CLEAR all existing data and load test data.\n\n";
@@ -23,8 +23,9 @@ if (!$confirmed) {
     exit(1);
 }
 
-$db_path = __DIR__ . '/data/control_panel.db';
-$sql_file = __DIR__ . '/test_data.sql';
+$base_dir = dirname(__DIR__);
+$db_path = $base_dir . "/test_shared/control_panel.db";
+$sql_file = __DIR__ . "/test_data.sql";
 
 // Check if SQL file exists
 if (!file_exists($sql_file)) {
@@ -34,7 +35,7 @@ if (!file_exists($sql_file)) {
 
 // Backup existing database
 if (!$no_backup && file_exists($db_path)) {
-    $backup_path = $db_path . '.backup_' . date('Ymd_His');
+    $backup_path = $db_path . ".backup_" . date("Ymd_His");
     echo "Backing up database to: $backup_path\n";
     copy($db_path, $backup_path);
 }
@@ -43,16 +44,16 @@ if (!$no_backup && file_exists($db_path)) {
 echo "Loading control panel...\n";
 
 // We need to prevent it from running the main router
-$_SERVER['REQUEST_METHOD'] = 'CLI';
-$_GET['action'] = 'cli_load_data';
+$_SERVER["REQUEST_METHOD"] = "CLI";
+$_GET["action"] = "cli_load_data";
 
 // Define a flag to prevent auto-execution
-define('CLI_MODE', true);
+define("CLI_MODE", true);
 
 // Include just enough to get database functions
 // We'll manually initialize the database
 
-$data_dir = __DIR__ . '/data';
+$data_dir = $base_dir . "/test_shared";
 if (!is_dir($data_dir)) {
     mkdir($data_dir, 0755, true);
 }
@@ -277,23 +278,23 @@ $db->exec($schema);
 // Clear existing data
 echo "Clearing existing data...\n";
 $tables = [
-    'billing_report_lines',
-    'billing_reports',
-    'sync_log',
-    'service_cogs',
-    'system_settings',
-    'business_rule_masks',
-    'business_rules',
-    'escalator_delays',
-    'customer_escalators',
-    'customer_settings',
-    'pricing_tiers',
-    'service_billing_flags',
-    'transaction_types',
-    'customers',
-    'lms',
-    'discount_groups',
-    'services',
+    "billing_report_lines",
+    "billing_reports",
+    "sync_log",
+    "service_cogs",
+    "system_settings",
+    "business_rule_masks",
+    "business_rules",
+    "escalator_delays",
+    "customer_escalators",
+    "customer_settings",
+    "pricing_tiers",
+    "service_billing_flags",
+    "transaction_types",
+    "customers",
+    "lms",
+    "discount_groups",
+    "services",
 ];
 
 foreach ($tables as $table) {
@@ -314,7 +315,7 @@ $errors = 0;
 
 foreach ($statements as $stmt) {
     $stmt = trim($stmt);
-    if (empty($stmt) || strpos($stmt, '--') === 0) {
+    if (empty($stmt) || strpos($stmt, "--") === 0) {
         continue;
     }
 
@@ -336,7 +337,17 @@ echo "Errors: $errors\n\n";
 
 // Verify counts
 echo "VERIFICATION:\n";
-$verify_tables = ['services', 'discount_groups', 'lms', 'customers', 'pricing_tiers', 'customer_settings', 'customer_escalators', 'business_rules', 'transaction_types'];
+$verify_tables = [
+    "services",
+    "discount_groups",
+    "lms",
+    "customers",
+    "pricing_tiers",
+    "customer_settings",
+    "customer_escalators",
+    "business_rules",
+    "transaction_types",
+];
 foreach ($verify_tables as $table) {
     $result = $db->querySingle("SELECT COUNT(*) FROM $table");
     echo "  $table: $result\n";
