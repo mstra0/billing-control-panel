@@ -563,12 +563,13 @@ function run_seed($config, $clear_first = false)
     $services = array_slice($services, 0, $config["service_count"]);
 
     foreach ($services as $i => $service) {
-        $id = $i + 1;
-        sqlite_execute("INSERT INTO services (id, name) VALUES (?, ?)", [
-            $id,
+        sqlite_execute("INSERT OR IGNORE INTO services (name) VALUES (?)", [
             $service["name"],
         ]);
-        $services[$i]["id"] = $id;
+        $row = sqlite_query("SELECT id FROM services WHERE name = ?", [
+            $service["name"],
+        ]);
+        $services[$i]["id"] = $row[0]["id"];
     }
     seed_log("   Created " . count($services) . " services");
 
@@ -583,7 +584,7 @@ function run_seed($config, $clear_first = false)
         foreach ($suffixes as $suffix) {
             $efx_code = $service["code"] . "_" . $suffix;
             sqlite_execute(
-                "INSERT INTO transaction_types (type, display_name, efx_code, efx_displayname, service_id)
+                "INSERT OR IGNORE INTO transaction_types (type, display_name, efx_code, efx_displayname, service_id)
                  VALUES (?, ?, ?, ?, ?)",
                 [
                     strtolower($service["code"]),
@@ -611,12 +612,14 @@ function run_seed($config, $clear_first = false)
     $groups = [];
 
     foreach ($group_names as $i => $name) {
-        $id = $i + 1;
-        sqlite_execute("INSERT INTO discount_groups (id, name) VALUES (?, ?)", [
-            $id,
+        sqlite_execute(
+            "INSERT OR IGNORE INTO discount_groups (name) VALUES (?)",
+            [$name]
+        );
+        $row = sqlite_query("SELECT id FROM discount_groups WHERE name = ?", [
             $name,
         ]);
-        $groups[] = ["id" => $id, "name" => $name];
+        $groups[] = ["id" => $row[0]["id"], "name" => $name];
     }
     seed_log("   Created " . count($groups) . " discount groups");
 
@@ -628,7 +631,6 @@ function run_seed($config, $clear_first = false)
     $lms_list = [];
 
     foreach ($lms_names as $i => $name) {
-        $id = $i + 1;
         $has_override = mt_rand(1, 100) <= $config["lms_override_pct"];
         $commission = $has_override
             ? round(
@@ -640,10 +642,11 @@ function run_seed($config, $clear_first = false)
             : null;
 
         sqlite_execute(
-            "INSERT INTO lms (id, name, status, commission_rate) VALUES (?, ?, 'active', ?)",
-            [$id, $name, $commission]
+            "INSERT OR IGNORE INTO lms (name, status, commission_rate) VALUES (?, 'active', ?)",
+            [$name, $commission]
         );
-        $lms_list[] = ["id" => $id, "name" => $name];
+        $row = sqlite_query("SELECT id FROM lms WHERE name = ?", [$name]);
+        $lms_list[] = ["id" => $row[0]["id"], "name" => $name];
     }
     seed_log("   Created " . count($lms_list) . " LMS providers");
 
@@ -665,11 +668,12 @@ function run_seed($config, $clear_first = false)
     ];
 
     foreach ($customer_names as $i => $name) {
-        $id = $i + 1;
         $status = weighted_choice($status_weights);
         $has_group = mt_rand(1, 100) <= $config["customer_in_group_pct"];
-        $group_id = $has_group ? mt_rand(1, $config["group_count"]) : null;
-        $lms_id = mt_rand(1, $config["lms_count"]);
+        $group_id = $has_group
+            ? $groups[mt_rand(0, count($groups) - 1)]["id"]
+            : null;
+        $lms_id = $lms_list[mt_rand(0, count($lms_list) - 1)]["id"];
 
         // Contract start 1-4 years ago
         $contract_start = date(
@@ -678,11 +682,13 @@ function run_seed($config, $clear_first = false)
         );
 
         sqlite_execute(
-            "INSERT INTO customers (id, name, discount_group_id, lms_id, status, contract_start_date)
-             VALUES (?, ?, ?, ?, ?, ?)",
-            [$id, $name, $group_id, $lms_id, $status, $contract_start]
+            "INSERT OR IGNORE INTO customers (name, discount_group_id, lms_id, status, contract_start_date)
+             VALUES (?, ?, ?, ?, ?)",
+            [$name, $group_id, $lms_id, $status, $contract_start]
         );
 
+        $row = sqlite_query("SELECT id FROM customers WHERE name = ?", [$name]);
+        $id = $row[0]["id"];
         $customers[] = [
             "id" => $id,
             "name" => $name,
