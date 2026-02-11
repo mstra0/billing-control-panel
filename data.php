@@ -157,6 +157,7 @@ function get_customers_with_masked_rules()
     $customers = sqlite_query(
         "SELECT DISTINCT c.id, c.name FROM customers c
          INNER JOIN customer_business_rules cbr ON c.id = cbr.customer_id
+         JOIN business_rules br ON cbr.business_rule_id = br.id
          WHERE c.status = 'active'"
     );
 
@@ -637,7 +638,7 @@ function get_all_services()
  * Expects tiers with volume_start/volume_end keys. Starts coverage from volume 1.
  * Returns ['gaps' => [...], 'overlaps' => [...]].
  * Each gap:    ['start' => int, 'end' => int]
- * Each overlap: ['start' => int, 'end' => int]
+ * Each overlap: ['start' => int, 'end' => int, 'tier_a' => int, 'tier_b' => int]
  */
 function validate_tier_ranges($tiers)
 {
@@ -667,6 +668,8 @@ function validate_tier_ranges($tiers)
             $result["overlaps"][] = [
                 "start" => $next_start,
                 "end" => $tiers[$i + 1]["volume_end"],
+                "tier_a" => $i,
+                "tier_b" => $i + 1,
             ];
             continue;
         }
@@ -692,6 +695,8 @@ function validate_tier_ranges($tiers)
             $result["overlaps"][] = [
                 "start" => $next_start,
                 "end" => $overlap_end,
+                "tier_a" => $i,
+                "tier_b" => $i + 1,
             ];
         }
     }
@@ -745,24 +750,30 @@ function save_default_tiers($service_id, $tiers, $effective_date = null)
         $effective_date = date("Y-m-d");
     }
 
-    // Overwrite any existing tiers for this date (within-month edits replace, not accumulate)
-    sqlite_execute(
-        "DELETE FROM pricing_tiers WHERE level = 'default' AND level_id IS NULL AND service_id = ? AND effective_date = ?",
-        [$service_id, $effective_date]
-    );
-
-    foreach ($tiers as $tier) {
+    sqlite_begin();
+    try {
         sqlite_execute(
-            "INSERT INTO pricing_tiers (level, level_id, service_id, volume_start, volume_end, price_per_inquiry, effective_date)
-             VALUES ('default', NULL, ?, ?, ?, ?, ?)",
-            [
-                $service_id,
-                $tier["volume_start"],
-                $tier["volume_end"],
-                $tier["price_per_inquiry"],
-                $effective_date,
-            ]
+            "DELETE FROM pricing_tiers WHERE level = 'default' AND level_id IS NULL AND service_id = ? AND effective_date = ?",
+            [$service_id, $effective_date]
         );
+
+        foreach ($tiers as $tier) {
+            sqlite_execute(
+                "INSERT INTO pricing_tiers (level, level_id, service_id, volume_start, volume_end, price_per_inquiry, effective_date)
+                 VALUES ('default', NULL, ?, ?, ?, ?, ?)",
+                [
+                    $service_id,
+                    $tier["volume_start"],
+                    $tier["volume_end"],
+                    $tier["price_per_inquiry"],
+                    $effective_date,
+                ]
+            );
+        }
+        sqlite_commit();
+    } catch (Exception $e) {
+        sqlite_rollback();
+        throw $e;
     }
 
     return true;
@@ -815,39 +826,33 @@ function save_group_tiers(
         $effective_date = date("Y-m-d");
     }
 
-    // Overwrite any existing tiers for this date (within-month edits replace, not accumulate)
-    sqlite_execute(
-        "DELETE FROM pricing_tiers WHERE level = 'group' AND level_id = ? AND service_id = ? AND effective_date = ?",
-        [$group_id, $service_id, $effective_date]
-    );
-
-    foreach ($tiers as $tier) {
+    sqlite_begin();
+    try {
         sqlite_execute(
-            "INSERT INTO pricing_tiers (level, level_id, service_id, volume_start, volume_end, price_per_inquiry, effective_date)
-             VALUES ('group', ?, ?, ?, ?, ?, ?)",
-            [
-                $group_id,
-                $service_id,
-                $tier["volume_start"],
-                $tier["volume_end"],
-                $tier["price_per_inquiry"],
-                $effective_date,
-            ]
+            "DELETE FROM pricing_tiers WHERE level = 'group' AND level_id = ? AND service_id = ? AND effective_date = ?",
+            [$group_id, $service_id, $effective_date]
         );
+
+        foreach ($tiers as $tier) {
+            sqlite_execute(
+                "INSERT INTO pricing_tiers (level, level_id, service_id, volume_start, volume_end, price_per_inquiry, effective_date)
+                 VALUES ('group', ?, ?, ?, ?, ?, ?)",
+                [
+                    $group_id,
+                    $service_id,
+                    $tier["volume_start"],
+                    $tier["volume_end"],
+                    $tier["price_per_inquiry"],
+                    $effective_date,
+                ]
+            );
+        }
+        sqlite_commit();
+    } catch (Exception $e) {
+        sqlite_rollback();
+        throw $e;
     }
 
-    return true;
-}
-
-/**
- * Clear group overrides for a service (by inserting empty set - append only)
- * We mark it cleared by inserting a special record or just not having records for new date
- */
-function clear_group_tiers($group_id, $service_id)
-{
-    // In append-only model, "clearing" means the group now inherits from default
-    // We don't actually delete, we just don't have overrides for current date
-    // The UI will check if group has overrides, if not, show inherited
     return true;
 }
 
@@ -921,25 +926,31 @@ function save_customer_tiers(
         $effective_date = date("Y-m-d");
     }
 
-    // Overwrite any existing tiers for this date (within-month edits replace, not accumulate)
-    sqlite_execute(
-        "DELETE FROM pricing_tiers WHERE level = 'customer' AND level_id = ? AND service_id = ? AND effective_date = ?",
-        [$customer_id, $service_id, $effective_date]
-    );
-
-    foreach ($tiers as $tier) {
+    sqlite_begin();
+    try {
         sqlite_execute(
-            "INSERT INTO pricing_tiers (level, level_id, service_id, volume_start, volume_end, price_per_inquiry, effective_date)
-             VALUES ('customer', ?, ?, ?, ?, ?, ?)",
-            [
-                $customer_id,
-                $service_id,
-                $tier["volume_start"],
-                $tier["volume_end"],
-                $tier["price_per_inquiry"],
-                $effective_date,
-            ]
+            "DELETE FROM pricing_tiers WHERE level = 'customer' AND level_id = ? AND service_id = ? AND effective_date = ?",
+            [$customer_id, $service_id, $effective_date]
         );
+
+        foreach ($tiers as $tier) {
+            sqlite_execute(
+                "INSERT INTO pricing_tiers (level, level_id, service_id, volume_start, volume_end, price_per_inquiry, effective_date)
+                 VALUES ('customer', ?, ?, ?, ?, ?, ?)",
+                [
+                    $customer_id,
+                    $service_id,
+                    $tier["volume_start"],
+                    $tier["volume_end"],
+                    $tier["price_per_inquiry"],
+                    $effective_date,
+                ]
+            );
+        }
+        sqlite_commit();
+    } catch (Exception $e) {
+        sqlite_rollback();
+        throw $e;
     }
 
     return true;
@@ -1310,35 +1321,41 @@ function save_customer_settings($customer_id, $settings)
 {
     $effective_date = date("Y-m-d");
 
-    // Overwrite any existing settings for this date (within-month edits replace, not accumulate)
-    sqlite_execute(
-        "DELETE FROM customer_settings WHERE customer_id = ? AND effective_date = ?",
-        [$customer_id, $effective_date]
-    );
+    sqlite_begin();
+    try {
+        sqlite_execute(
+            "DELETE FROM customer_settings WHERE customer_id = ? AND effective_date = ?",
+            [$customer_id, $effective_date]
+        );
 
-    sqlite_execute(
-        "INSERT INTO customer_settings (customer_id, effective_date, monthly_minimum, uses_annualized, annualized_start_date, look_period_months)
-         VALUES (?, ?, ?, ?, ?, ?)",
-        [
-            $customer_id,
-            $effective_date,
-            isset($settings["monthly_minimum"]) &&
-            $settings["monthly_minimum"] !== ""
-                ? (float) $settings["monthly_minimum"]
-                : null,
-            isset($settings["uses_annualized"])
-                ? (int) $settings["uses_annualized"]
-                : 0,
-            isset($settings["annualized_start_date"]) &&
-            $settings["annualized_start_date"] !== ""
-                ? $settings["annualized_start_date"]
-                : null,
-            isset($settings["look_period_months"]) &&
-            $settings["look_period_months"] !== ""
-                ? (int) $settings["look_period_months"]
-                : null,
-        ]
-    );
+        sqlite_execute(
+            "INSERT INTO customer_settings (customer_id, effective_date, monthly_minimum, uses_annualized, annualized_start_date, look_period_months)
+             VALUES (?, ?, ?, ?, ?, ?)",
+            [
+                $customer_id,
+                $effective_date,
+                isset($settings["monthly_minimum"]) &&
+                $settings["monthly_minimum"] !== ""
+                    ? (float) $settings["monthly_minimum"]
+                    : null,
+                isset($settings["uses_annualized"])
+                    ? (int) $settings["uses_annualized"]
+                    : 0,
+                isset($settings["annualized_start_date"]) &&
+                $settings["annualized_start_date"] !== ""
+                    ? $settings["annualized_start_date"]
+                    : null,
+                isset($settings["look_period_months"]) &&
+                $settings["look_period_months"] !== ""
+                    ? (int) $settings["look_period_months"]
+                    : null,
+            ]
+        );
+        sqlite_commit();
+    } catch (Exception $e) {
+        sqlite_rollback();
+        throw $e;
+    }
 
     return true;
 }
@@ -1419,29 +1436,35 @@ function save_escalators(
         $effective_date = date("Y-m-d");
     }
 
-    // Overwrite any existing escalators for this date (within-month edits replace, not accumulate)
-    sqlite_execute(
-        "DELETE FROM customer_escalators WHERE customer_id = ? AND effective_date = ?",
-        [$customer_id, $effective_date]
-    );
-
-    foreach ($escalators as $esc) {
+    sqlite_begin();
+    try {
         sqlite_execute(
-            "INSERT INTO customer_escalators (customer_id, escalator_start_date, year_number, escalator_percentage, fixed_adjustment, effective_date)
-             VALUES (?, ?, ?, ?, ?, ?)",
-            [
-                $customer_id,
-                $escalator_start_date,
-                $esc["year_number"],
-                isset($esc["escalator_percentage"])
-                    ? (float) $esc["escalator_percentage"]
-                    : 0,
-                isset($esc["fixed_adjustment"])
-                    ? (float) $esc["fixed_adjustment"]
-                    : 0,
-                $effective_date,
-            ]
+            "DELETE FROM customer_escalators WHERE customer_id = ? AND effective_date = ?",
+            [$customer_id, $effective_date]
         );
+
+        foreach ($escalators as $esc) {
+            sqlite_execute(
+                "INSERT INTO customer_escalators (customer_id, escalator_start_date, year_number, escalator_percentage, fixed_adjustment, effective_date)
+                 VALUES (?, ?, ?, ?, ?, ?)",
+                [
+                    $customer_id,
+                    $escalator_start_date,
+                    $esc["year_number"],
+                    isset($esc["escalator_percentage"])
+                        ? (float) $esc["escalator_percentage"]
+                        : 0,
+                    isset($esc["fixed_adjustment"])
+                        ? (float) $esc["fixed_adjustment"]
+                        : 0,
+                    $effective_date,
+                ]
+            );
+        }
+        sqlite_commit();
+    } catch (Exception $e) {
+        sqlite_rollback();
+        throw $e;
     }
 
     return true;
@@ -1535,20 +1558,25 @@ function get_default_commission_rate()
  */
 function save_default_commission_rate($rate)
 {
-    // Try update first
-    $result = sqlite_execute(
-        "UPDATE system_settings SET value = ?, updated_at = datetime('now')
-         WHERE key = 'default_commission_rate'",
-        [$rate]
-    );
-
-    // If no row updated, insert
-    $changes = sqlite_db()->changes();
-    if ($changes === 0) {
+    sqlite_begin();
+    try {
         sqlite_execute(
-            "INSERT INTO system_settings (key, value, updated_at) VALUES ('default_commission_rate', ?, datetime('now'))",
+            "UPDATE system_settings SET value = ?, updated_at = datetime('now')
+             WHERE key = 'default_commission_rate'",
             [$rate]
         );
+
+        $changes = sqlite_db()->changes();
+        if ($changes === 0) {
+            sqlite_execute(
+                "INSERT INTO system_settings (key, value, updated_at) VALUES ('default_commission_rate', ?, datetime('now'))",
+                [$rate]
+            );
+        }
+        sqlite_commit();
+    } catch (Exception $e) {
+        sqlite_rollback();
+        throw $e;
     }
     return true;
 }
@@ -1601,8 +1629,6 @@ function save_lms($id, $name, $commission_rate = null)
 function sync_lms_from_remote()
 {
     if (MOCK_MODE) {
-        // Insert mock LMS data (simulating connectors table)
-        // In production, this comes from: SELECT id, name, status FROM connectors
         $mock_lms = [
             ["id" => 1, "name" => "First National LMS", "status" => "active"],
             ["id" => 2, "name" => "Pacific Lending", "status" => "active"],
@@ -1619,29 +1645,33 @@ function sync_lms_from_remote()
             ],
         ];
 
-        foreach ($mock_lms as $lms) {
-            // Only insert if not exists (don't override local commission rates)
-            $existing = get_lms($lms["id"]);
-            if (!$existing) {
-                sqlite_execute(
-                    "INSERT INTO lms (id, name, status, last_synced, created_at, updated_at)
-                     VALUES (?, ?, ?, datetime('now'), datetime('now'), datetime('now'))",
-                    [$lms["id"], $lms["name"], $lms["status"]]
-                );
-            } else {
-                // Update name and status, preserve local commission_rate
-                sqlite_execute(
-                    "UPDATE lms SET name = ?, status = ?, last_synced = datetime('now'), updated_at = datetime('now') WHERE id = ?",
-                    [$lms["name"], $lms["status"], $lms["id"]]
-                );
+        sqlite_begin();
+        try {
+            foreach ($mock_lms as $lms) {
+                $existing = get_lms($lms["id"]);
+                if (!$existing) {
+                    sqlite_execute(
+                        "INSERT INTO lms (id, name, status, last_synced, created_at, updated_at)
+                         VALUES (?, ?, ?, datetime('now'), datetime('now'), datetime('now'))",
+                        [$lms["id"], $lms["name"], $lms["status"]]
+                    );
+                } else {
+                    sqlite_execute(
+                        "UPDATE lms SET name = ?, status = ?, last_synced = datetime('now'), updated_at = datetime('now') WHERE id = ?",
+                        [$lms["name"], $lms["status"], $lms["id"]]
+                    );
+                }
             }
-        }
 
-        // Log the sync
-        sqlite_execute(
-            "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('lms', ?, 'success')",
-            [count($mock_lms)]
-        );
+            sqlite_execute(
+                "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('lms', ?, 'success')",
+                [count($mock_lms)]
+            );
+            sqlite_commit();
+        } catch (Exception $e) {
+            sqlite_rollback();
+            throw $e;
+        }
 
         return count($mock_lms);
     }
@@ -1651,67 +1681,73 @@ function sync_lms_from_remote()
         "SELECT lms_software_id, name, active FROM api_lms_software ORDER BY name"
     );
 
-    foreach ($remote_lms as $lms) {
-        // Map active flag to status
-        $status = $lms["active"] ? "active" : "paused";
-        $existing = get_lms($lms["lms_software_id"]);
-        if (!$existing) {
-            sqlite_execute(
-                "INSERT INTO lms (id, name, status, remote_active, last_synced, created_at, updated_at)
-                 VALUES (?, ?, ?, ?, datetime('now'), datetime('now'), datetime('now'))",
-                [
-                    $lms["lms_software_id"],
-                    $lms["name"],
-                    $status,
-                    $lms["active"] ? 1 : 0,
-                ]
-            );
-        } else {
-            sqlite_execute(
-                "UPDATE lms SET name = ?, status = ?, remote_active = ?, last_synced = datetime('now'), updated_at = datetime('now') WHERE id = ?",
-                [
-                    $lms["name"],
-                    $status,
-                    $lms["active"] ? 1 : 0,
-                    $lms["lms_software_id"],
-                ]
-            );
+    sqlite_begin();
+    try {
+        foreach ($remote_lms as $lms) {
+            $status = $lms["active"] ? "active" : "paused";
+            $existing = get_lms($lms["lms_software_id"]);
+            if (!$existing) {
+                sqlite_execute(
+                    "INSERT INTO lms (id, name, status, remote_active, last_synced, created_at, updated_at)
+                     VALUES (?, ?, ?, ?, datetime('now'), datetime('now'), datetime('now'))",
+                    [
+                        $lms["lms_software_id"],
+                        $lms["name"],
+                        $status,
+                        $lms["active"] ? 1 : 0,
+                    ]
+                );
+            } else {
+                sqlite_execute(
+                    "UPDATE lms SET name = ?, status = ?, remote_active = ?, last_synced = datetime('now'), updated_at = datetime('now') WHERE id = ?",
+                    [
+                        $lms["name"],
+                        $status,
+                        $lms["active"] ? 1 : 0,
+                        $lms["lms_software_id"],
+                    ]
+                );
+            }
         }
-    }
 
-    sqlite_execute(
-        "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('lms', ?, 'success')",
-        [count($remote_lms)]
-    );
-
-    // Also sync decision connectors from api_decision_connector
-    $remote_connectors = remote_db_query(
-        "SELECT decision_connector_id, name FROM api_decision_connector ORDER BY name"
-    );
-
-    foreach ($remote_connectors as $conn) {
-        $existing = sqlite_query(
-            "SELECT id FROM decision_connectors WHERE id = ?",
-            [$conn["decision_connector_id"]]
+        sqlite_execute(
+            "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('lms', ?, 'success')",
+            [count($remote_lms)]
         );
-        if (empty($existing)) {
-            sqlite_execute(
-                "INSERT INTO decision_connectors (id, name, last_synced, created_at, updated_at)
-                 VALUES (?, ?, datetime('now'), datetime('now'), datetime('now'))",
-                [$conn["decision_connector_id"], $conn["name"]]
-            );
-        } else {
-            sqlite_execute(
-                "UPDATE decision_connectors SET name = ?, last_synced = datetime('now'), updated_at = datetime('now') WHERE id = ?",
-                [$conn["name"], $conn["decision_connector_id"]]
-            );
-        }
-    }
 
-    sqlite_execute(
-        "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('decision_connectors', ?, 'success')",
-        [count($remote_connectors)]
-    );
+        // Also sync decision connectors from api_decision_connector
+        $remote_connectors = remote_db_query(
+            "SELECT decision_connector_id, name FROM api_decision_connector ORDER BY name"
+        );
+
+        foreach ($remote_connectors as $conn) {
+            $existing = sqlite_query(
+                "SELECT id FROM decision_connectors WHERE id = ?",
+                [$conn["decision_connector_id"]]
+            );
+            if (empty($existing)) {
+                sqlite_execute(
+                    "INSERT INTO decision_connectors (id, name, last_synced, created_at, updated_at)
+                     VALUES (?, ?, datetime('now'), datetime('now'), datetime('now'))",
+                    [$conn["decision_connector_id"], $conn["name"]]
+                );
+            } else {
+                sqlite_execute(
+                    "UPDATE decision_connectors SET name = ?, last_synced = datetime('now'), updated_at = datetime('now') WHERE id = ?",
+                    [$conn["name"], $conn["decision_connector_id"]]
+                );
+            }
+        }
+
+        sqlite_execute(
+            "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('decision_connectors', ?, 'success')",
+            [count($remote_connectors)]
+        );
+        sqlite_commit();
+    } catch (Exception $e) {
+        sqlite_rollback();
+        throw $e;
+    }
 
     return count($remote_lms) + count($remote_connectors);
 }
@@ -1780,16 +1816,22 @@ function save_service_cogs($service_id, $cogs_rate, $effective_date = null)
         $effective_date = date("Y-m-d");
     }
 
-    // Overwrite any existing COGS for this date (within-month edits replace, not accumulate)
-    sqlite_execute(
-        "DELETE FROM service_cogs WHERE service_id = ? AND effective_date = ?",
-        [$service_id, $effective_date]
-    );
+    sqlite_begin();
+    try {
+        sqlite_execute(
+            "DELETE FROM service_cogs WHERE service_id = ? AND effective_date = ?",
+            [$service_id, $effective_date]
+        );
 
-    sqlite_execute(
-        "INSERT INTO service_cogs (service_id, cogs_rate, effective_date) VALUES (?, ?, ?)",
-        [$service_id, $cogs_rate, $effective_date]
-    );
+        sqlite_execute(
+            "INSERT INTO service_cogs (service_id, cogs_rate, effective_date) VALUES (?, ?, ?)",
+            [$service_id, $cogs_rate, $effective_date]
+        );
+        sqlite_commit();
+    } catch (Exception $e) {
+        sqlite_rollback();
+        throw $e;
+    }
     return true;
 }
 
@@ -1799,16 +1841,13 @@ function save_service_cogs($service_id, $cogs_rate, $effective_date = null)
 function sync_cogs_from_remote()
 {
     if (MOCK_MODE) {
-        // Get current services and assign mock COGS
         $services = get_all_services();
         $count = 0;
 
         foreach ($services as $service) {
-            // Check if COGS already exists for this service
             $existing = get_service_cogs($service["id"]);
             if ($existing == 0) {
-                // Assign a mock COGS (roughly 30-50% of typical price)
-                $mock_cogs = round(mt_rand(10, 35) / 100, 2); // $0.10 - $0.35
+                $mock_cogs = round(mt_rand(10, 35) / 100, 2);
                 save_service_cogs($service["id"], $mock_cogs);
                 $count++;
             }
@@ -1851,8 +1890,6 @@ function sync_cogs_from_remote()
 function sync_customers_from_remote()
 {
     if (MOCK_MODE) {
-        // In mock mode, customers are already seeded
-        // Just log the "sync" action
         $count = sqlite_query("SELECT COUNT(*) as cnt FROM customers");
         $count = $count[0]["cnt"];
 
@@ -1868,97 +1905,91 @@ function sync_customers_from_remote()
         ];
     }
 
-    // Production: query remote api_cust table
     $remote_customers = remote_db_query("
-        SELECT
-            cust_id,
-            cust_name,
-            active,
-            visible,
-            billable,
-            decommisioned,
-            locked,
-            lms_software_id,
-            decision_connect_id
-        FROM api_cust
-        ORDER BY cust_name
+        SELECT cust_id, cust_name, active, visible, billable,
+               decommisioned, locked, lms_software_id, decision_connect_id
+        FROM api_cust ORDER BY cust_name
     ");
 
     $synced = 0;
     $errors = [];
 
-    foreach ($remote_customers as $cust) {
-        try {
-            // Derive local status from remote flags
-            // For now: decommissioned=1 -> 'decommissioned', active=0 -> 'paused', else 'active'
-            $status = "active";
-            if ($cust["decommisioned"]) {
-                $status = "decommissioned";
-            } elseif (!$cust["active"]) {
-                $status = "paused";
-            }
+    sqlite_begin();
+    try {
+        foreach ($remote_customers as $cust) {
+            try {
+                $status = "active";
+                if ($cust["decommisioned"]) {
+                    $status = "decommissioned";
+                } elseif (!$cust["active"]) {
+                    $status = "paused";
+                }
 
-            $existing = sqlite_query("SELECT id FROM customers WHERE id = ?", [
-                $cust["cust_id"],
-            ]);
+                $existing = sqlite_query(
+                    "SELECT id FROM customers WHERE id = ?",
+                    [$cust["cust_id"]]
+                );
 
-            if (empty($existing)) {
-                sqlite_execute(
-                    "
-                    INSERT INTO customers (id, name, status, lms_id, decision_connect_id,
-                        remote_active, remote_visible, remote_billable, remote_decommissioned, remote_locked,
-                        created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-                    ",
-                    [
-                        $cust["cust_id"],
-                        $cust["cust_name"],
-                        $status,
-                        $cust["lms_software_id"],
-                        $cust["decision_connect_id"],
-                        $cust["active"] ? 1 : 0,
-                        $cust["visible"] ? 1 : 0,
-                        $cust["billable"] ? 1 : 0,
-                        $cust["decommisioned"] ? 1 : 0,
-                        $cust["locked"] ? 1 : 0,
-                    ]
-                );
-            } else {
-                sqlite_execute(
-                    "
-                    UPDATE customers
-                    SET name = ?, status = ?, lms_id = ?, decision_connect_id = ?,
-                        remote_active = ?, remote_visible = ?, remote_billable = ?,
-                        remote_decommissioned = ?, remote_locked = ?, updated_at = datetime('now')
-                    WHERE id = ?
-                    ",
-                    [
-                        $cust["cust_name"],
-                        $status,
-                        $cust["lms_software_id"],
-                        $cust["decision_connect_id"],
-                        $cust["active"] ? 1 : 0,
-                        $cust["visible"] ? 1 : 0,
-                        $cust["billable"] ? 1 : 0,
-                        $cust["decommisioned"] ? 1 : 0,
-                        $cust["locked"] ? 1 : 0,
-                        $cust["cust_id"],
-                    ]
-                );
+                if (empty($existing)) {
+                    sqlite_execute(
+                        "INSERT INTO customers (id, name, status, lms_id, decision_connect_id,
+                            remote_active, remote_visible, remote_billable, remote_decommissioned, remote_locked,
+                            created_at, updated_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))",
+                        [
+                            $cust["cust_id"],
+                            $cust["cust_name"],
+                            $status,
+                            $cust["lms_software_id"],
+                            $cust["decision_connect_id"],
+                            $cust["active"] ? 1 : 0,
+                            $cust["visible"] ? 1 : 0,
+                            $cust["billable"] ? 1 : 0,
+                            $cust["decommisioned"] ? 1 : 0,
+                            $cust["locked"] ? 1 : 0,
+                        ]
+                    );
+                } else {
+                    sqlite_execute(
+                        "UPDATE customers
+                        SET name = ?, status = ?, lms_id = ?, decision_connect_id = ?,
+                            remote_active = ?, remote_visible = ?, remote_billable = ?,
+                            remote_decommissioned = ?, remote_locked = ?, updated_at = datetime('now')
+                        WHERE id = ?",
+                        [
+                            $cust["cust_name"],
+                            $status,
+                            $cust["lms_software_id"],
+                            $cust["decision_connect_id"],
+                            $cust["active"] ? 1 : 0,
+                            $cust["visible"] ? 1 : 0,
+                            $cust["billable"] ? 1 : 0,
+                            $cust["decommisioned"] ? 1 : 0,
+                            $cust["locked"] ? 1 : 0,
+                            $cust["cust_id"],
+                        ]
+                    );
+                }
+                $synced++;
+            } catch (Exception $e) {
+                $errors[] = "Customer {$cust["cust_id"]}: " . $e->getMessage();
             }
-            $synced++;
-        } catch (Exception $e) {
-            $errors[] = "Customer {$cust["cust_id"]}: " . $e->getMessage();
         }
+
+        $status = empty($errors) ? "success" : "partial";
+        $notes = empty($errors)
+            ? null
+            : implode("; ", array_slice($errors, 0, 5));
+
+        sqlite_execute(
+            "INSERT INTO sync_log (entity_type, record_count, status, notes) VALUES ('customers', ?, ?, ?)",
+            [$synced, $status, $notes]
+        );
+        sqlite_commit();
+    } catch (Exception $e) {
+        sqlite_rollback();
+        throw $e;
     }
-
-    $status = empty($errors) ? "success" : "partial";
-    $notes = empty($errors) ? null : implode("; ", array_slice($errors, 0, 5));
-
-    sqlite_execute(
-        "INSERT INTO sync_log (entity_type, record_count, status, notes) VALUES ('customers', ?, ?, ?)",
-        [$synced, $status, $notes]
-    );
 
     return [
         "synced" => $synced,
@@ -1988,49 +2019,50 @@ function sync_services_from_remote()
         ];
     }
 
-    // Production: query remote DB
     $remote_services = remote_db_query("
-        SELECT id, name, type
-        FROM services
-        ORDER BY name
+        SELECT id, name, type FROM services ORDER BY name
     ");
 
     $synced = 0;
     $errors = [];
 
-    foreach ($remote_services as $svc) {
-        try {
-            $existing = sqlite_query("SELECT id FROM services WHERE id = ?", [
-                $svc["id"],
-            ]);
+    sqlite_begin();
+    try {
+        foreach ($remote_services as $svc) {
+            try {
+                $existing = sqlite_query(
+                    "SELECT id FROM services WHERE id = ?",
+                    [$svc["id"]]
+                );
 
-            if (empty($existing)) {
-                sqlite_execute(
-                    "
-                    INSERT INTO services (id, name, type, created_at, updated_at)
-                    VALUES (?, ?, ?, datetime('now'), datetime('now'))
-                ",
-                    [$svc["id"], $svc["name"], $svc["type"]]
-                );
-            } else {
-                sqlite_execute(
-                    "
-                    UPDATE services SET name = ?, type = ?, updated_at = datetime('now') WHERE id = ?
-                ",
-                    [$svc["name"], $svc["type"], $svc["id"]]
-                );
+                if (empty($existing)) {
+                    sqlite_execute(
+                        "INSERT INTO services (id, name, type, created_at, updated_at)
+                        VALUES (?, ?, ?, datetime('now'), datetime('now'))",
+                        [$svc["id"], $svc["name"], $svc["type"]]
+                    );
+                } else {
+                    sqlite_execute(
+                        "UPDATE services SET name = ?, type = ?, updated_at = datetime('now') WHERE id = ?",
+                        [$svc["name"], $svc["type"], $svc["id"]]
+                    );
+                }
+                $synced++;
+            } catch (Exception $e) {
+                $errors[] = "Service {$svc["id"]}: " . $e->getMessage();
             }
-            $synced++;
-        } catch (Exception $e) {
-            $errors[] = "Service {$svc["id"]}: " . $e->getMessage();
         }
-    }
 
-    $status = empty($errors) ? "success" : "partial";
-    sqlite_execute(
-        "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('services', ?, ?)",
-        [$synced, $status]
-    );
+        $status = empty($errors) ? "success" : "partial";
+        sqlite_execute(
+            "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('services', ?, ?)",
+            [$synced, $status]
+        );
+        sqlite_commit();
+    } catch (Exception $e) {
+        sqlite_rollback();
+        throw $e;
+    }
 
     return [
         "synced" => $synced,
@@ -2060,50 +2092,50 @@ function sync_discount_groups_from_remote()
         ];
     }
 
-    // Production: query remote DB
     $remote_groups = remote_db_query("
-        SELECT id, name
-        FROM discount_groups
-        ORDER BY name
+        SELECT id, name FROM discount_groups ORDER BY name
     ");
 
     $synced = 0;
     $errors = [];
 
-    foreach ($remote_groups as $group) {
-        try {
-            $existing = sqlite_query(
-                "SELECT id FROM discount_groups WHERE id = ?",
-                [$group["id"]]
-            );
+    sqlite_begin();
+    try {
+        foreach ($remote_groups as $group) {
+            try {
+                $existing = sqlite_query(
+                    "SELECT id FROM discount_groups WHERE id = ?",
+                    [$group["id"]]
+                );
 
-            if (empty($existing)) {
-                sqlite_execute(
-                    "
-                    INSERT INTO discount_groups (id, name, created_at, updated_at)
-                    VALUES (?, ?, datetime('now'), datetime('now'))
-                ",
-                    [$group["id"], $group["name"]]
-                );
-            } else {
-                sqlite_execute(
-                    "
-                    UPDATE discount_groups SET name = ?, updated_at = datetime('now') WHERE id = ?
-                ",
-                    [$group["name"], $group["id"]]
-                );
+                if (empty($existing)) {
+                    sqlite_execute(
+                        "INSERT INTO discount_groups (id, name, created_at, updated_at)
+                        VALUES (?, ?, datetime('now'), datetime('now'))",
+                        [$group["id"], $group["name"]]
+                    );
+                } else {
+                    sqlite_execute(
+                        "UPDATE discount_groups SET name = ?, updated_at = datetime('now') WHERE id = ?",
+                        [$group["name"], $group["id"]]
+                    );
+                }
+                $synced++;
+            } catch (Exception $e) {
+                $errors[] = "Group {$group["id"]}: " . $e->getMessage();
             }
-            $synced++;
-        } catch (Exception $e) {
-            $errors[] = "Group {$group["id"]}: " . $e->getMessage();
         }
-    }
 
-    $status = empty($errors) ? "success" : "partial";
-    sqlite_execute(
-        "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('discount_groups', ?, ?)",
-        [$synced, $status]
-    );
+        $status = empty($errors) ? "success" : "partial";
+        sqlite_execute(
+            "INSERT INTO sync_log (entity_type, record_count, status) VALUES ('discount_groups', ?, ?)",
+            [$synced, $status]
+        );
+        sqlite_commit();
+    } catch (Exception $e) {
+        sqlite_rollback();
+        throw $e;
+    }
 
     return [
         "synced" => $synced,
@@ -2133,75 +2165,88 @@ function sync_business_rules_from_remote()
         ];
     }
 
-    // Production: query remote api_business_rule table
     $remote_rules = remote_db_query("
         SELECT business_rule_id, business_rule_name
-        FROM api_business_rule
-        ORDER BY business_rule_name
+        FROM api_business_rule ORDER BY business_rule_name
     ");
 
     $synced = 0;
     $errors = [];
-
-    foreach ($remote_rules as $rule) {
-        try {
-            $existing = sqlite_query(
-                "SELECT id FROM business_rules WHERE id = ?",
-                [$rule["business_rule_id"]]
-            );
-
-            if (empty($existing)) {
-                sqlite_execute(
-                    "
-                    INSERT INTO business_rules (id, name, active, created_at)
-                    VALUES (?, ?, 1, datetime('now'))
-                    ",
-                    [$rule["business_rule_id"], $rule["business_rule_name"]]
-                );
-            } else {
-                sqlite_execute(
-                    "UPDATE business_rules SET name = ? WHERE id = ?",
-                    [$rule["business_rule_name"], $rule["business_rule_id"]]
-                );
-            }
-            $synced++;
-        } catch (Exception $e) {
-            $errors[] = "Rule {$rule["business_rule_id"]}: " . $e->getMessage();
-        }
-    }
-
-    // Also sync customer-business rule relationships from api_cust_business_rule_rel
-    $remote_rels = remote_db_query("
-        SELECT cust_business_rule_rel_id, cust_id, business_rule_id
-        FROM api_cust_business_rule_rel
-    ");
-
     $rel_synced = 0;
-    foreach ($remote_rels as $rel) {
-        try {
-            // Check if relationship exists
-            $existing = sqlite_query(
-                "SELECT id FROM customer_business_rules WHERE customer_id = ? AND business_rule_id = ?",
-                [$rel["cust_id"], $rel["business_rule_id"]]
-            );
 
-            if (empty($existing)) {
-                sqlite_execute(
-                    "INSERT INTO customer_business_rules (customer_id, business_rule_id, created_at) VALUES (?, ?, datetime('now'))",
+    sqlite_begin();
+    try {
+        foreach ($remote_rules as $rule) {
+            try {
+                $existing = sqlite_query(
+                    "SELECT id FROM business_rules WHERE id = ?",
+                    [$rule["business_rule_id"]]
+                );
+
+                if (empty($existing)) {
+                    sqlite_execute(
+                        "INSERT INTO business_rules (id, name, active, created_at)
+                        VALUES (?, ?, 1, datetime('now'))",
+                        [
+                            $rule["business_rule_id"],
+                            $rule["business_rule_name"],
+                        ]
+                    );
+                } else {
+                    sqlite_execute(
+                        "UPDATE business_rules SET name = ? WHERE id = ?",
+                        [
+                            $rule["business_rule_name"],
+                            $rule["business_rule_id"],
+                        ]
+                    );
+                }
+                $synced++;
+            } catch (Exception $e) {
+                $errors[] =
+                    "Rule {$rule["business_rule_id"]}: " . $e->getMessage();
+            }
+        }
+
+        // Also sync customer-business rule relationships
+        $remote_rels = remote_db_query("
+            SELECT cust_business_rule_rel_id, cust_id, business_rule_id
+            FROM api_cust_business_rule_rel
+        ");
+
+        foreach ($remote_rels as $rel) {
+            try {
+                $existing = sqlite_query(
+                    "SELECT id FROM customer_business_rules WHERE customer_id = ? AND business_rule_id = ?",
                     [$rel["cust_id"], $rel["business_rule_id"]]
                 );
-                $rel_synced++;
-            }
-        } catch (Exception $e) {
-            // Ignore relationship errors (customer or rule may not exist yet)
-        }
-    }
 
-    $status = empty($errors) ? "success" : "partial";
-    sqlite_execute(
-        "INSERT INTO sync_log (entity_type, record_count, status, notes) VALUES ('business_rules', ?, ?, ?)",
-        [$synced, $status, "Also synced {$rel_synced} customer relationships"]
-    );
+                if (empty($existing)) {
+                    sqlite_execute(
+                        "INSERT INTO customer_business_rules (customer_id, business_rule_id, created_at) VALUES (?, ?, datetime('now'))",
+                        [$rel["cust_id"], $rel["business_rule_id"]]
+                    );
+                    $rel_synced++;
+                }
+            } catch (Exception $e) {
+                // Ignore relationship errors (customer or rule may not exist yet)
+            }
+        }
+
+        $status = empty($errors) ? "success" : "partial";
+        sqlite_execute(
+            "INSERT INTO sync_log (entity_type, record_count, status, notes) VALUES ('business_rules', ?, ?, ?)",
+            [
+                $synced,
+                $status,
+                "Also synced {$rel_synced} customer relationships",
+            ]
+        );
+        sqlite_commit();
+    } catch (Exception $e) {
+        sqlite_rollback();
+        throw $e;
+    }
 
     return [
         "synced" => $synced,
@@ -2700,45 +2745,51 @@ function import_billing_report($filename, $csv_content, $report_type = null)
         return $result;
     }
 
-    // Create report record
-    sqlite_execute(
-        "INSERT INTO billing_reports (report_type, report_year, report_month, report_date, file_path, record_count)
-         VALUES (?, ?, ?, ?, ?, ?)",
-        [
-            $report_type,
-            $file_info["year"],
-            $file_info["month"],
-            $report_date,
-            $filename,
-            count($parsed["rows"]),
-        ]
-    );
-    $report_id = sqlite_last_id();
-    $result["report_id"] = $report_id;
-
-    // Import rows
-    foreach ($parsed["rows"] as $row) {
+    // Create report record and import all rows in one transaction
+    sqlite_begin();
+    try {
         sqlite_execute(
-            "INSERT INTO billing_report_lines
-             (report_id, year, month, customer_id, customer_name, hit_code, tran_displayname,
-              actual_unit_cost, count, revenue, efx_code, billing_id)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO billing_reports (report_type, report_year, report_month, report_date, file_path, record_count)
+             VALUES (?, ?, ?, ?, ?, ?)",
             [
-                $report_id,
-                $row["y"],
-                $row["m"],
-                $row["cust_id"],
-                $row["cust_name"],
-                $row["hit_code"],
-                $row["tran_displayname"],
-                $row["actual_unit_cost"],
-                $row["count"],
-                $row["revenue"],
-                $row["EFX_code"],
-                $row["billing_id"],
+                $report_type,
+                $file_info["year"],
+                $file_info["month"],
+                $report_date,
+                $filename,
+                count($parsed["rows"]),
             ]
         );
-        $result["rows_imported"]++;
+        $report_id = sqlite_last_id();
+        $result["report_id"] = $report_id;
+
+        foreach ($parsed["rows"] as $row) {
+            sqlite_execute(
+                "INSERT INTO billing_report_lines
+                 (report_id, year, month, customer_id, customer_name, hit_code, tran_displayname,
+                  actual_unit_cost, count, revenue, efx_code, billing_id)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                [
+                    $report_id,
+                    $row["y"],
+                    $row["m"],
+                    $row["cust_id"],
+                    $row["cust_name"],
+                    $row["hit_code"],
+                    $row["tran_displayname"],
+                    $row["actual_unit_cost"],
+                    $row["count"],
+                    $row["revenue"],
+                    $row["EFX_code"],
+                    $row["billing_id"],
+                ]
+            );
+            $result["rows_imported"]++;
+        }
+        sqlite_commit();
+    } catch (Exception $e) {
+        sqlite_rollback();
+        throw $e;
     }
 
     $result["success"] = true;
@@ -2999,26 +3050,32 @@ function save_billing_flags(
         $effective_date = date("Y-m-d");
     }
 
-    // Overwrite any existing flags for this date (within-month edits replace, not accumulate)
-    sqlite_execute(
-        "DELETE FROM service_billing_flags WHERE level = ? AND level_id IS ? AND service_id = ? AND efx_code = ? AND effective_date = ?",
-        [$level, $level_id, $service_id, $efx_code, $effective_date]
-    );
+    sqlite_begin();
+    try {
+        sqlite_execute(
+            "DELETE FROM service_billing_flags WHERE level = ? AND level_id IS ? AND service_id = ? AND efx_code = ? AND effective_date = ?",
+            [$level, $level_id, $service_id, $efx_code, $effective_date]
+        );
 
-    sqlite_execute(
-        "INSERT INTO service_billing_flags (level, level_id, service_id, efx_code, by_hit, zero_null, bav_by_trans, effective_date)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        [
-            $level,
-            $level_id,
-            $service_id,
-            $efx_code,
-            $by_hit ? 1 : 0,
-            $zero_null ? 1 : 0,
-            $bav_by_trans ? 1 : 0,
-            $effective_date,
-        ]
-    );
+        sqlite_execute(
+            "INSERT INTO service_billing_flags (level, level_id, service_id, efx_code, by_hit, zero_null, bav_by_trans, effective_date)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            [
+                $level,
+                $level_id,
+                $service_id,
+                $efx_code,
+                $by_hit ? 1 : 0,
+                $zero_null ? 1 : 0,
+                $bav_by_trans ? 1 : 0,
+                $effective_date,
+            ]
+        );
+        sqlite_commit();
+    } catch (Exception $e) {
+        sqlite_rollback();
+        throw $e;
+    }
 
     return true;
 }
@@ -3313,17 +3370,23 @@ function toggle_rule_mask($customer_id, $rule_name, $is_masked)
 {
     $effective_date = date("Y-m-d");
 
-    // Overwrite any existing mask for this rule today (within-month edits replace, not accumulate)
-    sqlite_execute(
-        "DELETE FROM business_rule_masks WHERE customer_id = ? AND rule_name = ? AND effective_date = ?",
-        [$customer_id, $rule_name, $effective_date]
-    );
+    sqlite_begin();
+    try {
+        sqlite_execute(
+            "DELETE FROM business_rule_masks WHERE customer_id = ? AND rule_name = ? AND effective_date = ?",
+            [$customer_id, $rule_name, $effective_date]
+        );
 
-    sqlite_execute(
-        "INSERT INTO business_rule_masks (customer_id, rule_name, is_masked, effective_date)
-         VALUES (?, ?, ?, ?)",
-        [$customer_id, $rule_name, $is_masked ? 1 : 0, $effective_date]
-    );
+        sqlite_execute(
+            "INSERT INTO business_rule_masks (customer_id, rule_name, is_masked, effective_date)
+             VALUES (?, ?, ?, ?)",
+            [$customer_id, $rule_name, $is_masked ? 1 : 0, $effective_date]
+        );
+        sqlite_commit();
+    } catch (Exception $e) {
+        sqlite_rollback();
+        throw $e;
+    }
     return true;
 }
 
@@ -3733,7 +3796,7 @@ function archive_generated_report(
         ]
     );
 
-    return sqlite_last_insert_id();
+    return sqlite_last_id();
 }
 
 /**

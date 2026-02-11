@@ -265,7 +265,7 @@ function sqlite_db()
 
         $_sqlite_db = new SQLite3($db_path);
         $_sqlite_db->enableExceptions(true);
-        $_sqlite_db->busyTimeout(5000);
+        $_sqlite_db->busyTimeout(30000);
 
         // WAL mode allows reads and writes without self-deadlock
         $_sqlite_db->exec("PRAGMA journal_mode = WAL");
@@ -376,6 +376,21 @@ function sqlite_execute($sql, $params = [])
 function sqlite_last_id()
 {
     return sqlite_db()->lastInsertRowID();
+}
+
+function sqlite_begin()
+{
+    sqlite_db()->exec("BEGIN IMMEDIATE");
+}
+
+function sqlite_commit()
+{
+    sqlite_db()->exec("COMMIT");
+}
+
+function sqlite_rollback()
+{
+    sqlite_db()->exec("ROLLBACK");
 }
 
 /**
