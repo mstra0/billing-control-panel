@@ -475,7 +475,7 @@ function clear_database()
     // Recreate tables with current schema
     seed_log("  Recreating tables with current schema...");
     require_once __DIR__ . "/db.php";
-    init_db();
+    sqlite_init_schema();
 
     seed_log("  Tables recreated successfully");
 }
