@@ -38,7 +38,7 @@ function calculate_price_audit($as_of_date, $customer_id, $efx_code, $count)
          FROM customers c
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          WHERE c.id = ?",
-        [$customer_id],
+        [$customer_id]
     );
 
     if (empty($customer)) {
@@ -107,7 +107,7 @@ function calculate_price_audit($as_of_date, $customer_id, $efx_code, $count)
     $tier_result = get_effective_tiers_as_of(
         $customer_id,
         $service["id"],
-        $as_of_date,
+        $as_of_date
     );
 
     if (empty($tier_result["tiers"])) {
@@ -212,7 +212,7 @@ function calculate_price_audit($as_of_date, $customer_id, $efx_code, $count)
     $adj_price = calculate_escalated_price(
         $base_price,
         $customer_id,
-        $as_of_date,
+        $as_of_date
     );
 
     $escalator_pct = (float) $escalator_info["escalator_percentage"];
@@ -237,7 +237,7 @@ function calculate_price_audit($as_of_date, $customer_id, $efx_code, $count)
                     $adj_price,
                     $escalator_info["current_year"],
                     $escalator_pct,
-                    $fixed_adj,
+                    $fixed_adj
                 )
                 : "No escalator applied (Year 1 or no escalator configured)",
         "base_price" => $base_price,
@@ -260,7 +260,7 @@ function calculate_price_audit($as_of_date, $customer_id, $efx_code, $count)
             "\$%.4f × %d = \$%.2f",
             $adj_price,
             $count,
-            $expected_revenue,
+            $expected_revenue
         ),
         "expected_revenue" => $expected_revenue,
     ];
@@ -292,7 +292,7 @@ function audit_billing_line($line_id)
          FROM billing_report_lines brl
          JOIN billing_reports br ON brl.report_id = br.id
          WHERE brl.id = ?",
-        [$line_id],
+        [$line_id]
     );
 
     if (empty($line)) {
@@ -309,7 +309,7 @@ function audit_billing_line($line_id)
         $line["report_date"],
         $line["customer_id"],
         $line["efx_code"],
-        $line["count"],
+        $line["count"]
     );
 
     // Add actual values from CSV
@@ -330,11 +330,11 @@ function audit_billing_line($line_id)
         $audit["variance"] = [
             "unit_price" => round(
                 $audit["actual_unit_price"] - $audit["expected_unit_price"],
-                6,
+                6
             ),
             "revenue" => round(
                 $audit["actual_revenue"] - $audit["expected_revenue"],
-                2,
+                2
             ),
             "unit_price_pct" =>
                 $audit["expected_unit_price"] > 0
@@ -343,7 +343,7 @@ function audit_billing_line($line_id)
                             $audit["expected_unit_price"]) /
                             $audit["expected_unit_price"]) *
                             100,
-                        4,
+                        4
                     )
                     : null,
         ];
@@ -391,7 +391,7 @@ function audit_billing_report($report_id)
     $report = $report[0];
     $lines = sqlite_query(
         "SELECT id FROM billing_report_lines WHERE report_id = ? ORDER BY id",
-        [$report_id],
+        [$report_id]
     );
 
     $results = [
@@ -477,7 +477,7 @@ function format_audit_as_latex($audit)
         is_numeric($matched_tier["volume_end"])
             ? number_format($matched_tier["volume_end"])
             : "\\infty",
-        $base_price,
+        $base_price
     );
 
     // Escalator calculation
@@ -490,30 +490,30 @@ function format_audit_as_latex($audit)
                 "\\text{Adjusted Price} &= \\$%.4f \\times (1 + %.2f\\%%) + \\$%.4f \\\\\n",
                 $base_price,
                 $escalator_pct,
-                $fixed_adj,
+                $fixed_adj
             );
             $latex .= sprintf(
                 "&= \\$%.4f \\times %.4f + \\$%.4f \\\\\n",
                 $base_price,
                 1 + $escalator_pct / 100,
-                $fixed_adj,
+                $fixed_adj
             );
         } elseif ($escalator_pct > 0) {
             $latex .= sprintf(
                 "\\text{Adjusted Price} &= \\$%.4f \\times (1 + %.2f\\%%) \\\\\n",
                 $base_price,
-                $escalator_pct,
+                $escalator_pct
             );
             $latex .= sprintf(
                 "&= \\$%.4f \\times %.4f \\\\\n",
                 $base_price,
-                1 + $escalator_pct / 100,
+                1 + $escalator_pct / 100
             );
         } else {
             $latex .= sprintf(
                 "\\text{Adjusted Price} &= \\$%.4f + \\$%.4f \\\\\n",
                 $base_price,
-                $fixed_adj,
+                $fixed_adj
             );
         }
 
@@ -521,7 +521,7 @@ function format_audit_as_latex($audit)
     } else {
         $latex .= sprintf(
             "\\text{Adjusted Price} &= \\$%.4f \\text{ (no escalator)} \\\\\n",
-            $base_price,
+            $base_price
         );
         $adj_price = $base_price;
     }
@@ -531,7 +531,7 @@ function format_audit_as_latex($audit)
     $latex .= sprintf(
         "\\text{Expected Revenue} &= \\$%.4f \\times %s \\\\\n",
         $adj_price,
-        number_format($count),
+        number_format($count)
     );
     $latex .= sprintf("&= \\boxed{\\$%.2f}\n", $adj_price * $count);
 

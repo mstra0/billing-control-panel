@@ -72,7 +72,7 @@ function run_escalator_tests()
             100.0,
             $result,
             0.01,
-            "Base price should be unchanged",
+            "Base price should be unchanged"
         );
     });
 
@@ -89,7 +89,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            TEST_EFFECTIVE_DATE,
+            TEST_EFFECTIVE_DATE
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2025-06-01");
@@ -98,7 +98,7 @@ function run_escalator_tests()
             100.0,
             $result,
             0.01,
-            "Year 1 with 0% should return base price",
+            "Year 1 with 0% should return base price"
         );
     });
 
@@ -120,7 +120,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            TEST_EFFECTIVE_DATE,
+            TEST_EFFECTIVE_DATE
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2026-02-01");
@@ -129,7 +129,7 @@ function run_escalator_tests()
             105.0,
             $result,
             0.01,
-            '5% escalator should make $100 -> $105',
+            '5% escalator should make $100 -> $105'
         );
     });
 
@@ -151,7 +151,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            TEST_EFFECTIVE_DATE,
+            TEST_EFFECTIVE_DATE
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2026-02-01");
@@ -160,7 +160,7 @@ function run_escalator_tests()
             110.0,
             $result,
             0.01,
-            '$10 fixed adjustment should make $100 -> $110',
+            '$10 fixed adjustment should make $100 -> $110'
         );
     });
 
@@ -182,7 +182,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            TEST_EFFECTIVE_DATE,
+            TEST_EFFECTIVE_DATE
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2026-02-01");
@@ -191,7 +191,7 @@ function run_escalator_tests()
             115.0,
             $result,
             0.01,
-            '5% + $10 should make $100 -> $115',
+            '5% + $10 should make $100 -> $115'
         );
     });
 
@@ -213,7 +213,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-06-01",
-            TEST_EFFECTIVE_DATE,
+            TEST_EFFECTIVE_DATE
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2025-01-01");
@@ -222,7 +222,7 @@ function run_escalator_tests()
             100.0,
             $result,
             0.01,
-            "Date before escalator start should return base price",
+            "Date before escalator start should return base price"
         );
     });
 
@@ -249,7 +249,7 @@ function run_escalator_tests()
                 ],
             ],
             "2024-01-01",
-            TEST_EFFECTIVE_DATE,
+            TEST_EFFECTIVE_DATE
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2026-06-01");
@@ -258,7 +258,7 @@ function run_escalator_tests()
             110.0,
             $result,
             0.01,
-            'Year 3 with 10% should make $100 -> $110',
+            'Year 3 with 10% should make $100 -> $110'
         );
     });
 
@@ -280,7 +280,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            TEST_EFFECTIVE_DATE,
+            TEST_EFFECTIVE_DATE
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2026-02-01");
@@ -289,7 +289,7 @@ function run_escalator_tests()
             125.0,
             $result,
             0.01,
-            '25% escalator should make $100 -> $125',
+            '25% escalator should make $100 -> $125'
         );
     });
 
@@ -311,7 +311,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            TEST_EFFECTIVE_DATE,
+            TEST_EFFECTIVE_DATE
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2026-02-01");
@@ -320,7 +320,7 @@ function run_escalator_tests()
             103.5,
             $result,
             0.01,
-            '3.5% escalator should make $100 -> $103.50',
+            '3.5% escalator should make $100 -> $103.50'
         );
     });
 
@@ -342,7 +342,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            TEST_EFFECTIVE_DATE,
+            TEST_EFFECTIVE_DATE
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2026-02-01");
@@ -351,7 +351,7 @@ function run_escalator_tests()
             95.0,
             $result,
             0.01,
-            '-$5 fixed adjustment should make $100 -> $95',
+            '-$5 fixed adjustment should make $100 -> $95'
         );
     });
 
@@ -373,7 +373,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            TEST_EFFECTIVE_DATE,
+            TEST_EFFECTIVE_DATE
         );
 
         $date = "2026-02-01";
@@ -382,19 +382,19 @@ function run_escalator_tests()
             55.0,
             calculate_escalated_price(50.0, $customer_id, $date),
             0.01,
-            '$50 + 10% = $55',
+            '$50 + 10% = $55'
         );
         assert_float_equals(
             220.0,
             calculate_escalated_price(200.0, $customer_id, $date),
             0.01,
-            '$200 + 10% = $220',
+            '$200 + 10% = $220'
         );
         assert_float_equals(
             1.1,
             calculate_escalated_price(1.0, $customer_id, $date),
             0.01,
-            '$1 + 10% = $1.10',
+            '$1 + 10% = $1.10'
         );
     });
 
@@ -420,7 +420,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            TEST_EFFECTIVE_DATE,
+            TEST_EFFECTIVE_DATE
         );
 
         apply_escalator_delay($customer_id, 2, 2, TEST_EFFECTIVE_DATE);
@@ -430,7 +430,7 @@ function run_escalator_tests()
             100.0,
             $result,
             0.01,
-            "During delay period, escalator should not apply",
+            "During delay period, escalator should not apply"
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2026-04-01");
@@ -438,7 +438,7 @@ function run_escalator_tests()
             105.0,
             $result,
             0.01,
-            "After delay period, escalator should apply",
+            "After delay period, escalator should apply"
         );
     });
 
@@ -486,7 +486,7 @@ function run_escalator_tests()
             $escalators = get_current_escalators($customer_id);
 
             assert_count(0, $escalators, "Should return empty array");
-        },
+        }
     );
 
     run_test("get_current_escalators returns saved escalators", function () {
@@ -512,7 +512,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            TEST_EFFECTIVE_DATE,
+            TEST_EFFECTIVE_DATE
         );
 
         $escalators = get_current_escalators($customer_id);
@@ -521,17 +521,17 @@ function run_escalator_tests()
         assert_equals(
             1,
             (int) $escalators[0]["year_number"],
-            "First should be year 1",
+            "First should be year 1"
         );
         assert_equals(
             2,
             (int) $escalators[1]["year_number"],
-            "Second should be year 2",
+            "Second should be year 2"
         );
         assert_equals(
             3,
             (int) $escalators[2]["year_number"],
-            "Third should be year 3",
+            "Third should be year 3"
         );
     });
 
@@ -543,13 +543,13 @@ function run_escalator_tests()
             sqlite_execute(
                 "INSERT INTO customer_escalators (customer_id, escalator_start_date, year_number, escalator_percentage, fixed_adjustment, effective_date)
              VALUES (?, ?, ?, ?, ?, ?)",
-                [$customer_id, "2025-01-01", 2, 5, 0, "2025-01-01"],
+                [$customer_id, "2025-01-01", 2, 5, 0, "2025-01-01"]
             );
 
             sqlite_execute(
                 "INSERT INTO customer_escalators (customer_id, escalator_start_date, year_number, escalator_percentage, fixed_adjustment, effective_date)
              VALUES (?, ?, ?, ?, ?, ?)",
-                [$customer_id, "2025-01-01", 2, 10, 0, "2025-06-01"],
+                [$customer_id, "2025-01-01", 2, 10, 0, "2025-06-01"]
             );
 
             $escalators = get_current_escalators($customer_id);
@@ -558,9 +558,9 @@ function run_escalator_tests()
                 10.0,
                 (float) $escalators[0]["escalator_percentage"],
                 0.01,
-                "Should return latest escalator percentage",
+                "Should return latest escalator percentage"
             );
-        },
+        }
     );
 
     // --------------------------------------------------------
@@ -586,7 +586,7 @@ function run_escalator_tests()
             $delays = get_escalator_delays($customer_id);
 
             assert_count(2, $delays, "Should return 2 delays");
-        },
+        }
     );
 
     // --------------------------------------------------------
@@ -611,7 +611,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            TEST_EFFECTIVE_DATE,
+            TEST_EFFECTIVE_DATE
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2026-02-01");
@@ -620,7 +620,7 @@ function run_escalator_tests()
             90.0,
             $result,
             0.01,
-            '-10% escalator should make $100 -> $90',
+            '-10% escalator should make $100 -> $90'
         );
     });
 
@@ -642,7 +642,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            TEST_EFFECTIVE_DATE,
+            TEST_EFFECTIVE_DATE
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2026-02-01");
@@ -651,7 +651,7 @@ function run_escalator_tests()
             105.0,
             $result,
             0.01,
-            '-5% + $10 fixed should make $100 -> $95 + $10 = $105',
+            '-5% + $10 fixed should make $100 -> $95 + $10 = $105'
         );
     });
 
@@ -673,7 +673,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            TEST_EFFECTIVE_DATE,
+            TEST_EFFECTIVE_DATE
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2026-02-01");
@@ -682,7 +682,7 @@ function run_escalator_tests()
             105.0,
             $result,
             0.01,
-            '+10% - $5 fixed should make $100 -> $110 - $5 = $105',
+            '+10% - $5 fixed should make $100 -> $110 - $5 = $105'
         );
     });
 
@@ -711,35 +711,35 @@ function run_escalator_tests()
                     ],
                 ],
                 "2024-01-01",
-                TEST_EFFECTIVE_DATE,
+                TEST_EFFECTIVE_DATE
             );
 
             // Year 2: +10% -> $110
             $result_yr2 = calculate_escalated_price(
                 100.0,
                 $customer_id,
-                "2025-06-01",
+                "2025-06-01"
             );
             assert_float_equals(
                 110.0,
                 $result_yr2,
                 0.01,
-                'Year 2 (+10%) should make $100 -> $110',
+                'Year 2 (+10%) should make $100 -> $110'
             );
 
             // Year 3: -5% from base -> $95
             $result_yr3 = calculate_escalated_price(
                 100.0,
                 $customer_id,
-                "2026-06-01",
+                "2026-06-01"
             );
             assert_float_equals(
                 95.0,
                 $result_yr3,
                 0.01,
-                'Year 3 (-5%) should make $100 -> $95',
+                'Year 3 (-5%) should make $100 -> $95'
             );
-        },
+        }
     );
 
     run_test(
@@ -762,7 +762,7 @@ function run_escalator_tests()
                     ],
                 ],
                 "2025-01-01",
-                TEST_EFFECTIVE_DATE,
+                TEST_EFFECTIVE_DATE
             );
 
             apply_escalator_delay($customer_id, 2, 3, TEST_EFFECTIVE_DATE);
@@ -771,28 +771,28 @@ function run_escalator_tests()
             $result_during = calculate_escalated_price(
                 100.0,
                 $customer_id,
-                "2026-02-01",
+                "2026-02-01"
             );
             assert_float_equals(
                 100.0,
                 $result_during,
                 0.01,
-                "During delay, negative escalator should not apply yet",
+                "During delay, negative escalator should not apply yet"
             );
 
             // After delay: -8% should apply
             $result_after = calculate_escalated_price(
                 100.0,
                 $customer_id,
-                "2026-05-01",
+                "2026-05-01"
             );
             assert_float_equals(
                 92.0,
                 $result_after,
                 0.01,
-                'After delay, -8% escalator should make $100 -> $92',
+                'After delay, -8% escalator should make $100 -> $92'
             );
-        },
+        }
     );
 
     // --------------------------------------------------------
@@ -807,7 +807,7 @@ function run_escalator_tests()
         sqlite_execute(
             "INSERT INTO transaction_types (type, display_name, efx_code, service_id)
                  VALUES ('test', 'Test Type', 'TEST_CROSS_ENGINE', ?)",
-            [$service_id],
+            [$service_id]
         );
 
         // Create default tiers (backdated so point-in-time query finds them)
@@ -820,7 +820,7 @@ function run_escalator_tests()
                     "price_per_inquiry" => 0.5,
                 ],
             ],
-            TEST_EFFECTIVE_DATE,
+            TEST_EFFECTIVE_DATE
         );
 
         // Create escalators: Year 1 (0%), Year 2 (5%), Year 3 (10%)
@@ -844,7 +844,7 @@ function run_escalator_tests()
                 ],
             ],
             "2024-01-01",
-            TEST_EFFECTIVE_DATE,
+            TEST_EFFECTIVE_DATE
         );
 
         // Test in Year 2 (after 1+ year from start)
@@ -856,14 +856,14 @@ function run_escalator_tests()
             $as_of,
             $customer_id,
             "TEST_CROSS_ENGINE",
-            100,
+            100
         );
 
         assert_float_equals(
             $csv_price,
             $audit["expected_unit_price"],
             0.000001,
-            "Audit and CSV escalator calculations must agree",
+            "Audit and CSV escalator calculations must agree"
         );
     });
 
@@ -878,50 +878,50 @@ function run_escalator_tests()
         sqlite_execute(
             "INSERT INTO customer_escalators (customer_id, effective_date, escalator_start_date, year_number, escalator_percentage, fixed_adjustment)
                  VALUES (?, '2025-01-01', '2024-01-01', 1, 0, 0)",
-            [$customer_id],
+            [$customer_id]
         );
         sqlite_execute(
             "INSERT INTO customer_escalators (customer_id, effective_date, escalator_start_date, year_number, escalator_percentage, fixed_adjustment)
                  VALUES (?, '2025-01-01', '2024-01-01', 2, 5, 0)",
-            [$customer_id],
+            [$customer_id]
         );
 
         // Insert DIFFERENT escalators with effective_date = 2025-07-01
         sqlite_execute(
             "INSERT INTO customer_escalators (customer_id, effective_date, escalator_start_date, year_number, escalator_percentage, fixed_adjustment)
                  VALUES (?, '2025-07-01', '2024-01-01', 1, 0, 0)",
-            [$customer_id],
+            [$customer_id]
         );
         sqlite_execute(
             "INSERT INTO customer_escalators (customer_id, effective_date, escalator_start_date, year_number, escalator_percentage, fixed_adjustment)
                  VALUES (?, '2025-07-01', '2024-01-01', 2, 20, 0)",
-            [$customer_id],
+            [$customer_id]
         );
 
         // As of 2025-06-01 should see 5% (first set)
         $price_before = calculate_escalated_price(
             100.0,
             $customer_id,
-            "2025-06-01",
+            "2025-06-01"
         );
         assert_float_equals(
             105.0,
             $price_before,
             0.01,
-            "Before second effective_date, should use first escalator set (5%)",
+            "Before second effective_date, should use first escalator set (5%)"
         );
 
         // As of 2025-08-01 should see 20% (second set)
         $price_after = calculate_escalated_price(
             100.0,
             $customer_id,
-            "2025-08-01",
+            "2025-08-01"
         );
         assert_float_equals(
             120.0,
             $price_after,
             0.01,
-            "After second effective_date, should use second escalator set (20%)",
+            "After second effective_date, should use second escalator set (20%)"
         );
     });
 
@@ -947,7 +947,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            TEST_EFFECTIVE_DATE,
+            TEST_EFFECTIVE_DATE
         );
 
         // Add 3-month delay to year 2
@@ -960,26 +960,26 @@ function run_escalator_tests()
         $price_during_delay = calculate_escalated_price(
             100.0,
             $customer_id,
-            "2026-02-01",
+            "2026-02-01"
         );
         assert_float_equals(
             100.0,
             $price_during_delay,
             0.01,
-            "During delay period, year 2 escalator should not apply",
+            "During delay period, year 2 escalator should not apply"
         );
 
         // After delay period: should have escalator
         $price_after_delay = calculate_escalated_price(
             100.0,
             $customer_id,
-            "2026-05-01",
+            "2026-05-01"
         );
         assert_float_equals(
             110.0,
             $price_after_delay,
             0.01,
-            "After delay period, year 2 escalator (10%) should apply",
+            "After delay period, year 2 escalator (10%) should apply"
         );
 
         // Verify get_escalator_year_on_date also reflects the delay
@@ -987,14 +987,14 @@ function run_escalator_tests()
         assert_equals(
             1,
             $info_during["current_year"],
-            "During delay, year_on_date should report year 1",
+            "During delay, year_on_date should report year 1"
         );
 
         $info_after = get_escalator_year_on_date($customer_id, "2026-05-01");
         assert_equals(
             2,
             $info_after["current_year"],
-            "After delay, year_on_date should report year 2",
+            "After delay, year_on_date should report year 2"
         );
     });
 
@@ -1287,7 +1287,7 @@ function render_escalator_qa_page($test_results, $test_output)
                     <div>
                         <label>Base Price: $</label>
                         <input type="number" name="base_price" step="0.01" value="<?php echo isset(
-                            $_GET["base_price"],
+                            $_GET["base_price"]
                         )
                             ? htmlspecialchars($_GET["base_price"])
                             : "1.00"; ?>" style="width: 100px;">
@@ -1295,13 +1295,13 @@ function render_escalator_qa_page($test_results, $test_output)
                     <div style="margin-top: 10px;">
                         <label>Year 2 Escalator %:</label>
                         <input type="number" name="yr2_pct" step="0.1" value="<?php echo isset(
-                            $_GET["yr2_pct"],
+                            $_GET["yr2_pct"]
                         )
                             ? htmlspecialchars($_GET["yr2_pct"])
                             : "5"; ?>" style="width: 80px;">
                         <label style="margin-left: 10px;">Fixed: $</label>
                         <input type="number" name="yr2_fixed" step="0.01" value="<?php echo isset(
-                            $_GET["yr2_fixed"],
+                            $_GET["yr2_fixed"]
                         )
                             ? htmlspecialchars($_GET["yr2_fixed"])
                             : "0"; ?>" style="width: 80px;">
@@ -1309,13 +1309,13 @@ function render_escalator_qa_page($test_results, $test_output)
                     <div style="margin-top: 10px;">
                         <label>Year 3 Escalator %:</label>
                         <input type="number" name="yr3_pct" step="0.1" value="<?php echo isset(
-                            $_GET["yr3_pct"],
+                            $_GET["yr3_pct"]
                         )
                             ? htmlspecialchars($_GET["yr3_pct"])
                             : "8"; ?>" style="width: 80px;">
                         <label style="margin-left: 10px;">Fixed: $</label>
                         <input type="number" name="yr3_fixed" step="0.01" value="<?php echo isset(
-                            $_GET["yr3_fixed"],
+                            $_GET["yr3_fixed"]
                         )
                             ? htmlspecialchars($_GET["yr3_fixed"])
                             : "0"; ?>" style="width: 80px;">
@@ -1323,13 +1323,13 @@ function render_escalator_qa_page($test_results, $test_output)
                     <div style="margin-top: 10px;">
                         <label>Contract Start:</label>
                         <input type="date" name="start_date" value="<?php echo isset(
-                            $_GET["start_date"],
+                            $_GET["start_date"]
                         )
                             ? htmlspecialchars($_GET["start_date"])
                             : "2025-01-01"; ?>">
                         <label style="margin-left: 10px;">Billing Date:</label>
                         <input type="date" name="billing_date" value="<?php echo isset(
-                            $_GET["billing_date"],
+                            $_GET["billing_date"]
                         )
                             ? htmlspecialchars($_GET["billing_date"])
                             : date("Y-m-d"); ?>">
@@ -1364,30 +1364,30 @@ function render_escalator_qa_page($test_results, $test_output)
                             [
                                 "year_number" => 2,
                                 "escalator_percentage" => floatval(
-                                    $_GET["yr2_pct"],
+                                    $_GET["yr2_pct"]
                                 ),
                                 "fixed_adjustment" => floatval(
-                                    $_GET["yr2_fixed"],
+                                    $_GET["yr2_fixed"]
                                 ),
                             ],
                             [
                                 "year_number" => 3,
                                 "escalator_percentage" => floatval(
-                                    $_GET["yr3_pct"],
+                                    $_GET["yr3_pct"]
                                 ),
                                 "fixed_adjustment" => floatval(
-                                    $_GET["yr3_fixed"],
+                                    $_GET["yr3_fixed"]
                                 ),
                             ],
                         ],
-                        $start_date,
+                        $start_date
                     );
 
                     // Call the REAL function
                     $result = calculate_escalated_price(
                         $base,
                         $demo_customer_id,
-                        $billing_date,
+                        $billing_date
                     );
 
                     // Determine which year we're in
@@ -1406,7 +1406,7 @@ function render_escalator_qa_page($test_results, $test_output)
                     // Clean up (escalators first due to foreign key)
                     sqlite_execute(
                         "DELETE FROM customer_escalators WHERE customer_id = ?",
-                        [99999],
+                        [99999]
                     );
                     sqlite_execute("DELETE FROM customers WHERE id = ?", [
                         99999,
@@ -1431,7 +1431,7 @@ function render_escalator_qa_page($test_results, $test_output)
                     <div class="result-box" style="border-color: <?php echo $direction_color; ?>;">
                         <div class="big-number" style="color: <?php echo $direction_color; ?>;">$<?php echo number_format(
     $result,
-    4,
+    4
 ); ?></div>
                         <div style="display: inline-block; padding: 4px 12px; background: <?php echo $direction_color; ?>; color: white; border-radius: 15px; font-weight: bold; font-size: 0.85em; margin: 8px 0;">
                             <?php echo $direction_label; ?> (<?php echo ($pct_change >=
@@ -1441,18 +1441,18 @@ function render_escalator_qa_page($test_results, $test_output)
                         </div>
                         <div class="calculation">
                             <strong>calculate_escalated_price(<?php echo $base; ?>, customer, '<?php echo htmlspecialchars(
-    $billing_date,
+    $billing_date
 ); ?>')</strong><br>
                             Contract started: <?php echo htmlspecialchars(
-                                $start_date,
+                                $start_date
                             ); ?><br>
                             Currently in: Year <?php echo $current_year; ?><br>
                             Base $<?php echo number_format(
                                 $base,
-                                2,
+                                2
                             ); ?> &rarr; Adjusted $<?php echo number_format(
      $result,
-     4,
+     4
  ); ?>
                         </div>
                     </div>
@@ -1641,7 +1641,7 @@ function render_escalator_qa_page($test_results, $test_output)
             <h2>Test Output</h2>
             <p>Raw output from running all <?php echo $total; ?> tests:</p>
             <div class="test-output"><?php echo htmlspecialchars(
-                $test_output,
+                $test_output
             ); ?></div>
         </section>
 
@@ -1667,7 +1667,7 @@ function render_escalator_qa_page($test_results, $test_output)
 
         <footer style="text-align: center; padding: 20px; color: #666;">
             <p>QA Test Page - Escalator Calculations | Last run: <?php echo date(
-                "Y-m-d H:i:s",
+                "Y-m-d H:i:s"
             ); ?></p>
         </footer>
     </div>
