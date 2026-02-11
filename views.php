@@ -714,6 +714,7 @@ function render_header($title = "Control Panel")
             </a>
         <?php endif; ?>
 
+        <a href="tests/qa_dashboard.php" class="nav-external">QA Dashboard</a>
         <a href="phpliteadmin.php" target="_blank" class="nav-external">DB Explorer</a>
     </div>
 

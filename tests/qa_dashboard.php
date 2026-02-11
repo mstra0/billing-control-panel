@@ -388,6 +388,9 @@ function render_qa_dashboard()
 </head>
 <body>
     <div class="container">
+        <div style="margin-bottom: 15px;">
+            <a href="../control_panel.php" style="display: inline-block; padding: 10px 20px; background: #2c3e50; color: white; text-decoration: none; border-radius: 5px; font-size: 0.95em;">Back to Control Panel</a>
+        </div>
         <header>
             <h1>QA Dashboard</h1>
             <p>Billing Control Panel Test Suite</p>
