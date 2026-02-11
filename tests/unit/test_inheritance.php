@@ -120,7 +120,7 @@ foreach ($tiers as $tier) {
         <form method="get" style="margin: 15px 0;">
             <div style="margin-bottom: 10px;">
                 <label>Default Tier 1 Price: $</label>
-                <input type="number" name="default_price" step="0.01" value="<?php echo isset(
+                <input type="number" name="default_price" step="any" value="<?php echo isset(
                     $_GET["default_price"]
                 )
                     ? htmlspecialchars($_GET["default_price"])
@@ -128,7 +128,7 @@ foreach ($tiers as $tier) {
             </div>
             <div style="margin-bottom: 10px;">
                 <label>Group Override Price: $</label>
-                <input type="number" name="group_price" step="0.01" value="<?php echo isset(
+                <input type="number" name="group_price" step="any" value="<?php echo isset(
                     $_GET["group_price"]
                 )
                     ? htmlspecialchars($_GET["group_price"])
@@ -141,7 +141,7 @@ foreach ($tiers as $tier) {
             </div>
             <div style="margin-bottom: 10px;">
                 <label>Customer Override Price: $</label>
-                <input type="number" name="customer_price" step="0.01" value="<?php echo isset(
+                <input type="number" name="customer_price" step="any" value="<?php echo isset(
                     $_GET["customer_price"]
                 )
                     ? htmlspecialchars($_GET["customer_price"])

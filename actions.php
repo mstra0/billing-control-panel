@@ -2516,7 +2516,7 @@ function action_business_rules()
 
     // Get customers that have rules
     $total_query = "SELECT COUNT(DISTINCT c.id) as cnt FROM customers c
-         INNER JOIN business_rules br ON c.id = br.customer_id
+         INNER JOIN customer_business_rules cbr ON c.id = cbr.customer_id
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          WHERE 1=1 $where_str";
     $total = sqlite_query($total_query, $params);
@@ -2533,7 +2533,7 @@ function action_business_rules()
     $customers = sqlite_query(
         "SELECT DISTINCT c.*, dg.name as group_name
          FROM customers c
-         INNER JOIN business_rules br ON c.id = br.customer_id
+         INNER JOIN customer_business_rules cbr ON c.id = cbr.customer_id
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          WHERE 1=1 $where_str
          ORDER BY c.name

@@ -267,6 +267,9 @@ function sqlite_db()
         $_sqlite_db->enableExceptions(true);
         $_sqlite_db->busyTimeout(5000);
 
+        // WAL mode allows reads and writes without self-deadlock
+        $_sqlite_db->exec("PRAGMA journal_mode = WAL");
+
         // Enable foreign keys
         $_sqlite_db->exec("PRAGMA foreign_keys = ON");
 
@@ -318,6 +321,9 @@ function sqlite_query($sql, $params = [])
         $rows[] = $row;
     }
 
+    $result->finalize();
+    $stmt->close();
+
     return $rows;
 }
 
@@ -352,7 +358,14 @@ function sqlite_execute($sql, $params = [])
         $i++;
     }
 
-    return $stmt->execute() !== false;
+    $result = $stmt->execute();
+    $success = $result !== false;
+    if ($result instanceof SQLite3Result) {
+        $result->finalize();
+    }
+    $stmt->close();
+
+    return $success;
 }
 
 /**
@@ -673,6 +686,7 @@ function sqlite_run_migrations()
             break;
         }
     }
+    $result->finalize();
     if (!$has_lms_id) {
         $_sqlite_db->exec(
             "ALTER TABLE customers ADD COLUMN lms_id INTEGER REFERENCES lms(id)"
@@ -688,6 +702,7 @@ function sqlite_run_migrations()
             break;
         }
     }
+    $result->finalize();
     if (!$has_status) {
         $_sqlite_db->exec(
             "ALTER TABLE lms ADD COLUMN status TEXT DEFAULT 'active'"
@@ -724,6 +739,7 @@ function sqlite_run_migrations()
             break;
         }
     }
+    $result->finalize();
     if (!$has_notes) {
         $_sqlite_db->exec("ALTER TABLE sync_log ADD COLUMN notes TEXT");
     }

@@ -2381,7 +2381,7 @@ function render_lms($data)
                 </label>
                 <div>
                     <label style="display: block; margin-bottom: 5px;">Commission Rate (%)</label>
-                    <input type="number" step="0.01" name="commission_rate" id="rate_input"
+                    <input type="number" step="any" name="commission_rate" id="rate_input"
                            value="<?php echo $data["lms"]["commission_rate"] !==
                            null
                                ? $data["lms"]["commission_rate"]
@@ -2441,7 +2441,7 @@ function render_lms($data)
         <form method="POST">
             <div style="margin-bottom: 20px;">
                 <label style="display: block; margin-bottom: 5px; font-weight: 500;">Default Commission Rate (%)</label>
-                <input type="number" step="0.01" name="default_commission_rate"
+                <input type="number" step="any" name="default_commission_rate"
                        value="<?php echo $data["default_rate"] !== null
                            ? $data["default_rate"]
                            : ""; ?>"
@@ -35652,10 +35652,10 @@ function render_customer_pricing($data)
     </div>
 
     <div style="margin-top: 20px;">
-        <a href="?action=pricing_customer_edit&id=<?php echo $data["customer"][
+        <a href="?action=pricing_customer_edit&customer_id=<?php echo $data["customer"][
             "id"
         ]; ?>" class="btn">Edit Pricing</a>
-        <a href="?action=pricing_customer_edit&id=<?php echo $data["customer"][
+        <a href="?action=pricing_customer_edit&customer_id=<?php echo $data["customer"][
             "id"
         ]; ?>&tab=settings" class="btn">Edit Settings</a>
         <a href="?action=escalator_edit&customer_id=<?php echo $data[
@@ -35733,7 +35733,7 @@ function render_customer_pricing($data)
                         ); ?></td>
                         <td><?php echo h($customer["effective_date"]); ?></td>
                         <td class="text-right">
-                            <a href="?action=pricing_customer_edit&id=<?php echo $customer[
+                            <a href="?action=pricing_customer_edit&customer_id=<?php echo $customer[
                                 "id"
                             ]; ?>&tab=settings" class="btn btn-sm">Edit</a>
                         </td>
@@ -35840,7 +35840,7 @@ function render_annualized($data)
                             <?php endif; ?>
                         </td>
                         <td class="text-right">
-                            <a href="?action=pricing_customer_edit&id=<?php echo $customer[
+                            <a href="?action=pricing_customer_edit&customer_id=<?php echo $customer[
                                 "id"
                             ]; ?>&tab=settings" class="btn btn-sm">Edit</a>
                         </td>
@@ -36188,7 +36188,7 @@ function render_pricing_defaults($data)
                     <tr class="tier-row">
                         <td><input type="number" name="volume_start[]" class="form-control" value="0" min="0" required></td>
                         <td><input type="number" name="volume_end[]" class="form-control" placeholder="Unlimited" min="0"></td>
-                        <td><input type="number" name="price_per_inquiry[]" class="form-control" step="0.01" min="0" required></td>
+                        <td><input type="number" name="price_per_inquiry[]" class="form-control" step="any" min="0" required></td>
                         <td><button type="button" class="btn btn-sm" onclick="removeRow(this)">Remove</button></td>
                     </tr>
                     <?php else: ?>
@@ -36204,7 +36204,7 @@ function render_pricing_defaults($data)
                                 : ""; ?>" placeholder="Unlimited" min="0"></td>
                             <td><input type="number" name="price_per_inquiry[]" class="form-control" value="<?php echo h(
                                 $tier["price_per_inquiry"]
-                            ); ?>" step="0.01" min="0" required></td>
+                            ); ?>" step="any" min="0" required></td>
                             <td><button type="button" class="btn btn-sm" onclick="removeRow(this)">Remove</button></td>
                         </tr>
                         <?php endforeach; ?>
@@ -36252,7 +36252,7 @@ function render_pricing_defaults($data)
         row.className = 'tier-row';
         row.innerHTML = '<td><input type="number" name="volume_start[]" class="form-control" value="' + nextStart + '" min="0" required></td>' +
             '<td><input type="number" name="volume_end[]" class="form-control" placeholder="Unlimited" min="0"></td>' +
-            '<td><input type="number" name="price_per_inquiry[]" class="form-control" step="0.01" min="0" required></td>' +
+            '<td><input type="number" name="price_per_inquiry[]" class="form-control" step="any" min="0" required></td>' +
             '<td><button type="button" class="btn btn-sm" onclick="removeRow(this)">Remove</button></td>';
         tbody.appendChild(row);
     }
@@ -36492,7 +36492,7 @@ function render_pricing_group_edit($data)
                     <tr class="tier-row">
                         <td><input type="number" name="volume_start[]" class="form-control" value="0" min="0" required></td>
                         <td><input type="number" name="volume_end[]" class="form-control" placeholder="Unlimited" min="0"></td>
-                        <td><input type="number" name="price_per_inquiry[]" class="form-control" step="0.01" min="0" required></td>
+                        <td><input type="number" name="price_per_inquiry[]" class="form-control" step="any" min="0" required></td>
                         <td><button type="button" class="btn btn-sm" onclick="removeRow(this)">Remove</button></td>
                     </tr>
                     <?php else: ?>
@@ -36508,7 +36508,7 @@ function render_pricing_group_edit($data)
                                 : ""; ?>" placeholder="Unlimited" min="0"></td>
                             <td><input type="number" name="price_per_inquiry[]" class="form-control" value="<?php echo h(
                                 $tier["price_per_inquiry"]
-                            ); ?>" step="0.01" min="0" required></td>
+                            ); ?>" step="any" min="0" required></td>
                             <td><button type="button" class="btn btn-sm" onclick="removeRow(this)">Remove</button></td>
                         </tr>
                         <?php endforeach; ?>
@@ -36561,7 +36561,7 @@ function render_pricing_group_edit($data)
         row.className = 'tier-row';
         row.innerHTML = '<td><input type="number" name="volume_start[]" class="form-control" value="' + nextStart + '" min="0" required></td>' +
             '<td><input type="number" name="volume_end[]" class="form-control" placeholder="Unlimited" min="0"></td>' +
-            '<td><input type="number" name="price_per_inquiry[]" class="form-control" step="0.01" min="0" required></td>' +
+            '<td><input type="number" name="price_per_inquiry[]" class="form-control" step="any" min="0" required></td>' +
             '<td><button type="button" class="btn btn-sm" onclick="removeRow(this)">Remove</button></td>';
         tbody.appendChild(row);
     }
@@ -36930,7 +36930,7 @@ function render_pricing_customers($data)
                     <tr class="tier-row">
                         <td><input type="number" name="volume_start[]" class="form-control" value="0" min="0" required></td>
                         <td><input type="number" name="volume_end[]" class="form-control" placeholder="Unlimited" min="0"></td>
-                        <td><input type="number" name="price_per_inquiry[]" class="form-control" step="0.01" min="0" required></td>
+                        <td><input type="number" name="price_per_inquiry[]" class="form-control" step="any" min="0" required></td>
                         <td><button type="button" class="btn btn-sm" onclick="removeRow(this)">Remove</button></td>
                     </tr>
                     <?php else: ?>
@@ -36946,7 +36946,7 @@ function render_pricing_customers($data)
                                 : ""; ?>" placeholder="Unlimited" min="0"></td>
                             <td><input type="number" name="price_per_inquiry[]" class="form-control" value="<?php echo h(
                                 $tier["price_per_inquiry"]
-                            ); ?>" step="0.01" min="0" required></td>
+                            ); ?>" step="any" min="0" required></td>
                             <td><button type="button" class="btn btn-sm" onclick="removeRow(this)">Remove</button></td>
                         </tr>
                         <?php endforeach; ?>
@@ -37003,7 +37003,7 @@ function render_pricing_customers($data)
         row.className = 'tier-row';
         row.innerHTML = '<td><input type="number" name="volume_start[]" class="form-control" value="' + nextStart + '" min="0" required></td>' +
             '<td><input type="number" name="volume_end[]" class="form-control" placeholder="Unlimited" min="0"></td>' +
-            '<td><input type="number" name="price_per_inquiry[]" class="form-control" step="0.01" min="0" required></td>' +
+            '<td><input type="number" name="price_per_inquiry[]" class="form-control" step="any" min="0" required></td>' +
             '<td><button type="button" class="btn btn-sm" onclick="removeRow(this)">Remove</button></td>';
         tbody.appendChild(row);
     }
@@ -37103,7 +37103,7 @@ function render_pricing_customer_settings($data)
                         ] !== null
                             ? h($data["settings"]["monthly_minimum"])
                             : ""; ?>"
-                        step="0.01" min="0" placeholder="No minimum">
+                        step="any" min="0" placeholder="No minimum">
                 <small class="text-muted">Leave empty for no minimum charge. When set, if the customer's monthly usage is below this amount, a "gap" line item will be added to bring the invoice total to this minimum.</small>
                 <?php if (
                     $data["settings"]["monthly_minimum"] &&
@@ -37287,7 +37287,7 @@ function render_escalators($data)
                     <tr class="escalator-row">
                         <td><input type="number" name="year_number[]" class="form-control" value="1" min="1" required readonly style="width: 80px;"></td>
                         <td><input type="number" name="escalator_percentage[]" class="form-control" value="0" step="0.1" min="0"></td>
-                        <td><input type="number" name="fixed_adjustment[]" class="form-control" value="0" step="0.01"></td>
+                        <td><input type="number" name="fixed_adjustment[]" class="form-control" value="0" step="any"></td>
                         <td><span class="text-muted">-</span></td>
                         <td><button type="button" class="btn btn-sm" onclick="removeEscalatorRow(this)">Remove</button></td>
                     </tr>
@@ -37302,7 +37302,7 @@ function render_escalators($data)
                             ); ?>" step="0.1" min="0"></td>
                             <td><input type="number" name="fixed_adjustment[]" class="form-control" value="<?php echo h(
                                 $esc["fixed_adjustment"]
-                            ); ?>" step="0.01"></td>
+                            ); ?>" step="any"></td>
                             <td>
                                 <?php if ($esc["total_delay"] > 0): ?>
                                     <span style="color: #e67e22;"><?php echo $esc[
@@ -37360,7 +37360,7 @@ function render_escalators($data)
         row.className = 'escalator-row';
         row.innerHTML = '<td><input type="number" name="year_number[]" class="form-control" value="' + nextYear + '" min="1" required readonly style="width: 80px;"></td>' +
             '<td><input type="number" name="escalator_percentage[]" class="form-control" value="0" step="0.1" min="0"></td>' +
-            '<td><input type="number" name="fixed_adjustment[]" class="form-control" value="0" step="0.01"></td>' +
+            '<td><input type="number" name="fixed_adjustment[]" class="form-control" value="0" step="any"></td>' +
             '<td><span class="text-muted">-</span>' +
             '<a href="?action=escalator_delay&customer_id=<?php echo $data[
                 "customer"

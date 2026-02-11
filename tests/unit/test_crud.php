@@ -159,7 +159,7 @@ function render_crud_demo()
             <input type="hidden" name="demo" value="default_tiers">
             <div style="margin-bottom: 8px;">
                 <label style="<?php echo $demo_label; ?>">Tier 1 price ($):</label>
-                <input type="number" name="dt_price1" step="0.01" value="<?php echo isset(
+                <input type="number" name="dt_price1" step="any" value="<?php echo isset(
                     $_GET["dt_price1"]
                 )
                     ? htmlspecialchars($_GET["dt_price1"])
@@ -168,7 +168,7 @@ function render_crud_demo()
             </div>
             <div style="margin-bottom: 8px;">
                 <label style="<?php echo $demo_label; ?>">Tier 2 price ($):</label>
-                <input type="number" name="dt_price2" step="0.01" value="<?php echo isset(
+                <input type="number" name="dt_price2" step="any" value="<?php echo isset(
                     $_GET["dt_price2"]
                 )
                     ? htmlspecialchars($_GET["dt_price2"])
@@ -217,7 +217,7 @@ function render_crud_demo()
             <input type="hidden" name="demo" value="group_tiers">
             <div style="margin-bottom: 8px;">
                 <label style="<?php echo $demo_label; ?>">Group price ($):</label>
-                <input type="number" name="gt_price" step="0.01" value="<?php echo isset(
+                <input type="number" name="gt_price" step="any" value="<?php echo isset(
                     $_GET["gt_price"]
                 )
                     ? htmlspecialchars($_GET["gt_price"])
@@ -278,7 +278,7 @@ function render_crud_demo()
             <input type="hidden" name="demo" value="customer_settings">
             <div style="margin-bottom: 8px;">
                 <label style="<?php echo $demo_label; ?>">Monthly Minimum ($):</label>
-                <input type="number" name="cs_min" step="0.01" value="<?php echo isset(
+                <input type="number" name="cs_min" step="any" value="<?php echo isset(
                     $_GET["cs_min"]
                 )
                     ? htmlspecialchars($_GET["cs_min"])
@@ -348,7 +348,7 @@ function render_crud_demo()
             <input type="hidden" name="demo" value="escalators">
             <div style="margin-bottom: 8px;">
                 <label style="<?php echo $demo_label; ?>">Base price ($):</label>
-                <input type="number" name="esc_base" step="0.01" value="<?php echo isset(
+                <input type="number" name="esc_base" step="any" value="<?php echo isset(
                     $_GET["esc_base"]
                 )
                     ? htmlspecialchars($_GET["esc_base"])
@@ -356,7 +356,7 @@ function render_crud_demo()
             </div>
             <div style="margin-bottom: 8px;">
                 <label style="<?php echo $demo_label; ?>">Year 2 percentage (%):</label>
-                <input type="number" name="esc_pct" step="0.1" value="<?php echo isset(
+                <input type="number" name="esc_pct" step="any" value="<?php echo isset(
                     $_GET["esc_pct"]
                 )
                     ? htmlspecialchars($_GET["esc_pct"])
@@ -364,7 +364,7 @@ function render_crud_demo()
             </div>
             <div style="margin-bottom: 8px;">
                 <label style="<?php echo $demo_label; ?>">Year 2 fixed ($):</label>
-                <input type="number" name="esc_fixed" step="0.01" value="<?php echo isset(
+                <input type="number" name="esc_fixed" step="any" value="<?php echo isset(
                     $_GET["esc_fixed"]
                 )
                     ? htmlspecialchars($_GET["esc_fixed"])
@@ -476,7 +476,7 @@ function render_crud_demo()
             </div>
             <div style="margin-bottom: 8px;">
                 <label style="<?php echo $demo_label; ?>">Commission Rate:</label>
-                <input type="number" name="lms_rate" step="0.01" min="0" max="1" value="<?php echo isset(
+                <input type="number" name="lms_rate" step="any" min="0" max="1" value="<?php echo isset(
                     $_GET["lms_rate"]
                 )
                     ? htmlspecialchars($_GET["lms_rate"])

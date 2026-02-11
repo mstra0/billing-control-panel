@@ -1286,7 +1286,7 @@ function render_escalator_qa_page($test_results, $test_output)
                 <form method="get">
                     <div>
                         <label>Base Price: $</label>
-                        <input type="number" name="base_price" step="0.01" value="<?php echo isset(
+                        <input type="number" name="base_price" step="any" value="<?php echo isset(
                             $_GET["base_price"]
                         )
                             ? htmlspecialchars($_GET["base_price"])
@@ -1294,13 +1294,13 @@ function render_escalator_qa_page($test_results, $test_output)
                     </div>
                     <div style="margin-top: 10px;">
                         <label>Year 2 Escalator %:</label>
-                        <input type="number" name="yr2_pct" step="0.1" value="<?php echo isset(
+                        <input type="number" name="yr2_pct" step="any" value="<?php echo isset(
                             $_GET["yr2_pct"]
                         )
                             ? htmlspecialchars($_GET["yr2_pct"])
                             : "5"; ?>" style="width: 80px;">
                         <label style="margin-left: 10px;">Fixed: $</label>
-                        <input type="number" name="yr2_fixed" step="0.01" value="<?php echo isset(
+                        <input type="number" name="yr2_fixed" step="any" value="<?php echo isset(
                             $_GET["yr2_fixed"]
                         )
                             ? htmlspecialchars($_GET["yr2_fixed"])
@@ -1308,13 +1308,13 @@ function render_escalator_qa_page($test_results, $test_output)
                     </div>
                     <div style="margin-top: 10px;">
                         <label>Year 3 Escalator %:</label>
-                        <input type="number" name="yr3_pct" step="0.1" value="<?php echo isset(
+                        <input type="number" name="yr3_pct" step="any" value="<?php echo isset(
                             $_GET["yr3_pct"]
                         )
                             ? htmlspecialchars($_GET["yr3_pct"])
                             : "8"; ?>" style="width: 80px;">
                         <label style="margin-left: 10px;">Fixed: $</label>
-                        <input type="number" name="yr3_fixed" step="0.01" value="<?php echo isset(
+                        <input type="number" name="yr3_fixed" step="any" value="<?php echo isset(
                             $_GET["yr3_fixed"]
                         )
                             ? htmlspecialchars($_GET["yr3_fixed"])
