@@ -590,6 +590,212 @@ function run_escalator_tests()
     );
 
     // --------------------------------------------------------
+    // Negative escalator (de-escalation) tests
+    // --------------------------------------------------------
+
+    run_test("Negative percentage escalator reduces price", function () {
+        $customer_id = create_test_customer();
+
+        save_escalators(
+            $customer_id,
+            [
+                [
+                    "year_number" => 1,
+                    "escalator_percentage" => 0,
+                    "fixed_adjustment" => 0,
+                ],
+                [
+                    "year_number" => 2,
+                    "escalator_percentage" => -10,
+                    "fixed_adjustment" => 0,
+                ],
+            ],
+            "2025-01-01",
+            TEST_EFFECTIVE_DATE,
+        );
+
+        $result = calculate_escalated_price(100.0, $customer_id, "2026-02-01");
+
+        assert_float_equals(
+            90.0,
+            $result,
+            0.01,
+            '-10% escalator should make $100 -> $90',
+        );
+    });
+
+    run_test("Negative percentage with positive fixed adjustment", function () {
+        $customer_id = create_test_customer();
+
+        save_escalators(
+            $customer_id,
+            [
+                [
+                    "year_number" => 1,
+                    "escalator_percentage" => 0,
+                    "fixed_adjustment" => 0,
+                ],
+                [
+                    "year_number" => 2,
+                    "escalator_percentage" => -5,
+                    "fixed_adjustment" => 10,
+                ],
+            ],
+            "2025-01-01",
+            TEST_EFFECTIVE_DATE,
+        );
+
+        $result = calculate_escalated_price(100.0, $customer_id, "2026-02-01");
+
+        assert_float_equals(
+            105.0,
+            $result,
+            0.01,
+            '-5% + $10 fixed should make $100 -> $95 + $10 = $105',
+        );
+    });
+
+    run_test("Positive percentage with negative fixed adjustment", function () {
+        $customer_id = create_test_customer();
+
+        save_escalators(
+            $customer_id,
+            [
+                [
+                    "year_number" => 1,
+                    "escalator_percentage" => 0,
+                    "fixed_adjustment" => 0,
+                ],
+                [
+                    "year_number" => 2,
+                    "escalator_percentage" => 10,
+                    "fixed_adjustment" => -5,
+                ],
+            ],
+            "2025-01-01",
+            TEST_EFFECTIVE_DATE,
+        );
+
+        $result = calculate_escalated_price(100.0, $customer_id, "2026-02-01");
+
+        assert_float_equals(
+            105.0,
+            $result,
+            0.01,
+            '+10% - $5 fixed should make $100 -> $110 - $5 = $105',
+        );
+    });
+
+    run_test(
+        "Multi-year with mixed positive and negative escalators",
+        function () {
+            $customer_id = create_test_customer();
+
+            save_escalators(
+                $customer_id,
+                [
+                    [
+                        "year_number" => 1,
+                        "escalator_percentage" => 0,
+                        "fixed_adjustment" => 0,
+                    ],
+                    [
+                        "year_number" => 2,
+                        "escalator_percentage" => 10,
+                        "fixed_adjustment" => 0,
+                    ],
+                    [
+                        "year_number" => 3,
+                        "escalator_percentage" => -5,
+                        "fixed_adjustment" => 0,
+                    ],
+                ],
+                "2024-01-01",
+                TEST_EFFECTIVE_DATE,
+            );
+
+            // Year 2: +10% -> $110
+            $result_yr2 = calculate_escalated_price(
+                100.0,
+                $customer_id,
+                "2025-06-01",
+            );
+            assert_float_equals(
+                110.0,
+                $result_yr2,
+                0.01,
+                'Year 2 (+10%) should make $100 -> $110',
+            );
+
+            // Year 3: -5% from base -> $95
+            $result_yr3 = calculate_escalated_price(
+                100.0,
+                $customer_id,
+                "2026-06-01",
+            );
+            assert_float_equals(
+                95.0,
+                $result_yr3,
+                0.01,
+                'Year 3 (-5%) should make $100 -> $95',
+            );
+        },
+    );
+
+    run_test(
+        "Negative escalator with delay still applies after delay",
+        function () {
+            $customer_id = create_test_customer();
+
+            save_escalators(
+                $customer_id,
+                [
+                    [
+                        "year_number" => 1,
+                        "escalator_percentage" => 0,
+                        "fixed_adjustment" => 0,
+                    ],
+                    [
+                        "year_number" => 2,
+                        "escalator_percentage" => -8,
+                        "fixed_adjustment" => 0,
+                    ],
+                ],
+                "2025-01-01",
+                TEST_EFFECTIVE_DATE,
+            );
+
+            apply_escalator_delay($customer_id, 2, 3, TEST_EFFECTIVE_DATE);
+
+            // During delay: should still be base price
+            $result_during = calculate_escalated_price(
+                100.0,
+                $customer_id,
+                "2026-02-01",
+            );
+            assert_float_equals(
+                100.0,
+                $result_during,
+                0.01,
+                "During delay, negative escalator should not apply yet",
+            );
+
+            // After delay: -8% should apply
+            $result_after = calculate_escalated_price(
+                100.0,
+                $customer_id,
+                "2026-05-01",
+            );
+            assert_float_equals(
+                92.0,
+                $result_after,
+                0.01,
+                'After delay, -8% escalator should make $100 -> $92',
+            );
+        },
+    );
+
+    // --------------------------------------------------------
     // Cross-engine agreement tests (audit vs CSV must match)
     // --------------------------------------------------------
 
@@ -1040,7 +1246,7 @@ function render_escalator_qa_page($test_results, $test_output)
         <header>
             <div class="critical-badge">CRITICAL - MONEY CALCULATIONS</div>
             <h1>Escalator Calculations</h1>
-            <p>Annual price escalation, percentage adjustments, and delay tracking</p>
+            <p>Annual price adjustments (increase or decrease), percentage and fixed adjustments, and delay tracking</p>
             <div class="status-badge"><?php echo $status; ?></div>
         </header>
 
@@ -1062,13 +1268,14 @@ function render_escalator_qa_page($test_results, $test_output)
         <section>
             <h2>What Are Escalators?</h2>
             <div class="demo-box">
-                <p><strong>Escalators</strong> are annual price adjustments written into customer contracts. They allow prices to increase each year by either:</p>
+                <p><strong>Escalators</strong> are annual price adjustments written into customer contracts. They can <strong>increase or decrease</strong> prices each year by:</p>
                 <ul style="margin: 15px 0 15px 20px;">
-                    <li><strong>Percentage:</strong> e.g., "5% increase in Year 2"</li>
-                    <li><strong>Fixed Amount:</strong> e.g., "$0.10 per transaction increase"</li>
-                    <li><strong>Both:</strong> Percentage applied first, then fixed amount added</li>
+                    <li><strong>Percentage:</strong> e.g., "+5% increase" or "-3% decrease" in Year 2</li>
+                    <li><strong>Fixed Amount:</strong> e.g., "+$0.10" or "-$0.05" per transaction</li>
+                    <li><strong>Both:</strong> Percentage applied first, then fixed amount added (either can be positive or negative)</li>
                 </ul>
                 <p>Escalators can also have <strong>delays</strong> that postpone when they take effect.</p>
+                <p style="margin-top: 10px;"><strong>Positive values</strong> = price increase (escalation). <strong>Negative values</strong> = price decrease (de-escalation).</p>
             </div>
         </section>
 
@@ -1205,11 +1412,33 @@ function render_escalator_qa_page($test_results, $test_output)
                         99999,
                     ]);
                     ?>
-                    <div class="result-box">
-                        <div class="big-number">$<?php echo number_format(
-                            $result,
-                            4,
-                        ); ?></div>
+                    <?php
+                    $direction = "unchanged";
+                    $direction_color = "#6c757d";
+                    $direction_label = "No Change";
+                    if ($result > $base) {
+                        $direction = "increase";
+                        $direction_color = "#dc3545";
+                        $direction_label = "INCREASE";
+                    } elseif ($result < $base) {
+                        $direction = "decrease";
+                        $direction_color = "#28a745";
+                        $direction_label = "DECREASE";
+                    }
+                    $pct_change =
+                        $base > 0 ? (($result - $base) / $base) * 100 : 0;
+                    ?>
+                    <div class="result-box" style="border-color: <?php echo $direction_color; ?>;">
+                        <div class="big-number" style="color: <?php echo $direction_color; ?>;">$<?php echo number_format(
+    $result,
+    4,
+); ?></div>
+                        <div style="display: inline-block; padding: 4px 12px; background: <?php echo $direction_color; ?>; color: white; border-radius: 15px; font-weight: bold; font-size: 0.85em; margin: 8px 0;">
+                            <?php echo $direction_label; ?> (<?php echo ($pct_change >=
+ 0
+     ? "+"
+     : "") . number_format($pct_change, 2); ?>%)
+                        </div>
                         <div class="calculation">
                             <strong>calculate_escalated_price(<?php echo $base; ?>, customer, '<?php echo htmlspecialchars(
     $billing_date,
@@ -1221,7 +1450,7 @@ function render_escalator_qa_page($test_results, $test_output)
                             Base $<?php echo number_format(
                                 $base,
                                 2,
-                            ); ?> &rarr; Escalated $<?php echo number_format(
+                            ); ?> &rarr; Adjusted $<?php echo number_format(
      $result,
      4,
  ); ?>
@@ -1239,7 +1468,7 @@ function render_escalator_qa_page($test_results, $test_output)
         <section>
             <h2>Example: 3-Year Contract</h2>
             <div class="demo-box">
-                <h3>Escalator Schedule</h3>
+                <h3>Escalator Schedule (Increase Example)</h3>
                 <div class="timeline">
                     <div class="timeline-item">
                         <div class="year">Year 1: $1.00 per inquiry</div>
@@ -1247,11 +1476,27 @@ function render_escalator_qa_page($test_results, $test_output)
                     </div>
                     <div class="timeline-item">
                         <div class="year">Year 2: $1.05 per inquiry (+5%)</div>
-                        <div class="details">5% escalator applied: $1.00 x 1.05 = $1.05</div>
+                        <div class="details">Positive escalator: $1.00 &times; 1.05 = $1.05</div>
                     </div>
                     <div class="timeline-item">
                         <div class="year">Year 3: $1.08 per inquiry (+8%)</div>
-                        <div class="details">8% escalator applied: $1.00 x 1.08 = $1.08</div>
+                        <div class="details">Positive escalator: $1.00 &times; 1.08 = $1.08</div>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 20px;">Escalator Schedule (Decrease Example)</h3>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="year">Year 1: $1.00 per inquiry</div>
+                        <div class="details">Base pricing, no escalation</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="year">Year 2: $0.95 per inquiry (-5%)</div>
+                        <div class="details">Negative escalator: $1.00 &times; 0.95 = $0.95</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="year">Year 3: $0.90 per inquiry (-10%)</div>
+                        <div class="details">Negative escalator: $1.00 &times; 0.90 = $0.90</div>
                     </div>
                 </div>
 
@@ -1261,25 +1506,33 @@ function render_escalator_qa_page($test_results, $test_output)
                         <th>Base Price</th>
                         <th>Year 1</th>
                         <th>Year 2 (+5%)</th>
+                        <th>Year 2 (-5%)</th>
                         <th>Year 3 (+8%)</th>
+                        <th>Year 3 (-3%)</th>
                     </tr>
                     <tr>
                         <td class="money">$0.50</td>
                         <td class="money">$0.50</td>
                         <td class="money positive">$0.525</td>
+                        <td class="money negative">$0.475</td>
                         <td class="money positive">$0.54</td>
+                        <td class="money negative">$0.485</td>
                     </tr>
                     <tr>
                         <td class="money">$1.00</td>
                         <td class="money">$1.00</td>
                         <td class="money positive">$1.05</td>
+                        <td class="money negative">$0.95</td>
                         <td class="money positive">$1.08</td>
+                        <td class="money negative">$0.97</td>
                     </tr>
                     <tr>
                         <td class="money">$2.50</td>
                         <td class="money">$2.50</td>
                         <td class="money positive">$2.625</td>
+                        <td class="money negative">$2.375</td>
                         <td class="money positive">$2.70</td>
+                        <td class="money negative">$2.425</td>
                     </tr>
                 </table>
             </div>
@@ -1323,13 +1576,13 @@ function render_escalator_qa_page($test_results, $test_output)
     <span class="variable">$billing_date</span>
 );
 
-<span class="comment">// If customer has 5% Year 2 escalator and date is in Year 2:</span>
-<span class="comment">// $final_price = 1.05</span></pre>
+<span class="comment">// If customer has +5% Year 2 escalator: $final_price = 1.05</span>
+<span class="comment">// If customer has -5% Year 2 escalator: $final_price = 0.95</span></pre>
             </div>
 
             <div class="demo-box">
-                <h3>Save Escalators</h3>
-                <pre class="code-example"><span class="comment">// Define a 3-year escalator schedule</span>
+                <h3>Save Escalators (Increase)</h3>
+                <pre class="code-example"><span class="comment">// Define a 3-year escalator schedule with increases</span>
 <span class="function">save_escalators</span>(<span class="variable">$customer_id</span>, <span class="keyword">array</span>(
     <span class="keyword">array</span>(
         <span class="string">'year_number'</span> => <span class="number">1</span>,
@@ -1338,15 +1591,39 @@ function render_escalator_qa_page($test_results, $test_output)
     ),
     <span class="keyword">array</span>(
         <span class="string">'year_number'</span> => <span class="number">2</span>,
-        <span class="string">'escalator_percentage'</span> => <span class="number">5</span>,
+        <span class="string">'escalator_percentage'</span> => <span class="number">5</span>,    <span class="comment">// +5% increase</span>
         <span class="string">'fixed_adjustment'</span> => <span class="number">0</span>
     ),
     <span class="keyword">array</span>(
         <span class="string">'year_number'</span> => <span class="number">3</span>,
-        <span class="string">'escalator_percentage'</span> => <span class="number">8</span>,
-        <span class="string">'fixed_adjustment'</span> => <span class="number">0.10</span>  <span class="comment">// 8% + $0.10</span>
+        <span class="string">'escalator_percentage'</span> => <span class="number">8</span>,    <span class="comment">// +8% increase + $0.10</span>
+        <span class="string">'fixed_adjustment'</span> => <span class="number">0.10</span>
     )
 ), <span class="string">'2025-01-01'</span>);  <span class="comment">// Contract start date</span></pre>
+            </div>
+
+            <div class="demo-box">
+                <h3>Save Escalators (Decrease / De-escalation)</h3>
+                <pre class="code-example"><span class="comment">// Define a schedule with price decreases (negative values)</span>
+<span class="function">save_escalators</span>(<span class="variable">$customer_id</span>, <span class="keyword">array</span>(
+    <span class="keyword">array</span>(
+        <span class="string">'year_number'</span> => <span class="number">1</span>,
+        <span class="string">'escalator_percentage'</span> => <span class="number">0</span>,
+        <span class="string">'fixed_adjustment'</span> => <span class="number">0</span>
+    ),
+    <span class="keyword">array</span>(
+        <span class="string">'year_number'</span> => <span class="number">2</span>,
+        <span class="string">'escalator_percentage'</span> => <span class="number">-5</span>,   <span class="comment">// -5% decrease</span>
+        <span class="string">'fixed_adjustment'</span> => <span class="number">0</span>
+    ),
+    <span class="keyword">array</span>(
+        <span class="string">'year_number'</span> => <span class="number">3</span>,
+        <span class="string">'escalator_percentage'</span> => <span class="number">-10</span>,  <span class="comment">// -10% decrease</span>
+        <span class="string">'fixed_adjustment'</span> => <span class="number">0</span>
+    )
+), <span class="string">'2025-01-01'</span>);
+<span class="comment">// Year 2: $1.00 x 0.95 = $0.95</span>
+<span class="comment">// Year 3: $1.00 x 0.90 = $0.90</span></pre>
             </div>
 
             <div class="demo-box">

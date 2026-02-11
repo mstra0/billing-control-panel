@@ -2978,10 +2978,8 @@ function calculate_escalated_price(
             $percentage = (float) $esc["escalator_percentage"];
             $fixed = (float) $esc["fixed_adjustment"];
 
-            // Apply percentage escalation (compounding from base)
-            if ($percentage > 0) {
-                $adjusted_price = $base_price * (1 + $percentage / 100);
-            }
+            // Apply percentage escalation (positive = increase, negative = decrease)
+            $adjusted_price = $base_price * (1 + $percentage / 100);
 
             // Apply fixed adjustment
             $adjusted_price += $fixed;
