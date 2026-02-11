@@ -71,7 +71,7 @@ $SEED_CONFIG = [
 $is_cli = php_sapi_name() === "cli";
 $is_web = !$is_cli;
 
-if ($is_cli) {
+if ($is_cli && !defined("TEST_MODE")) {
     // Parse CLI arguments
     $confirmed = in_array("--confirm", $argv);
     $clear_first = in_array("--clear", $argv);
@@ -563,13 +563,17 @@ function run_seed($config, $clear_first = false)
     $services = array_slice($services, 0, $config["service_count"]);
 
     foreach ($services as $i => $service) {
-        sqlite_execute("INSERT OR IGNORE INTO services (name) VALUES (?)", [
+        $existing = sqlite_query("SELECT id FROM services WHERE name = ?", [
             $service["name"],
         ]);
-        $row = sqlite_query("SELECT id FROM services WHERE name = ?", [
-            $service["name"],
-        ]);
-        $services[$i]["id"] = $row[0]["id"];
+        if (!empty($existing)) {
+            $services[$i]["id"] = $existing[0]["id"];
+        } else {
+            sqlite_execute("INSERT INTO services (name) VALUES (?)", [
+                $service["name"],
+            ]);
+            $services[$i]["id"] = sqlite_last_id();
+        }
     }
     seed_log("   Created " . count($services) . " services");
 
@@ -612,14 +616,18 @@ function run_seed($config, $clear_first = false)
     $groups = [];
 
     foreach ($group_names as $i => $name) {
-        sqlite_execute(
-            "INSERT OR IGNORE INTO discount_groups (name) VALUES (?)",
+        $existing = sqlite_query(
+            "SELECT id FROM discount_groups WHERE name = ?",
             [$name]
         );
-        $row = sqlite_query("SELECT id FROM discount_groups WHERE name = ?", [
-            $name,
-        ]);
-        $groups[] = ["id" => $row[0]["id"], "name" => $name];
+        if (!empty($existing)) {
+            $groups[] = ["id" => $existing[0]["id"], "name" => $name];
+        } else {
+            sqlite_execute("INSERT INTO discount_groups (name) VALUES (?)", [
+                $name,
+            ]);
+            $groups[] = ["id" => sqlite_last_id(), "name" => $name];
+        }
     }
     seed_log("   Created " . count($groups) . " discount groups");
 
@@ -631,22 +639,27 @@ function run_seed($config, $clear_first = false)
     $lms_list = [];
 
     foreach ($lms_names as $i => $name) {
-        $has_override = mt_rand(1, 100) <= $config["lms_override_pct"];
-        $commission = $has_override
-            ? round(
-                $config["commission_min"] +
-                    (mt_rand(0, 100) / 100) *
-                        ($config["commission_max"] - $config["commission_min"]),
-                2
-            )
-            : null;
+        $existing = sqlite_query("SELECT id FROM lms WHERE name = ?", [$name]);
+        if (!empty($existing)) {
+            $lms_list[] = ["id" => $existing[0]["id"], "name" => $name];
+        } else {
+            $has_override = mt_rand(1, 100) <= $config["lms_override_pct"];
+            $commission = $has_override
+                ? round(
+                    $config["commission_min"] +
+                        (mt_rand(0, 100) / 100) *
+                            ($config["commission_max"] -
+                                $config["commission_min"]),
+                    2
+                )
+                : null;
 
-        sqlite_execute(
-            "INSERT OR IGNORE INTO lms (name, status, commission_rate) VALUES (?, 'active', ?)",
-            [$name, $commission]
-        );
-        $row = sqlite_query("SELECT id FROM lms WHERE name = ?", [$name]);
-        $lms_list[] = ["id" => $row[0]["id"], "name" => $name];
+            sqlite_execute(
+                "INSERT INTO lms (name, status, commission_rate) VALUES (?, 'active', ?)",
+                [$name, $commission]
+            );
+            $lms_list[] = ["id" => sqlite_last_id(), "name" => $name];
+        }
     }
     seed_log("   Created " . count($lms_list) . " LMS providers");
 
@@ -668,34 +681,47 @@ function run_seed($config, $clear_first = false)
     ];
 
     foreach ($customer_names as $i => $name) {
-        $status = weighted_choice($status_weights);
-        $has_group = mt_rand(1, 100) <= $config["customer_in_group_pct"];
-        $group_id = $has_group
-            ? $groups[mt_rand(0, count($groups) - 1)]["id"]
-            : null;
-        $lms_id = $lms_list[mt_rand(0, count($lms_list) - 1)]["id"];
-
-        // Contract start 1-4 years ago
-        $contract_start = date(
-            "Y-m-d",
-            strtotime("-" . mt_rand(365, 365 * 4) . " days")
+        $existing = sqlite_query(
+            "SELECT id, discount_group_id, status, contract_start_date FROM customers WHERE name = ?",
+            [$name]
         );
+        if (!empty($existing)) {
+            $id = $existing[0]["id"];
+            $customers[] = [
+                "id" => $id,
+                "name" => $name,
+                "discount_group_id" => $existing[0]["discount_group_id"],
+                "status" => $existing[0]["status"],
+                "contract_start_date" => $existing[0]["contract_start_date"],
+            ];
+        } else {
+            $status = weighted_choice($status_weights);
+            $has_group = mt_rand(1, 100) <= $config["customer_in_group_pct"];
+            $group_id = $has_group
+                ? $groups[mt_rand(0, count($groups) - 1)]["id"]
+                : null;
+            $lms_id = $lms_list[mt_rand(0, count($lms_list) - 1)]["id"];
 
-        sqlite_execute(
-            "INSERT OR IGNORE INTO customers (name, discount_group_id, lms_id, status, contract_start_date)
-             VALUES (?, ?, ?, ?, ?)",
-            [$name, $group_id, $lms_id, $status, $contract_start]
-        );
+            $contract_start = date(
+                "Y-m-d",
+                strtotime("-" . mt_rand(365, 365 * 4) . " days")
+            );
 
-        $row = sqlite_query("SELECT id FROM customers WHERE name = ?", [$name]);
-        $id = $row[0]["id"];
-        $customers[] = [
-            "id" => $id,
-            "name" => $name,
-            "discount_group_id" => $group_id,
-            "status" => $status,
-            "contract_start_date" => $contract_start,
-        ];
+            sqlite_execute(
+                "INSERT INTO customers (name, discount_group_id, lms_id, status, contract_start_date)
+                 VALUES (?, ?, ?, ?, ?)",
+                [$name, $group_id, $lms_id, $status, $contract_start]
+            );
+
+            $id = sqlite_last_id();
+            $customers[] = [
+                "id" => $id,
+                "name" => $name,
+                "discount_group_id" => $group_id,
+                "status" => $status,
+                "contract_start_date" => $contract_start,
+            ];
+        }
     }
 
     $active_customers = array_filter($customers, function ($c) {
@@ -1267,7 +1293,7 @@ function run_seed($config, $clear_first = false)
 // CLI EXECUTION
 // ============================================================
 
-if ($is_cli && $confirmed) {
+if ($is_cli && !defined("TEST_MODE") && $confirmed) {
     $result = run_seed(
         $SEED_CONFIG,
         isset($clear_first) ? $clear_first : false
