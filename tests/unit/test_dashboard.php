@@ -214,32 +214,51 @@ function run_dashboard_tests()
     });
 
     run_test(
-        "get_dashboard_alerts - detects missing default tiers",
+        "get_dashboard_alerts - includes paused customer alerts",
         function () {
-            // Create a service without default tiers
-            create_test_service(["name" => "No Tiers Service"]);
-
-            $alerts = get_dashboard_alerts();
-
-            // Should have alert about missing tiers (if the system checks for this)
-            // This depends on what alerts the system generates
-            assert_not_null($alerts, "Should return alerts");
-        }
-    );
-
-    run_test(
-        "get_dashboard_alerts - detects customers without LMS",
-        function () {
-            // Create customer without LMS
-            create_test_customer([
-                "name" => "Orphan Customer",
-                "lms_id" => null,
+            $customer_id = create_test_customer([
+                "name" => "Paused Alert Test",
+                "status" => "paused",
             ]);
 
             $alerts = get_dashboard_alerts();
 
-            // Should potentially have alert about unassigned customers
-            assert_not_null($alerts, "Should return alerts");
+            assert_true(is_array($alerts), "Should return array");
+            $found = false;
+            foreach ($alerts as $alert) {
+                if (
+                    stripos($alert["message"], "Paused Alert Test") !== false &&
+                    $alert["type"] === "warning"
+                ) {
+                    $found = true;
+                    break;
+                }
+            }
+            assert_true(
+                $found,
+                "Should have warning alert about paused customer"
+            );
+        }
+    );
+
+    run_test(
+        "get_dashboard_alerts - alert structure has required keys",
+        function () {
+            create_test_customer([
+                "name" => "Structure Test Customer",
+                "status" => "paused",
+            ]);
+
+            $alerts = get_dashboard_alerts();
+
+            assert_true(count($alerts) > 0, "Should have at least one alert");
+            assert_array_has_key("type", $alerts[0], "Alert should have type");
+            assert_array_has_key(
+                "message",
+                $alerts[0],
+                "Alert should have message"
+            );
+            assert_array_has_key("link", $alerts[0], "Alert should have link");
         }
     );
 
@@ -277,10 +296,18 @@ function run_dashboard_tests()
         $upcoming = get_upcoming_escalators(30);
 
         // Should include this escalator (starting within 30 days)
-        // The exact behavior depends on what "upcoming" means - could be:
-        // - Escalators starting within N days
-        // - Year transitions within N days
-        assert_not_null($upcoming, "Should return something");
+        assert_true(is_array($upcoming), "Should return array");
+        $found = false;
+        foreach ($upcoming as $item) {
+            if (
+                isset($item["customer_id"]) &&
+                $item["customer_id"] == $customer_id
+            ) {
+                $found = true;
+                break;
+            }
+        }
+        assert_true($found, "Should include escalator starting within 30 days");
     });
 
     run_test(
@@ -309,9 +336,22 @@ function run_dashboard_tests()
 
             $upcoming = get_upcoming_escalators(30);
 
-            // Should NOT include escalator starting in 60 days when looking at 30 day window
-            // Verify by checking count or content
-            assert_not_null($upcoming, "Should return something");
+            // Should NOT include escalator starting in 60 days
+            assert_true(is_array($upcoming), "Should return array");
+            $found = false;
+            foreach ($upcoming as $item) {
+                if (
+                    isset($item["customer_id"]) &&
+                    $item["customer_id"] == $customer_id
+                ) {
+                    $found = true;
+                    break;
+                }
+            }
+            assert_false(
+                $found,
+                "Should NOT include escalator starting in 60 days"
+            );
         }
     );
 
@@ -342,10 +382,23 @@ function run_dashboard_tests()
             // Toggle mask creates entry in business_rule_masks
             toggle_rule_mask($customer_id, "test_rule", true);
 
-            // But get_customers_with_masked_rules requires INNER JOIN on business_rules
-            // So this test documents the actual behavior
+            // Without a business_rules entry, customer should NOT appear
             $masked = get_customers_with_masked_rules();
             assert_true(is_array($masked), "Should return array");
+            $found = false;
+            foreach ($masked as $item) {
+                if (
+                    isset($item["customer_id"]) &&
+                    $item["customer_id"] == $customer_id
+                ) {
+                    $found = true;
+                    break;
+                }
+            }
+            assert_false(
+                $found,
+                "Customer without business_rules entry should not appear"
+            );
         }
     );
 

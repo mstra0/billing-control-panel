@@ -1,5 +1,6 @@
 # Environment-specific shared directories
-*_shared/
+billing/default_shared/
+billing/test_shared/
 
 # IDE and editor files
 .phpactor.json

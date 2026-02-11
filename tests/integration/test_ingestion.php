@@ -80,8 +80,8 @@ function render_ingestion_demo()
     $_ENV["CODE_ENVIRONMENT"] = "mock_prod";
     $_SERVER["CODE_ENVIRONMENT"] = "mock_prod";
 
-    $archive_path = $base_dir . "/test_shared/archive";
-    $db_path = $base_dir . "/test_shared/control_panel.db";
+    $archive_path = $base_dir . "/billing/test_shared/archive";
+    $db_path = $base_dir . "/billing/test_shared/control_panel.db";
     ?>
     <div class="demo-box">
         <h3>How CSV Ingestion Works</h3>
@@ -459,8 +459,8 @@ function run_ingestion_tests_cli()
     $_SERVER["CODE_ENVIRONMENT"] = "mock_prod";
 
     $base_dir = dirname(dirname(__DIR__));
-    $test_db_path = $base_dir . "/test_shared/control_panel.db";
-    $archive_dir = $base_dir . "/test_shared/archive";
+    $test_db_path = $base_dir . "/billing/test_shared/control_panel.db";
+    $archive_dir = $base_dir . "/billing/test_shared/archive";
 
     // Check prerequisites
     if (!file_exists($test_db_path)) {

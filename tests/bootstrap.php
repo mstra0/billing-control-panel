@@ -525,7 +525,7 @@ chdir(dirname(__DIR__)); // Change to PHP directory
 ob_start();
 
 // Include the main application to get all function definitions
-require_once dirname(__DIR__) . "/control_panel.php";
+require_once dirname(__DIR__) . "/www/billing/control_panel.php";
 
 ob_end_clean();
 
