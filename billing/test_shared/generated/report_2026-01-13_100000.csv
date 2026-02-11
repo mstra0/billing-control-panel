@@ -1,0 +1,3 @@
+id,customer_name,email,status,amount,date
+0995,Cyberdyne,ap@cyberdyne.com,approved,150000.00,2026-01-13
+0996,"Tyrell Corp",invoices@tyrell.com,pending,88000.00,2026-01-13

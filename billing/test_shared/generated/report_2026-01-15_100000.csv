@@ -1,0 +1,6 @@
+id,customer_name,email,status,amount,date
+1001,"Acme Corp",billing@acme.com,pending,5000.00,2026-01-15
+1002,"Globex Inc",ap@globex.com,approved,12500.00,2026-01-15
+1003,Initech,invoices@initech.com,pending,3200.00,2026-01-15
+1004,"Umbrella Corp",finance@umbrella.com,rejected,8900.00,2026-01-15
+1005,"Stark Industries",pay@stark.com,pending,45000.00,2026-01-15
