@@ -38,7 +38,7 @@ if ($_is_cli && !$_is_included) {
 }
 
 // Include calculator for cross-engine agreement tests
-require_once dirname(__DIR__, 2) . "/calculator.php";
+require_once dirname(dirname(__DIR__)) . "/calculator.php";
 
 // Backdated effective_date for test data — must be far enough in the past
 // that point-in-time queries with any reasonable as_of_date will see the data.

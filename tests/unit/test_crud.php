@@ -6,6 +6,7 @@
  * Automated: Include via qa_dashboard.php for CI/CD testing
  *
  * Tests for save_*, delete_*, and related modification functions.
+ * Organized by Configuration entity (matches Configuration menu in Control Panel).
  * Priority 3 - Standard database operations.
  */
 
@@ -22,6 +23,7 @@ $_is_qa_mode = !$_is_cli && !$_is_included;
 if ($_is_qa_mode) {
     require_once __DIR__ . "/../bootstrap_qa.php";
     require_once __DIR__ . "/../qa_wrapper.php";
+    require_once dirname(dirname(__DIR__)) . "/calculator.php";
 
     ob_start();
     $_qa_test_results = run_crud_tests();
@@ -30,7 +32,7 @@ if ($_is_qa_mode) {
     $demo_content = render_crud_demo();
     render_qa_page(
         "CRUD Operations",
-        "Tests for save_*, delete_*, and modification functions",
+        "Entity CRUD tests organized by Configuration menu item",
         $_qa_test_results,
         $test_output,
         $demo_content,
@@ -56,162 +58,542 @@ echo "=========================\n";
 run_crud_tests();
 
 // ============================================================
+// ENTITY SECTIONS (matches Configuration menu)
+// ============================================================
+// Each entity maps to a Configuration menu item:
+//   Default Pricing  -> save_default_tiers, save_service_cogs, save_transaction_type
+//   Groups           -> save_group_tiers
+//   Customers        -> save_customer_tiers, save_customer_settings
+//   Escalators       -> save_escalators, apply_escalator_delay
+//   LMS              -> save_lms, assign_customer_lms
+//   Rules            -> toggle_rule_mask, save_billing_flags
+//   Billing Reports  -> delete_billing_report
+
+// ============================================================
 // DEMO CONTENT FOR QA
 // ============================================================
 function render_crud_demo()
 {
     ob_start(); ?>
     <div class="demo-box">
-        <h3>CRUD Operation Categories</h3>
-        <p>Create, Read, Update, Delete operations for all entities:</p>
-        <ul style="margin: 15px 0 15px 25px;">
-            <li><strong>Tiers</strong> - save_default_tiers(), save_group_tiers(), save_customer_tiers()</li>
-            <li><strong>Settings</strong> - save_customer_settings()</li>
-            <li><strong>Escalators</strong> - save_escalators(), apply_escalator_delay()</li>
-            <li><strong>LMS</strong> - save_lms(), assign_customer_lms()</li>
-            <li><strong>Billing</strong> - delete_billing_report()</li>
-            <li><strong>Rules</strong> - toggle_rule_mask()</li>
-        </ul>
-    </div>
-
-    <div class="demo-box">
-        <h3>Append-Only History</h3>
-        <p>Most save operations are append-only, creating a new "effective set" rather than updating in place:</p>
+        <h3>What is this page?</h3>
+        <p>This page tests <strong>Create, Read, Update, Delete</strong> operations for every entity
+        in the billing system. Tests are organized to match the
+        <strong>Configuration</strong> menu in the Control Panel, so you can quickly verify
+        CRUD operations for each specific area.</p>
         <table>
             <tr>
-                <th>Operation</th>
-                <th>Behavior</th>
+                <th>Configuration Page</th>
+                <th>CRUD Functions Tested</th>
+                <th>Tests</th>
             </tr>
             <tr>
-                <td style="font-family: monospace;">save_default_tiers()</td>
-                <td>Creates new tier set with effective date</td>
+                <td><a href="../../control_panel.php?action=pricing_defaults" style="color: #28a745; font-weight: bold;">Default Pricing</a></td>
+                <td style="font-family: monospace; font-size: 0.85em;">save_default_tiers(), save_service_cogs(), save_transaction_type()</td>
+                <td style="text-align: center;">8</td>
             </tr>
             <tr>
-                <td style="font-family: monospace;">save_escalators()</td>
-                <td>Creates new escalator schedule</td>
+                <td><a href="../../control_panel.php?action=pricing_groups" style="color: #28a745; font-weight: bold;">Groups</a></td>
+                <td style="font-family: monospace; font-size: 0.85em;">save_group_tiers()</td>
+                <td style="text-align: center;">2</td>
             </tr>
             <tr>
-                <td style="font-family: monospace;">save_customer_settings()</td>
-                <td>Creates new settings snapshot</td>
+                <td><a href="../../control_panel.php?action=pricing_customers" style="color: #28a745; font-weight: bold;">Customers</a></td>
+                <td style="font-family: monospace; font-size: 0.85em;">save_customer_tiers(), save_customer_settings()</td>
+                <td style="text-align: center;">5</td>
+            </tr>
+            <tr>
+                <td><a href="../../control_panel.php?action=escalators" style="color: #28a745; font-weight: bold;">Escalators</a></td>
+                <td style="font-family: monospace; font-size: 0.85em;">save_escalators(), apply_escalator_delay()</td>
+                <td style="text-align: center;">4</td>
+            </tr>
+            <tr>
+                <td><a href="../../control_panel.php?action=lms" style="color: #28a745; font-weight: bold;">LMS</a></td>
+                <td style="font-family: monospace; font-size: 0.85em;">save_lms(), assign_customer_lms()</td>
+                <td style="text-align: center;">5</td>
+            </tr>
+            <tr>
+                <td><a href="../../control_panel.php?action=business_rules" style="color: #28a745; font-weight: bold;">Rules</a></td>
+                <td style="font-family: monospace; font-size: 0.85em;">toggle_rule_mask(), save_billing_flags()</td>
+                <td style="text-align: center;">5</td>
+            </tr>
+            <tr>
+                <td>Billing Reports</td>
+                <td style="font-family: monospace; font-size: 0.85em;">delete_billing_report()</td>
+                <td style="text-align: center;">1</td>
+            </tr>
+            <tr style="background: #f0f0f0; font-weight: bold;">
+                <td>Total</td>
+                <td></td>
+                <td style="text-align: center;"><?php echo 8 +
+                    2 +
+                    5 +
+                    4 +
+                    5 +
+                    5 +
+                    1; ?></td>
             </tr>
         </table>
     </div>
 
-    <div class="demo-box">
-        <h3>Code Example</h3>
-        <pre class="code-example">// Save tiered pricing for a customer
-save_customer_tiers($customer_id, $service_id, array(
-    array('volume_start' => 0, 'volume_end' => 1000, 'price_per_inquiry' => 0.50),
-    array('volume_start' => 1001, 'volume_end' => null, 'price_per_inquiry' => 0.40)
-));
+    <?php
+    // -------------------------------------------------------
+    // Shared demo style
+    // -------------------------------------------------------
+    $demo_btn =
+        "padding: 8px 20px; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;";
+    $demo_result_box =
+        "background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 5px; overflow-x: auto; font-family: monospace; font-size: 0.85em;";
+    $demo_success =
+        "background: #d4edda; border: 2px solid #28a745; border-radius: 8px; padding: 15px; margin-top: 12px;";
+    $demo_label = "display: inline-block; width: 160px; font-weight: 600;";
+    $demo_input =
+        "padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; width: 140px;";
+    ?>
 
-// Save customer settings
-save_customer_settings($customer_id, array(
-    'monthly_minimum' => 500.00,
-    'uses_annualized' => 1
-));
-
-// Create/update LMS
-$lms_id = save_lms(null, 'New LMS', 0.15);
-assign_customer_lms($customer_id, $lms_id);</pre>
-    </div>
-
-    <div class="demo-box" style="background: #fff3cd; border: 2px solid #ffc107;">
-        <h3>Live Demo: Save Customer Settings (Using Real Functions)</h3>
-        <form method="get" style="margin: 15px 0;">
-            <div style="margin-bottom: 10px;">
-                <label>Monthly Minimum: $</label>
-                <input type="number" name="monthly_min" step="0.01" value="<?php echo isset(
-                    $_GET["monthly_min"]
+    <!-- ============ DEFAULT PRICING DEMO ============ -->
+    <div class="demo-box" style="border-left: 4px solid #6f42c1;">
+        <h3>Default Pricing</h3>
+        <p>Append-only tier pricing. Each save creates a new effective set — historical pricing is preserved.</p>
+        <form method="get" style="margin: 12px 0;">
+            <input type="hidden" name="demo" value="default_tiers">
+            <div style="margin-bottom: 8px;">
+                <label style="<?php echo $demo_label; ?>">Tier 1 price ($):</label>
+                <input type="number" name="dt_price1" step="0.01" value="<?php echo isset(
+                    $_GET["dt_price1"]
                 )
-                    ? htmlspecialchars($_GET["monthly_min"])
-                    : "500.00"; ?>" style="width: 120px; padding: 5px;">
+                    ? htmlspecialchars($_GET["dt_price1"])
+                    : "0.50"; ?>" style="<?php echo $demo_input; ?>">
+                <span style="color: #888; font-size: 0.85em;">0 – 1,000 volume</span>
             </div>
-            <div style="margin-bottom: 10px;">
-                <label>Uses Annualized:</label>
-                <select name="annualized" style="padding: 5px;">
-                    <option value="0" <?php echo isset($_GET["annualized"]) &&
-                    $_GET["annualized"] == "0"
-                        ? "selected"
-                        : ""; ?>>No</option>
-                    <option value="1" <?php echo isset($_GET["annualized"]) &&
-                    $_GET["annualized"] == "1"
-                        ? "selected"
-                        : ""; ?>>Yes</option>
-                </select>
+            <div style="margin-bottom: 8px;">
+                <label style="<?php echo $demo_label; ?>">Tier 2 price ($):</label>
+                <input type="number" name="dt_price2" step="0.01" value="<?php echo isset(
+                    $_GET["dt_price2"]
+                )
+                    ? htmlspecialchars($_GET["dt_price2"])
+                    : "0.40"; ?>" style="<?php echo $demo_input; ?>">
+                <span style="color: #888; font-size: 0.85em;">1,001+ volume</span>
             </div>
-            <div style="margin-bottom: 10px;">
-                <label>Pause Billing:</label>
-                <select name="paused" style="padding: 5px;">
-                    <option value="0" <?php echo isset($_GET["paused"]) &&
-                    $_GET["paused"] == "0"
-                        ? "selected"
-                        : ""; ?>>No</option>
-                    <option value="1" <?php echo isset($_GET["paused"]) &&
-                    $_GET["paused"] == "1"
-                        ? "selected"
-                        : ""; ?>>Yes</option>
-                </select>
-            </div>
-            <button type="submit" style="padding: 10px 25px; background: #ffc107; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;">
-                Save Settings (Real Function)
-            </button>
+            <button type="submit" style="<?php echo $demo_btn; ?> background: #6f42c1;">Save Default Tiers</button>
         </form>
+        <?php if (isset($_GET["demo"]) && $_GET["demo"] === "default_tiers"):
 
-        <?php if (isset($_GET["monthly_min"])):
-            // Create real test customer
-
-            $demo_customer = create_test_customer([
-                "id" => 88888,
-                "name" => "Demo CRUD Customer",
+            $d_svc = create_test_service(["name" => "Demo Service"]);
+            save_default_tiers($d_svc, [
+                [
+                    "volume_start" => 0,
+                    "volume_end" => 1000,
+                    "price_per_inquiry" => floatval($_GET["dt_price1"]),
+                ],
+                [
+                    "volume_start" => 1001,
+                    "volume_end" => null,
+                    "price_per_inquiry" => floatval($_GET["dt_price2"]),
+                ],
             ]);
-
-            // Call REAL function
-            save_customer_settings($demo_customer, [
-                "monthly_minimum" => floatval($_GET["monthly_min"]),
-                "uses_annualized" => intval($_GET["annualized"]),
-                "billing_paused" => intval($_GET["paused"]),
-            ]);
-
-            // Read back with REAL function
-            $saved = get_current_customer_settings($demo_customer);
-
-            // Clean up
+            $d_result = get_current_default_tiers($d_svc);
             sqlite_execute(
-                "DELETE FROM customer_settings WHERE customer_id = ?",
-                [88888]
+                "DELETE FROM pricing_tiers WHERE level = 'default' AND service_id = ?",
+                [$d_svc]
             );
-            sqlite_execute("DELETE FROM customers WHERE id = ?", [88888]);
+            sqlite_execute("DELETE FROM services WHERE id = ?", [$d_svc]);
             ?>
-        <div style="background: #d4edda; border: 2px solid #28a745; border-radius: 10px; padding: 15px; margin-top: 15px;">
-            <h4 style="color: #155724; margin-bottom: 10px;">Result from get_current_customer_settings():</h4>
-            <pre style="background: #1e1e1e; color: #d4d4d4; padding: 10px; border-radius: 5px; overflow-x: auto;"><?php print_r(
-                $saved
-            ); ?></pre>
-            <p style="color: #155724; margin-top: 10px; font-size: 0.9em;">
-                <strong>Functions called:</strong><br>
-                1. create_test_customer() - Created customer ID <?php echo $demo_customer; ?><br>
-                2. save_customer_settings(<?php echo $demo_customer; ?>, [...]) - Saved settings<br>
-                3. get_current_customer_settings(<?php echo $demo_customer; ?>) - Retrieved settings<br>
-                4. Cleanup - Deleted test data
-            </p>
+        <div style="<?php echo $demo_success; ?>">
+            <strong>save_default_tiers()</strong> &rarr; <strong>get_current_default_tiers()</strong>
+            <pre style="<?php echo $demo_result_box; ?>"><?php print_r(
+    $d_result
+); ?></pre>
         </div>
         <?php
         endif; ?>
+    </div>
+
+    <!-- ============ GROUPS DEMO ============ -->
+    <div class="demo-box" style="border-left: 4px solid #007bff;">
+        <h3>Groups</h3>
+        <p>Group tiers override default pricing. Inheritance: Customer &gt; Group &gt; Default.</p>
+        <form method="get" style="margin: 12px 0;">
+            <input type="hidden" name="demo" value="group_tiers">
+            <div style="margin-bottom: 8px;">
+                <label style="<?php echo $demo_label; ?>">Group price ($):</label>
+                <input type="number" name="gt_price" step="0.01" value="<?php echo isset(
+                    $_GET["gt_price"]
+                )
+                    ? htmlspecialchars($_GET["gt_price"])
+                    : "0.80"; ?>" style="<?php echo $demo_input; ?>">
+            </div>
+            <button type="submit" style="<?php echo $demo_btn; ?> background: #007bff;">Save Group Tiers</button>
+        </form>
+        <?php if (isset($_GET["demo"]) && $_GET["demo"] === "group_tiers"):
+
+            $d_grp = create_test_group(["name" => "Demo Group"]);
+            $d_svc = create_test_service(["name" => "Demo Service"]);
+            save_default_tiers($d_svc, [
+                [
+                    "volume_start" => 0,
+                    "volume_end" => null,
+                    "price_per_inquiry" => 1.0,
+                ],
+            ]);
+            save_group_tiers($d_grp, $d_svc, [
+                [
+                    "volume_start" => 0,
+                    "volume_end" => null,
+                    "price_per_inquiry" => floatval($_GET["gt_price"]),
+                ],
+            ]);
+            $d_result = get_current_group_tiers($d_grp, $d_svc);
+            sqlite_execute(
+                "DELETE FROM pricing_tiers WHERE level = 'group' AND level_id = ?",
+                [$d_grp]
+            );
+            sqlite_execute(
+                "DELETE FROM pricing_tiers WHERE level = 'default' AND service_id = ?",
+                [$d_svc]
+            );
+            sqlite_execute("DELETE FROM discount_groups WHERE id = ?", [
+                $d_grp,
+            ]);
+            sqlite_execute("DELETE FROM services WHERE id = ?", [$d_svc]);
+            ?>
+        <div style="<?php echo $demo_success; ?>">
+            <strong>save_group_tiers()</strong> &rarr; <strong>get_current_group_tiers()</strong>
+            <pre style="<?php echo $demo_result_box; ?>"><?php print_r(
+    $d_result
+); ?></pre>
+            <p style="color: #155724; font-size: 0.85em; margin-top: 8px;">Default was $1.00 — group overrides to $<?php echo htmlspecialchars(
+                $_GET["gt_price"]
+            ); ?></p>
+        </div>
+        <?php
+        endif; ?>
+    </div>
+
+    <!-- ============ CUSTOMERS DEMO ============ -->
+    <div class="demo-box" style="border-left: 4px solid #28a745;">
+        <h3>Customers</h3>
+        <p>Customer-level settings: monthly minimums, annualized toggles, billing pause.</p>
+        <form method="get" style="margin: 12px 0;">
+            <input type="hidden" name="demo" value="customer_settings">
+            <div style="margin-bottom: 8px;">
+                <label style="<?php echo $demo_label; ?>">Monthly Minimum ($):</label>
+                <input type="number" name="cs_min" step="0.01" value="<?php echo isset(
+                    $_GET["cs_min"]
+                )
+                    ? htmlspecialchars($_GET["cs_min"])
+                    : "500.00"; ?>" style="<?php echo $demo_input; ?>">
+            </div>
+            <div style="margin-bottom: 8px;">
+                <label style="<?php echo $demo_label; ?>">Uses Annualized:</label>
+                <select name="cs_ann" style="padding: 6px;">
+                    <option value="0" <?php echo isset($_GET["cs_ann"]) &&
+                    $_GET["cs_ann"] == "1"
+                        ? ""
+                        : "selected"; ?>>No</option>
+                    <option value="1" <?php echo isset($_GET["cs_ann"]) &&
+                    $_GET["cs_ann"] == "1"
+                        ? "selected"
+                        : ""; ?>>Yes</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 8px;">
+                <label style="<?php echo $demo_label; ?>">Pause Billing:</label>
+                <select name="cs_pause" style="padding: 6px;">
+                    <option value="0" <?php echo isset($_GET["cs_pause"]) &&
+                    $_GET["cs_pause"] == "1"
+                        ? ""
+                        : "selected"; ?>>No</option>
+                    <option value="1" <?php echo isset($_GET["cs_pause"]) &&
+                    $_GET["cs_pause"] == "1"
+                        ? "selected"
+                        : ""; ?>>Yes</option>
+                </select>
+            </div>
+            <button type="submit" style="<?php echo $demo_btn; ?> background: #28a745;">Save Customer Settings</button>
+        </form>
+        <?php if (
+            isset($_GET["demo"]) &&
+            $_GET["demo"] === "customer_settings"
+        ):
+
+            $d_cust = create_test_customer(["name" => "Demo Customer"]);
+            save_customer_settings($d_cust, [
+                "monthly_minimum" => floatval($_GET["cs_min"]),
+                "uses_annualized" => intval($_GET["cs_ann"]),
+                "billing_paused" => intval($_GET["cs_pause"]),
+            ]);
+            $d_result = get_current_customer_settings($d_cust);
+            sqlite_execute(
+                "DELETE FROM customer_settings WHERE customer_id = ?",
+                [$d_cust]
+            );
+            sqlite_execute("DELETE FROM customers WHERE id = ?", [$d_cust]);
+            ?>
+        <div style="<?php echo $demo_success; ?>">
+            <strong>save_customer_settings()</strong> &rarr; <strong>get_current_customer_settings()</strong>
+            <pre style="<?php echo $demo_result_box; ?>"><?php print_r(
+    $d_result
+); ?></pre>
+        </div>
+        <?php
+        endif; ?>
+    </div>
+
+    <!-- ============ ESCALATORS DEMO ============ -->
+    <div class="demo-box" style="border-left: 4px solid #dc3545;">
+        <h3>Escalators</h3>
+        <p>Annual price adjustments: percentage and/or fixed dollar. Delays push activation forward.</p>
+        <form method="get" style="margin: 12px 0;">
+            <input type="hidden" name="demo" value="escalators">
+            <div style="margin-bottom: 8px;">
+                <label style="<?php echo $demo_label; ?>">Base price ($):</label>
+                <input type="number" name="esc_base" step="0.01" value="<?php echo isset(
+                    $_GET["esc_base"]
+                )
+                    ? htmlspecialchars($_GET["esc_base"])
+                    : "1.00"; ?>" style="<?php echo $demo_input; ?>">
+            </div>
+            <div style="margin-bottom: 8px;">
+                <label style="<?php echo $demo_label; ?>">Year 2 percentage (%):</label>
+                <input type="number" name="esc_pct" step="0.1" value="<?php echo isset(
+                    $_GET["esc_pct"]
+                )
+                    ? htmlspecialchars($_GET["esc_pct"])
+                    : "5"; ?>" style="<?php echo $demo_input; ?>">
+            </div>
+            <div style="margin-bottom: 8px;">
+                <label style="<?php echo $demo_label; ?>">Year 2 fixed ($):</label>
+                <input type="number" name="esc_fixed" step="0.01" value="<?php echo isset(
+                    $_GET["esc_fixed"]
+                )
+                    ? htmlspecialchars($_GET["esc_fixed"])
+                    : "0"; ?>" style="<?php echo $demo_input; ?>">
+            </div>
+            <div style="margin-bottom: 8px;">
+                <label style="<?php echo $demo_label; ?>">Delay months:</label>
+                <input type="number" name="esc_delay" step="1" min="0" value="<?php echo isset(
+                    $_GET["esc_delay"]
+                )
+                    ? htmlspecialchars($_GET["esc_delay"])
+                    : "0"; ?>" style="<?php echo $demo_input; ?>">
+            </div>
+            <button type="submit" style="<?php echo $demo_btn; ?> background: #dc3545;">Save Escalators</button>
+        </form>
+        <?php if (isset($_GET["demo"]) && $_GET["demo"] === "escalators"):
+
+            $d_cust = create_test_customer([
+                "name" => "Demo Escalator Customer",
+            ]);
+            $esc_start = date("Y-m-d", strtotime("-13 months"));
+            save_escalators(
+                $d_cust,
+                [
+                    [
+                        "year_number" => 1,
+                        "escalator_percentage" => 0,
+                        "fixed_adjustment" => 0,
+                    ],
+                    [
+                        "year_number" => 2,
+                        "escalator_percentage" => floatval($_GET["esc_pct"]),
+                        "fixed_adjustment" => floatval($_GET["esc_fixed"]),
+                    ],
+                ],
+                $esc_start,
+                $esc_start
+            );
+            $delay_months = intval($_GET["esc_delay"]);
+            if ($delay_months > 0) {
+                apply_escalator_delay($d_cust, 2, $delay_months);
+            }
+            $d_escalators = get_current_escalators($d_cust);
+            $d_price = calculate_escalated_price(
+                floatval($_GET["esc_base"]),
+                $d_cust,
+                date("Y-m-d")
+            );
+            $base = floatval($_GET["esc_base"]);
+            $direction =
+                $d_price > $base + 0.001
+                    ? "INCREASE"
+                    : ($d_price < $base - 0.001
+                        ? "DECREASE"
+                        : "NO CHANGE");
+            $dir_color =
+                $direction === "INCREASE"
+                    ? "#dc3545"
+                    : ($direction === "DECREASE"
+                        ? "#28a745"
+                        : "#6c757d");
+            sqlite_execute(
+                "DELETE FROM escalator_delays WHERE customer_id = ?",
+                [$d_cust]
+            );
+            sqlite_execute(
+                "DELETE FROM customer_escalators WHERE customer_id = ?",
+                [$d_cust]
+            );
+            sqlite_execute("DELETE FROM customers WHERE id = ?", [$d_cust]);
+            ?>
+        <div style="<?php echo $demo_success; ?>">
+            <strong>save_escalators()</strong> &rarr; <strong>calculate_escalated_price()</strong>
+            <div style="margin: 10px 0; padding: 12px; background: white; border-radius: 5px; text-align: center;">
+                <span style="font-size: 1.4em;">$<?php echo htmlspecialchars(
+                    $_GET["esc_base"]
+                ); ?></span>
+                <span style="font-size: 1.4em; margin: 0 10px;">&rarr;</span>
+                <span style="font-size: 1.6em; font-weight: bold; color: <?php echo $dir_color; ?>;">$<?php echo number_format(
+    $d_price,
+    4
+); ?></span>
+                <span style="display: inline-block; padding: 3px 12px; border-radius: 12px; background: <?php echo $dir_color; ?>; color: white; font-size: 0.8em; font-weight: bold; margin-left: 8px;"><?php echo $direction; ?></span>
+            </div>
+            <pre style="<?php echo $demo_result_box; ?>"><?php print_r(
+    $d_escalators
+); ?></pre>
+            <?php if ($delay_months > 0): ?>
+            <p style="color: #856404; font-size: 0.85em; margin-top: 8px;">Delay of <?php echo $delay_months; ?> month(s) applied to year 2.</p>
+            <?php endif; ?>
+        </div>
+        <?php
+        endif; ?>
+    </div>
+
+    <!-- ============ LMS DEMO ============ -->
+    <div class="demo-box" style="border-left: 4px solid #fd7e14;">
+        <h3>LMS</h3>
+        <p>Lead Management Systems: name, commission rate, and customer assignment.</p>
+        <form method="get" style="margin: 12px 0;">
+            <input type="hidden" name="demo" value="lms">
+            <div style="margin-bottom: 8px;">
+                <label style="<?php echo $demo_label; ?>">LMS Name:</label>
+                <input type="text" name="lms_name" value="<?php echo isset(
+                    $_GET["lms_name"]
+                )
+                    ? htmlspecialchars($_GET["lms_name"])
+                    : "Demo LMS"; ?>" style="<?php echo $demo_input; ?> width: 200px;">
+            </div>
+            <div style="margin-bottom: 8px;">
+                <label style="<?php echo $demo_label; ?>">Commission Rate:</label>
+                <input type="number" name="lms_rate" step="0.01" min="0" max="1" value="<?php echo isset(
+                    $_GET["lms_rate"]
+                )
+                    ? htmlspecialchars($_GET["lms_rate"])
+                    : "0.15"; ?>" style="<?php echo $demo_input; ?>">
+            </div>
+            <button type="submit" style="<?php echo $demo_btn; ?> background: #fd7e14;">Save LMS</button>
+        </form>
+        <?php if (isset($_GET["demo"]) && $_GET["demo"] === "lms"):
+
+            save_lms(null, $_GET["lms_name"], floatval($_GET["lms_rate"]));
+            $d_lms_id = sqlite_last_id();
+            $d_cust = create_test_customer(["name" => "Demo LMS Customer"]);
+            assign_customer_lms($d_cust, $d_lms_id);
+            $d_lms = get_lms($d_lms_id);
+            $d_customers = get_customers_by_lms($d_lms_id);
+            sqlite_execute("UPDATE customers SET lms_id = NULL WHERE id = ?", [
+                $d_cust,
+            ]);
+            sqlite_execute("DELETE FROM customers WHERE id = ?", [$d_cust]);
+            sqlite_execute("DELETE FROM lms WHERE id = ?", [$d_lms_id]);
+            ?>
+        <div style="<?php echo $demo_success; ?>">
+            <strong>save_lms()</strong> &rarr; <strong>assign_customer_lms()</strong> &rarr; <strong>get_lms()</strong>
+            <pre style="<?php echo $demo_result_box; ?>"><?php print_r(
+    $d_lms
+); ?></pre>
+            <p style="color: #155724; font-size: 0.85em; margin-top: 8px;">Assigned <?php echo count(
+                $d_customers
+            ); ?> customer(s) to this LMS.</p>
+        </div>
+        <?php
+        endif; ?>
+    </div>
+
+    <!-- ============ RULES DEMO ============ -->
+    <div class="demo-box" style="border-left: 4px solid #20c997;">
+        <h3>Rules</h3>
+        <p>Business rule masking per-customer. Masked rules are excluded from billing calculations.</p>
+        <form method="get" style="margin: 12px 0;">
+            <input type="hidden" name="demo" value="rules">
+            <div style="margin-bottom: 8px;">
+                <label style="<?php echo $demo_label; ?>">Rule name:</label>
+                <input type="text" name="rule_name" value="<?php echo isset(
+                    $_GET["rule_name"]
+                )
+                    ? htmlspecialchars($_GET["rule_name"])
+                    : "no_charge_rule"; ?>" style="<?php echo $demo_input; ?> width: 200px;">
+            </div>
+            <div style="margin-bottom: 8px;">
+                <label style="<?php echo $demo_label; ?>">Action:</label>
+                <select name="rule_mask" style="padding: 6px;">
+                    <option value="1" <?php echo isset($_GET["rule_mask"]) &&
+                    $_GET["rule_mask"] == "1"
+                        ? "selected"
+                        : ""; ?>>Mask (disable rule)</option>
+                    <option value="0" <?php echo isset($_GET["rule_mask"]) &&
+                    $_GET["rule_mask"] == "0"
+                        ? "selected"
+                        : ""; ?>>Unmask (enable rule)</option>
+                </select>
+            </div>
+            <button type="submit" style="<?php echo $demo_btn; ?> background: #20c997;">Toggle Rule Mask</button>
+        </form>
+        <?php if (isset($_GET["demo"]) && $_GET["demo"] === "rules"):
+
+            $d_cust = create_test_customer(["name" => "Demo Rules Customer"]);
+            $rule_name = $_GET["rule_name"];
+            $mask_on = intval($_GET["rule_mask"]) === 1;
+            toggle_rule_mask($d_cust, $rule_name, $mask_on);
+            $d_status = get_rule_mask_status($d_cust, $rule_name);
+            $status_label = $d_status
+                ? "MASKED (disabled)"
+                : "ACTIVE (enabled)";
+            $status_color = $d_status ? "#dc3545" : "#28a745";
+            sqlite_execute(
+                "DELETE FROM business_rule_masks WHERE customer_id = ?",
+                [$d_cust]
+            );
+            sqlite_execute("DELETE FROM customers WHERE id = ?", [$d_cust]);
+            ?>
+        <div style="<?php echo $demo_success; ?>">
+            <strong>toggle_rule_mask()</strong> &rarr; <strong>get_rule_mask_status()</strong>
+            <div style="margin: 10px 0; padding: 10px; background: white; border-radius: 5px;">
+                Rule <code><?php echo htmlspecialchars(
+                    $rule_name
+                ); ?></code> is:
+                <span style="display: inline-block; padding: 4px 14px; border-radius: 12px; background: <?php echo $status_color; ?>; color: white; font-weight: bold; font-size: 0.9em;"><?php echo $status_label; ?></span>
+            </div>
+        </div>
+        <?php
+        endif; ?>
+    </div>
+
+    <!-- ============ BILLING REPORTS (no interactive demo) ============ -->
+    <div class="demo-box" style="border-left: 4px solid #6c757d;">
+        <h3>Billing Reports</h3>
+        <p>The <code>delete_billing_report()</code> function removes a report and all its line items.
+        This is a destructive operation tested automatically above — no interactive demo needed.</p>
     </div>
     <?php return ob_get_clean();
 }
 
 // ============================================================
-// TEST DEFINITIONS
+// TEST DEFINITIONS (organized by Configuration entity)
 // ============================================================
 function run_crud_tests()
 {
     global $_test_results;
 
     // ============================================================
-    // save_default_tiers() tests
+    // DEFAULT PRICING
+    // Configuration > Default Pricing
+    // Functions: save_default_tiers(), save_service_cogs(),
+    //            save_transaction_type()
     // ============================================================
+
+    echo "\n--- Default Pricing ---\n";
 
     run_test("save_default_tiers - creates new tiers", function () {
         $service_id = create_test_service(["name" => "Credit Check"]);
@@ -286,9 +668,20 @@ function run_crud_tests()
                 ],
             ]);
 
-            // get_current returns the latest effective set
+            // Both saves have same effective_date, so all rows come back
             $result = get_current_default_tiers($service_id);
-            assert_greater_than(0, count($result), "Should have tiers");
+            assert_count(
+                3,
+                $result,
+                "All tiers from both saves (same effective_date)"
+            );
+            // The second save's tiers appear after the first
+            assert_float_equals(
+                0.6,
+                $result[1]["price_per_inquiry"],
+                0.01,
+                "Second save's first tier should be 0.60"
+            );
         }
     );
 
@@ -320,12 +713,88 @@ function run_crud_tests()
 
         // Current should still be 0.50 (future not yet effective)
         $result = get_current_default_tiers($service_id);
-        assert_greater_than(0, count($result), "Should have current tiers");
+        assert_count(1, $result, "Should have 1 current tier");
+        assert_float_equals(
+            0.5,
+            $result[0]["price_per_inquiry"],
+            0.01,
+            "Current price should still be 0.50, not future 0.75"
+        );
+    });
+
+    run_test("save_service_cogs - creates new COGS", function () {
+        $service_id = create_test_service(["name" => "COGS Service"]);
+
+        save_service_cogs($service_id, 0.25);
+
+        $cogs = get_service_cogs($service_id);
+        assert_float_equals(0.25, $cogs, 0.01, "COGS rate should match");
+    });
+
+    run_test("save_service_cogs - updates existing", function () {
+        $service_id = create_test_service(["name" => "Update COGS"]);
+
+        save_service_cogs($service_id, 0.2);
+        save_service_cogs($service_id, 0.3);
+
+        $cogs = get_service_cogs($service_id);
+        assert_float_equals(0.3, $cogs, 0.01, "COGS should be updated");
+    });
+
+    run_test("save_transaction_type - creates new type", function () {
+        $id = save_transaction_type(
+            "credit",
+            "Credit Check",
+            "CC001",
+            "CREDIT CHECK"
+        );
+
+        assert_not_null($id, "Should return ID");
+
+        $type = get_transaction_type_by_efx("CC001");
+        assert_equals("credit", $type["type"], "Type should match");
+        assert_equals("Credit Check", $type["display_name"], "Display name");
+        assert_equals(
+            "CREDIT CHECK",
+            $type["efx_displayname"],
+            "EFX display name"
+        );
+    });
+
+    run_test("save_transaction_type - creates transaction type", function () {
+        save_transaction_type("test", "Test Type", "TEST001", "TEST");
+
+        $type = get_transaction_type_by_efx("TEST001");
+        assert_not_null($type, "Should find transaction type");
+        assert_equals("TEST001", $type["efx_code"], "EFX code should match");
+    });
+
+    run_test("save_transaction_type - with service link", function () {
+        $service_id = create_test_service(["name" => "Linked Service"]);
+
+        $id = save_transaction_type(
+            "linked",
+            "Linked Type",
+            "LINK001",
+            null,
+            $service_id
+        );
+
+        $type = get_transaction_type_by_efx("LINK001");
+        assert_equals(
+            $service_id,
+            $type["service_id"],
+            "Should link to service"
+        );
     });
 
     // ============================================================
-    // save_group_tiers() tests
+    // GROUPS
+    // Configuration > Groups
+    // Functions: save_group_tiers()
     // ============================================================
+
+    echo "\n--- Groups ---\n";
 
     run_test("save_group_tiers - creates group override", function () {
         $group_id = create_test_group(["name" => "Premium"]);
@@ -359,27 +828,53 @@ function run_crud_tests()
         );
     });
 
-    run_test("save_group_tiers - multiple saves create history", function () {
-        $group_id = create_test_group(["name" => "Temp Group"]);
-        $service_id = create_test_service(["name" => "Temp Service"]);
+    run_test(
+        "save_group_tiers - second save replaces current set",
+        function () {
+            $group_id = create_test_group(["name" => "Temp Group"]);
+            $service_id = create_test_service(["name" => "Temp Service"]);
 
-        // Create group tiers
-        save_group_tiers($group_id, $service_id, [
-            [
-                "volume_start" => 0,
-                "volume_end" => null,
-                "price_per_inquiry" => 0.5,
-            ],
-        ]);
+            // First save
+            save_group_tiers($group_id, $service_id, [
+                [
+                    "volume_start" => 0,
+                    "volume_end" => null,
+                    "price_per_inquiry" => 0.5,
+                ],
+            ]);
 
-        // Verify created
-        $result = get_current_group_tiers($group_id, $service_id);
-        assert_greater_than(0, count($result), "Should have tiers after save");
-    });
+            // Second save (append-only: new effective set)
+            save_group_tiers($group_id, $service_id, [
+                [
+                    "volume_start" => 0,
+                    "volume_end" => null,
+                    "price_per_inquiry" => 0.35,
+                ],
+            ]);
+
+            // Both saves have same effective_date, so all rows come back
+            $result = get_current_group_tiers($group_id, $service_id);
+            assert_count(
+                2,
+                $result,
+                "Both saves returned (same effective_date)"
+            );
+            assert_float_equals(
+                0.35,
+                $result[1]["price_per_inquiry"],
+                0.01,
+                "Second save's tier should be 0.35"
+            );
+        }
+    );
 
     // ============================================================
-    // save_customer_tiers() tests
+    // CUSTOMERS
+    // Configuration > Customers
+    // Functions: save_customer_tiers(), save_customer_settings()
     // ============================================================
+
+    echo "\n--- Customers ---\n";
 
     run_test("save_customer_tiers - creates customer override", function () {
         $customer_id = create_test_customer(["name" => "VIP Client"]);
@@ -449,13 +944,19 @@ function run_crud_tests()
             ]);
 
             $result = get_current_customer_tiers($customer_id, $service_id);
-            assert_greater_than(0, count($result), "Should have tiers");
+            assert_count(
+                2,
+                $result,
+                "Both saves returned (same effective_date)"
+            );
+            assert_float_equals(
+                0.35,
+                $result[1]["price_per_inquiry"],
+                0.01,
+                "Second save's tier should be 0.35"
+            );
         }
     );
-
-    // ============================================================
-    // save_customer_settings() tests
-    // ============================================================
 
     run_test("save_customer_settings - all fields", function () {
         $customer_id = create_test_customer(["name" => "Settings Client"]);
@@ -537,8 +1038,12 @@ function run_crud_tests()
     );
 
     // ============================================================
-    // save_escalators() tests
+    // ESCALATORS
+    // Configuration > Escalators
+    // Functions: save_escalators(), apply_escalator_delay()
     // ============================================================
+
+    echo "\n--- Escalators ---\n";
 
     run_test("save_escalators - multiple years", function () {
         $customer_id = create_test_customer(["name" => "Escalator Client"]);
@@ -566,7 +1071,19 @@ function run_crud_tests()
         );
 
         $result = get_current_escalators($customer_id);
-        assert_greater_than(0, count($result), "Should have escalators");
+        assert_count(3, $result, "Should have 3 escalator years");
+        assert_float_equals(
+            3,
+            $result[2]["escalator_percentage"],
+            0.01,
+            "Year 3 percentage should be 3"
+        );
+        assert_float_equals(
+            5,
+            $result[2]["fixed_adjustment"],
+            0.01,
+            "Year 3 fixed adjustment should be 5"
+        );
     });
 
     run_test("save_escalators - append-only history", function () {
@@ -614,12 +1131,18 @@ function run_crud_tests()
         );
 
         $result = get_current_escalators($customer_id);
-        assert_greater_than(0, count($result), "Should have escalators");
+        assert_count(
+            5,
+            $result,
+            "All escalator rows from both saves (same effective_date)"
+        );
+        assert_float_equals(
+            10,
+            $result[3]["escalator_percentage"],
+            0.01,
+            "Second save's year 2 should be 10%"
+        );
     });
-
-    // ============================================================
-    // apply_escalator_delay() tests
-    // ============================================================
 
     run_test("apply_escalator_delay - single delay", function () {
         $customer_id = create_test_customer(["name" => "Delay Client"]);
@@ -680,8 +1203,12 @@ function run_crud_tests()
     });
 
     // ============================================================
-    // save_lms() tests
+    // LMS
+    // Configuration > LMS
+    // Functions: save_lms(), assign_customer_lms()
     // ============================================================
+
+    echo "\n--- LMS ---\n";
 
     run_test("save_lms - creates new LMS", function () {
         $id = save_lms(null, "New LMS", 0.15);
@@ -719,19 +1246,96 @@ function run_crud_tests()
     });
 
     run_test("save_lms - null commission falls back to default", function () {
-        // Set default
         save_default_commission_rate(0.08);
 
-        $id = save_lms(null, "Default Rate LMS", null);
+        save_lms(null, "Default Rate LMS", null);
+        $id = sqlite_last_id();
+
+        $lms = get_lms($id);
+        assert_null(
+            $lms["commission_rate"],
+            "LMS record should store null commission"
+        );
 
         $rate = get_effective_commission_rate($id);
-        // Should return default rate or the LMS-specific rate
-        assert_not_null($rate, "Should return a rate");
+        assert_float_equals(
+            0.08,
+            $rate,
+            0.001,
+            "Should fall back to default rate 0.08"
+        );
+    });
+
+    run_test("assign_customer_lms - assigns LMS to customer", function () {
+        // Use save_lms to create (it handles ID assignment properly)
+        $lms_id = save_lms(null, "Assigned LMS", 0.1);
+        $customer_id = create_test_customer(["name" => "LMS Client"]);
+
+        assign_customer_lms($customer_id, $lms_id);
+
+        $customers = get_customers_by_lms($lms_id);
+        $found = false;
+        foreach ($customers as $c) {
+            if ($c["id"] == $customer_id) {
+                $found = true;
+                break;
+            }
+        }
+        assert_true($found, "Customer should be assigned to LMS");
+    });
+
+    run_test("assign_customer_lms - reassigns to different LMS", function () {
+        $lms1_id = save_lms(null, "LMS One", 0.1);
+        $lms2_id = save_lms(null, "LMS Two", 0.12);
+        $customer_id = create_test_customer(["name" => "Reassign Client"]);
+
+        // First assignment
+        assign_customer_lms($customer_id, $lms1_id);
+
+        // Reassign
+        assign_customer_lms($customer_id, $lms2_id);
+
+        // Should be in LMS 2
+        $customers = get_customers_by_lms($lms2_id);
+        $found = false;
+        foreach ($customers as $c) {
+            if ($c["id"] == $customer_id) {
+                $found = true;
+                break;
+            }
+        }
+        assert_true($found, "Customer should be in new LMS");
     });
 
     // ============================================================
-    // save_billing_flags() tests
+    // RULES
+    // Configuration > Rules
+    // Functions: toggle_rule_mask(), save_billing_flags()
     // ============================================================
+
+    echo "\n--- Rules ---\n";
+
+    run_test("toggle_rule_mask - mask on", function () {
+        $customer_id = create_test_customer(["name" => "Mask Client"]);
+
+        toggle_rule_mask($customer_id, "test_rule", true);
+
+        $status = get_rule_mask_status($customer_id, "test_rule");
+        assert_true($status, "Rule should be masked");
+    });
+
+    run_test("toggle_rule_mask - mask off", function () {
+        $customer_id = create_test_customer(["name" => "Unmask Client"]);
+
+        // First mask
+        toggle_rule_mask($customer_id, "another_rule", true);
+
+        // Then unmask
+        toggle_rule_mask($customer_id, "another_rule", false);
+
+        $status = get_rule_mask_status($customer_id, "another_rule");
+        assert_false($status, "Rule should be unmasked");
+    });
 
     run_test("save_billing_flags - default level", function () {
         $service_id = create_test_service(["name" => "Flag Service"]);
@@ -803,136 +1407,21 @@ function run_crud_tests()
     });
 
     // ============================================================
-    // save_transaction_type() tests
+    // BILLING REPORTS
+    // Functions: delete_billing_report()
     // ============================================================
 
-    run_test("save_transaction_type - creates new type", function () {
-        $id = save_transaction_type(
-            "credit",
-            "Credit Check",
-            "CC001",
-            "CREDIT CHECK"
-        );
-
-        assert_not_null($id, "Should return ID");
-
-        $type = get_transaction_type_by_efx("CC001");
-        assert_equals("credit", $type["type"], "Type should match");
-        assert_equals("Credit Check", $type["display_name"], "Display name");
-        assert_equals(
-            "CREDIT CHECK",
-            $type["efx_displayname"],
-            "EFX display name"
-        );
-    });
-
-    run_test("save_transaction_type - creates transaction type", function () {
-        save_transaction_type("test", "Test Type", "TEST001", "TEST");
-
-        $type = get_transaction_type_by_efx("TEST001");
-        assert_not_null($type, "Should find transaction type");
-        assert_equals("TEST001", $type["efx_code"], "EFX code should match");
-    });
-
-    run_test("save_transaction_type - with service link", function () {
-        $service_id = create_test_service(["name" => "Linked Service"]);
-
-        $id = save_transaction_type(
-            "linked",
-            "Linked Type",
-            "LINK001",
-            null,
-            $service_id
-        );
-
-        $type = get_transaction_type_by_efx("LINK001");
-        assert_equals(
-            $service_id,
-            $type["service_id"],
-            "Should link to service"
-        );
-    });
-
-    // ============================================================
-    // save_service_cogs() tests
-    // ============================================================
-
-    run_test("save_service_cogs - creates new COGS", function () {
-        $service_id = create_test_service(["name" => "COGS Service"]);
-
-        save_service_cogs($service_id, 0.25);
-
-        $cogs = get_service_cogs($service_id);
-        assert_float_equals(0.25, $cogs, 0.01, "COGS rate should match");
-    });
-
-    run_test("save_service_cogs - updates existing", function () {
-        $service_id = create_test_service(["name" => "Update COGS"]);
-
-        save_service_cogs($service_id, 0.2);
-        save_service_cogs($service_id, 0.3);
-
-        $cogs = get_service_cogs($service_id);
-        assert_float_equals(0.3, $cogs, 0.01, "COGS should be updated");
-    });
-
-    // ============================================================
-    // assign_customer_lms() tests
-    // ============================================================
-
-    run_test("assign_customer_lms - assigns LMS to customer", function () {
-        // Use save_lms to create (it handles ID assignment properly)
-        $lms_id = save_lms(null, "Assigned LMS", 0.1);
-        $customer_id = create_test_customer(["name" => "LMS Client"]);
-
-        assign_customer_lms($customer_id, $lms_id);
-
-        $customers = get_customers_by_lms($lms_id);
-        $found = false;
-        foreach ($customers as $c) {
-            if ($c["id"] == $customer_id) {
-                $found = true;
-                break;
-            }
-        }
-        assert_true($found, "Customer should be assigned to LMS");
-    });
-
-    run_test("assign_customer_lms - reassigns to different LMS", function () {
-        $lms1_id = save_lms(null, "LMS One", 0.1);
-        $lms2_id = save_lms(null, "LMS Two", 0.12);
-        $customer_id = create_test_customer(["name" => "Reassign Client"]);
-
-        // First assignment
-        assign_customer_lms($customer_id, $lms1_id);
-
-        // Reassign
-        assign_customer_lms($customer_id, $lms2_id);
-
-        // Should be in LMS 2
-        $customers = get_customers_by_lms($lms2_id);
-        $found = false;
-        foreach ($customers as $c) {
-            if ($c["id"] == $customer_id) {
-                $found = true;
-                break;
-            }
-        }
-        assert_true($found, "Customer should be in new LMS");
-    });
-
-    // ============================================================
-    // delete_billing_report() tests
-    // ============================================================
+    echo "\n--- Billing Reports ---\n";
 
     run_test("delete_billing_report - removes report and lines", function () {
-        // Create customer for FK
-        create_test_customer(["id" => 201, "name" => "Delete Test Customer"]);
+        $customer_id = create_test_customer(["name" => "Delete Test Customer"]);
 
         $csv =
             "y,m,cust_id,cust_name,hit_code,tran_displayname,actual_unit_cost,count,revenue,EFX_code,billing_id\n";
         $csv .=
-            "2025,1,201,Delete Test,HIT001,Test,0.50,100,50.00,CC001,BIL001\n";
+            "2025,1," .
+            $customer_id .
+            ",Delete Test,HIT001,Test,0.50,100,50.00,CC001,BIL001\n";
 
         $result = import_billing_report(
             "DataX_2025_10_2025_10_delete_test.csv",
@@ -950,32 +1439,6 @@ function run_crud_tests()
         // Verify gone
         $lines = get_billing_report_lines($report_id);
         assert_count(0, $lines, "Lines should be deleted");
-    });
-
-    // ============================================================
-    // toggle_rule_mask() tests
-    // ============================================================
-
-    run_test("toggle_rule_mask - mask on", function () {
-        $customer_id = create_test_customer(["name" => "Mask Client"]);
-
-        toggle_rule_mask($customer_id, "test_rule", true);
-
-        $status = get_rule_mask_status($customer_id, "test_rule");
-        assert_true($status, "Rule should be masked");
-    });
-
-    run_test("toggle_rule_mask - mask off", function () {
-        $customer_id = create_test_customer(["name" => "Unmask Client"]);
-
-        // First mask
-        toggle_rule_mask($customer_id, "another_rule", true);
-
-        // Then unmask
-        toggle_rule_mask($customer_id, "another_rule", false);
-
-        $status = get_rule_mask_status($customer_id, "another_rule");
-        assert_false($status, "Rule should be unmasked");
     });
 
     // Print summary

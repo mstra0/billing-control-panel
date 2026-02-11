@@ -649,9 +649,9 @@ function get_unit_test_info()
             "file" => "test_crud.php",
             "title" => "CRUD Operations",
             "description" =>
-                "Create, read, update, delete operations for all entities",
+                "Entity CRUD tests grouped by Configuration page: Default Pricing, Groups, Customers, Escalators, LMS, Rules",
             "functions" =>
-                "save_default_tiers(), save_customer_settings(), save_escalators()",
+                "save_default_tiers(), save_group_tiers(), save_customer_tiers(), save_escalators(), save_lms(), toggle_rule_mask()",
             "priority" => "HIGH",
             "theme" => "theme-crud",
             "url" => "unit/test_crud.php",
