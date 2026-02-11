@@ -40,6 +40,10 @@ if ($_is_cli && !$_is_included) {
 // Include calculator for cross-engine agreement tests
 require_once dirname(__DIR__, 2) . "/calculator.php";
 
+// Backdated effective_date for test data — must be far enough in the past
+// that point-in-time queries with any reasonable as_of_date will see the data.
+define("TEST_EFFECTIVE_DATE", "2020-01-01");
+
 // ============================================================
 // TEST MODE: Run assertions (CLI or included)
 // ============================================================
@@ -85,7 +89,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            "2020-01-01",
+            TEST_EFFECTIVE_DATE,
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2025-06-01");
@@ -116,7 +120,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            "2020-01-01",
+            TEST_EFFECTIVE_DATE,
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2026-02-01");
@@ -147,7 +151,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            "2020-01-01",
+            TEST_EFFECTIVE_DATE,
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2026-02-01");
@@ -178,7 +182,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            "2020-01-01",
+            TEST_EFFECTIVE_DATE,
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2026-02-01");
@@ -209,7 +213,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-06-01",
-            "2020-01-01",
+            TEST_EFFECTIVE_DATE,
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2025-01-01");
@@ -245,7 +249,7 @@ function run_escalator_tests()
                 ],
             ],
             "2024-01-01",
-            "2020-01-01",
+            TEST_EFFECTIVE_DATE,
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2026-06-01");
@@ -276,7 +280,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            "2020-01-01",
+            TEST_EFFECTIVE_DATE,
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2026-02-01");
@@ -307,7 +311,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            "2020-01-01",
+            TEST_EFFECTIVE_DATE,
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2026-02-01");
@@ -338,7 +342,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            "2020-01-01",
+            TEST_EFFECTIVE_DATE,
         );
 
         $result = calculate_escalated_price(100.0, $customer_id, "2026-02-01");
@@ -369,7 +373,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            "2020-01-01",
+            TEST_EFFECTIVE_DATE,
         );
 
         $date = "2026-02-01";
@@ -416,10 +420,10 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            "2020-01-01",
+            TEST_EFFECTIVE_DATE,
         );
 
-        apply_escalator_delay($customer_id, 2, 2, "2020-01-01");
+        apply_escalator_delay($customer_id, 2, 2, TEST_EFFECTIVE_DATE);
 
         $result = calculate_escalated_price(100.0, $customer_id, "2026-02-01");
         assert_float_equals(
@@ -508,7 +512,7 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            "2020-01-01",
+            TEST_EFFECTIVE_DATE,
         );
 
         $escalators = get_current_escalators($customer_id);
@@ -610,7 +614,7 @@ function run_escalator_tests()
                     "price_per_inquiry" => 0.5,
                 ],
             ],
-            "2020-01-01",
+            TEST_EFFECTIVE_DATE,
         );
 
         // Create escalators: Year 1 (0%), Year 2 (5%), Year 3 (10%)
@@ -634,7 +638,7 @@ function run_escalator_tests()
                 ],
             ],
             "2024-01-01",
-            "2020-01-01",
+            TEST_EFFECTIVE_DATE,
         );
 
         // Test in Year 2 (after 1+ year from start)
@@ -737,11 +741,11 @@ function run_escalator_tests()
                 ],
             ],
             "2025-01-01",
-            "2020-01-01",
+            TEST_EFFECTIVE_DATE,
         );
 
         // Add 3-month delay to year 2
-        apply_escalator_delay($customer_id, 2, 3, "2020-01-01");
+        apply_escalator_delay($customer_id, 2, 3, TEST_EFFECTIVE_DATE);
 
         // Without delay, year 2 would activate ~2026-01-01
         // With 3-month (90-day) delay, should activate ~2026-04-01

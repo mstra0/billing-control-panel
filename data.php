@@ -4,6 +4,10 @@
 // Business logic, data retrieval, calculations
 // ============================================================
 
+// Escalator timing constants
+define("DAYS_PER_MONTH_ESTIMATE", 30);
+define("SECONDS_PER_YEAR", 365.25 * 24 * 60 * 60);
+
 function get_dashboard_alerts()
 {
     $alerts = [];
@@ -1031,12 +1035,6 @@ function get_escalators($customer_id, $as_of_date = null)
     );
 }
 
-/** @deprecated Use get_escalators($customer_id, $as_of_date) */
-function get_escalators_as_of($customer_id, $as_of_date)
-{
-    return get_escalators($customer_id, $as_of_date);
-}
-
 /**
  * Get total delay months for a customer/year, optionally as of a specific date.
  * When $as_of_date is null, returns all delays (current total).
@@ -1060,12 +1058,6 @@ function get_delay_months($customer_id, $year_number, $as_of_date = null)
     return !empty($delays) && $delays[0]["total"]
         ? (int) $delays[0]["total"]
         : 0;
-}
-
-/** @deprecated Use get_delay_months($customer_id, $year_number, $as_of_date) */
-function get_total_delay_months_as_of($customer_id, $year_number, $as_of_date)
-{
-    return get_delay_months($customer_id, $year_number, $as_of_date);
 }
 
 /**
@@ -1164,7 +1156,7 @@ function get_escalator_year_on_date($customer_id, $as_of_date)
 
         // Get delay for this specific year (point-in-time)
         $delay_months = get_delay_months($customer_id, $year_num, $as_of_date);
-        $delay_days = $delay_months * 30;
+        $delay_days = $delay_months * DAYS_PER_MONTH_ESTIMATE;
 
         // Calculate when this year's escalator actually takes effect
         $year_start_ts = strtotime("+" . ($year_num - 1) . " years", $start_ts);
@@ -2958,7 +2950,7 @@ function calculate_escalated_price(
         return $base_price; // Before escalators start
     }
 
-    $years_elapsed = floor(($as_of_ts - $start_ts) / (365.25 * 24 * 60 * 60));
+    $years_elapsed = floor(($as_of_ts - $start_ts) / SECONDS_PER_YEAR);
     $current_year = $years_elapsed + 1;
 
     // Find applicable escalator year (with delays)
@@ -2969,7 +2961,7 @@ function calculate_escalated_price(
 
         // Check for delays on this year (point-in-time aware)
         $delay_months = get_delay_months($customer_id, $year_num, $as_of_date);
-        $delay_days = $delay_months * 30;
+        $delay_days = $delay_months * DAYS_PER_MONTH_ESTIMATE;
 
         // Calculate effective date for this year's escalator
         $year_start_ts = strtotime("+" . ($year_num - 1) . " years", $start_ts);

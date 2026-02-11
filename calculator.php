@@ -230,7 +230,7 @@ function calculate_price_audit($as_of_date, $customer_id, $efx_code, $count)
         "escalator_percentage" => $escalator_pct,
         "fixed_adjustment" => $fixed_adj,
         "calculation" =>
-            $adj_price != $base_price
+            abs($adj_price - $base_price) > 0.000001
                 ? sprintf(
                     "Escalated: \$%.4f → \$%.4f (year %d, %.2f%% + \$%.4f)",
                     $base_price,
