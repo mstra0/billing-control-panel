@@ -478,6 +478,24 @@ function action_pricing_defaults_edit()
         }
 
         if (!empty($tiers)) {
+            // Check for overlaps — require confirmation before saving
+            $validation = validate_tier_ranges($tiers);
+            $confirm = get_param("confirm_overlap", "");
+            if (!empty($validation["overlaps"]) && $confirm !== "1") {
+                set_flash(
+                    "warning",
+                    "Overlapping volume ranges detected. Review and confirm or cancel."
+                );
+                $data = [
+                    "service" => $service,
+                    "tiers" => $tiers,
+                    "validation" => $validation,
+                    "confirm_overlap" => true,
+                ];
+                render_pricing_defaults_edit($data);
+                return;
+            }
+
             save_default_tiers($service_id, $tiers);
             set_flash(
                 "success",
@@ -496,6 +514,7 @@ function action_pricing_defaults_edit()
     $data = [
         "service" => $service,
         "tiers" => $tiers,
+        "validation" => validate_tier_ranges($tiers),
     ];
 
     render_pricing_defaults_edit($data);
@@ -620,6 +639,26 @@ function action_pricing_group_edit()
         }
 
         if (!empty($tiers)) {
+            // Check for overlaps — require confirmation before saving
+            $validation = validate_tier_ranges($tiers);
+            $confirm = get_param("confirm_overlap", "");
+            if (!empty($validation["overlaps"]) && $confirm !== "1") {
+                set_flash(
+                    "warning",
+                    "Overlapping volume ranges detected. Review and confirm or cancel."
+                );
+                $data = [
+                    "group" => $group,
+                    "service" => $service,
+                    "tiers" => $tiers,
+                    "has_override" => true,
+                    "validation" => $validation,
+                    "confirm_overlap" => true,
+                ];
+                render_pricing_group_edit($data);
+                return;
+            }
+
             save_group_tiers($group_id, $service_id, $tiers);
             set_flash("success", "Group pricing saved for " . $service["name"]);
             redirect("pricing_group_edit", ["group_id" => $group_id]);
@@ -638,6 +677,7 @@ function action_pricing_group_edit()
         "service" => $service,
         "tiers" => $tiers,
         "has_override" => $has_override,
+        "validation" => validate_tier_ranges($tiers),
     ];
 
     render_pricing_group_edit($data);
@@ -855,6 +895,27 @@ function action_pricing_customer_edit()
         }
 
         if (!empty($tiers)) {
+            // Check for overlaps — require confirmation before saving
+            $validation = validate_tier_ranges($tiers);
+            $confirm = get_param("confirm_overlap", "");
+            if (!empty($validation["overlaps"]) && $confirm !== "1") {
+                set_flash(
+                    "warning",
+                    "Overlapping volume ranges detected. Review and confirm or cancel."
+                );
+                $data = [
+                    "customer" => $customer,
+                    "service" => $service,
+                    "tiers" => $tiers,
+                    "has_override" => true,
+                    "validation" => $validation,
+                    "confirm_overlap" => true,
+                    "source" => "customer",
+                ];
+                render_pricing_customer_edit($data);
+                return;
+            }
+
             save_customer_tiers($customer_id, $service_id, $tiers);
             set_flash(
                 "success",
@@ -878,6 +939,7 @@ function action_pricing_customer_edit()
         "tiers" => $tiers,
         "has_override" => $has_override,
         "source" => $source,
+        "validation" => validate_tier_ranges($tiers),
     ];
 
     render_pricing_customer_edit($data);

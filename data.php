@@ -633,6 +633,73 @@ function get_all_services()
 }
 
 /**
+ * Validate tier ranges for gaps and overlaps.
+ * Expects tiers with volume_start/volume_end keys. Starts coverage from volume 1.
+ * Returns ['gaps' => [...], 'overlaps' => [...]].
+ * Each gap:    ['start' => int, 'end' => int]
+ * Each overlap: ['start' => int, 'end' => int]
+ */
+function validate_tier_ranges($tiers)
+{
+    $result = ["gaps" => [], "overlaps" => []];
+    if (empty($tiers)) {
+        return $result;
+    }
+
+    // Sort by volume_start ascending
+    usort($tiers, function ($a, $b) {
+        return (int) $a["volume_start"] - (int) $b["volume_start"];
+    });
+
+    // Check if coverage starts at 1
+    $first_start = (int) $tiers[0]["volume_start"];
+    if ($first_start > 1) {
+        $result["gaps"][] = ["start" => 1, "end" => $first_start - 1];
+    }
+
+    // Walk through sorted tiers checking consecutive pairs
+    for ($i = 0; $i < count($tiers) - 1; $i++) {
+        $curr_end = $tiers[$i]["volume_end"];
+        $next_start = (int) $tiers[$i + 1]["volume_start"];
+
+        // If current tier has no end (unlimited), anything after it overlaps
+        if ($curr_end === null || $curr_end === "") {
+            $result["overlaps"][] = [
+                "start" => $next_start,
+                "end" => $tiers[$i + 1]["volume_end"],
+            ];
+            continue;
+        }
+
+        $curr_end = (int) $curr_end;
+
+        // Gap: next tier starts more than 1 after current tier ends
+        if ($next_start > $curr_end + 1) {
+            $result["gaps"][] = [
+                "start" => $curr_end + 1,
+                "end" => $next_start - 1,
+            ];
+        }
+
+        // Overlap: next tier starts before or at current tier's end
+        if ($next_start <= $curr_end) {
+            $overlap_end = $tiers[$i + 1]["volume_end"];
+            if ($overlap_end !== null && $overlap_end !== "") {
+                $overlap_end = min((int) $overlap_end, $curr_end);
+            } else {
+                $overlap_end = $curr_end;
+            }
+            $result["overlaps"][] = [
+                "start" => $next_start,
+                "end" => $overlap_end,
+            ];
+        }
+    }
+
+    return $result;
+}
+
+/**
  * Get system default tiers for a service
  */
 /**
@@ -677,6 +744,12 @@ function save_default_tiers($service_id, $tiers, $effective_date = null)
     if ($effective_date === null) {
         $effective_date = date("Y-m-d");
     }
+
+    // Overwrite any existing tiers for this date (within-month edits replace, not accumulate)
+    sqlite_execute(
+        "DELETE FROM pricing_tiers WHERE level = 'default' AND level_id IS NULL AND service_id = ? AND effective_date = ?",
+        [$service_id, $effective_date]
+    );
 
     foreach ($tiers as $tier) {
         sqlite_execute(
@@ -741,6 +814,12 @@ function save_group_tiers(
     if ($effective_date === null) {
         $effective_date = date("Y-m-d");
     }
+
+    // Overwrite any existing tiers for this date (within-month edits replace, not accumulate)
+    sqlite_execute(
+        "DELETE FROM pricing_tiers WHERE level = 'group' AND level_id = ? AND service_id = ? AND effective_date = ?",
+        [$group_id, $service_id, $effective_date]
+    );
 
     foreach ($tiers as $tier) {
         sqlite_execute(
@@ -841,6 +920,12 @@ function save_customer_tiers(
     if ($effective_date === null) {
         $effective_date = date("Y-m-d");
     }
+
+    // Overwrite any existing tiers for this date (within-month edits replace, not accumulate)
+    sqlite_execute(
+        "DELETE FROM pricing_tiers WHERE level = 'customer' AND level_id = ? AND service_id = ? AND effective_date = ?",
+        [$customer_id, $service_id, $effective_date]
+    );
 
     foreach ($tiers as $tier) {
         sqlite_execute(
@@ -1225,6 +1310,12 @@ function save_customer_settings($customer_id, $settings)
 {
     $effective_date = date("Y-m-d");
 
+    // Overwrite any existing settings for this date (within-month edits replace, not accumulate)
+    sqlite_execute(
+        "DELETE FROM customer_settings WHERE customer_id = ? AND effective_date = ?",
+        [$customer_id, $effective_date]
+    );
+
     sqlite_execute(
         "INSERT INTO customer_settings (customer_id, effective_date, monthly_minimum, uses_annualized, annualized_start_date, look_period_months)
          VALUES (?, ?, ?, ?, ?, ?)",
@@ -1327,6 +1418,12 @@ function save_escalators(
     if ($effective_date === null) {
         $effective_date = date("Y-m-d");
     }
+
+    // Overwrite any existing escalators for this date (within-month edits replace, not accumulate)
+    sqlite_execute(
+        "DELETE FROM customer_escalators WHERE customer_id = ? AND effective_date = ?",
+        [$customer_id, $effective_date]
+    );
 
     foreach ($escalators as $esc) {
         sqlite_execute(
@@ -1682,6 +1779,12 @@ function save_service_cogs($service_id, $cogs_rate, $effective_date = null)
     if ($effective_date === null) {
         $effective_date = date("Y-m-d");
     }
+
+    // Overwrite any existing COGS for this date (within-month edits replace, not accumulate)
+    sqlite_execute(
+        "DELETE FROM service_cogs WHERE service_id = ? AND effective_date = ?",
+        [$service_id, $effective_date]
+    );
 
     sqlite_execute(
         "INSERT INTO service_cogs (service_id, cogs_rate, effective_date) VALUES (?, ?, ?)",
@@ -2896,6 +2999,12 @@ function save_billing_flags(
         $effective_date = date("Y-m-d");
     }
 
+    // Overwrite any existing flags for this date (within-month edits replace, not accumulate)
+    sqlite_execute(
+        "DELETE FROM service_billing_flags WHERE level = ? AND level_id IS ? AND service_id = ? AND efx_code = ? AND effective_date = ?",
+        [$level, $level_id, $service_id, $efx_code, $effective_date]
+    );
+
     sqlite_execute(
         "INSERT INTO service_billing_flags (level, level_id, service_id, efx_code, by_hit, zero_null, bav_by_trans, effective_date)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -3202,10 +3311,18 @@ function get_rule_mask_status($customer_id, $rule_name)
  */
 function toggle_rule_mask($customer_id, $rule_name, $is_masked)
 {
+    $effective_date = date("Y-m-d");
+
+    // Overwrite any existing mask for this rule today (within-month edits replace, not accumulate)
+    sqlite_execute(
+        "DELETE FROM business_rule_masks WHERE customer_id = ? AND rule_name = ? AND effective_date = ?",
+        [$customer_id, $rule_name, $effective_date]
+    );
+
     sqlite_execute(
         "INSERT INTO business_rule_masks (customer_id, rule_name, is_masked, effective_date)
-         VALUES (?, ?, ?, date('now'))",
-        [$customer_id, $rule_name, $is_masked ? 1 : 0]
+         VALUES (?, ?, ?, ?)",
+        [$customer_id, $rule_name, $is_masked ? 1 : 0, $effective_date]
     );
     return true;
 }

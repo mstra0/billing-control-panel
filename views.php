@@ -35999,7 +35999,41 @@ function render_view_config($data)
 
     <p><a href="?action=<?php echo $back_action; ?>">&larr; Back to <?php echo $source_label; ?></a></p>
 <?php
-} /**
+}
+
+/**
+ * Render gap/overlap warning banner for tier ranges.
+ * $validation comes from validate_tier_ranges().
+ */
+function render_tier_range_warnings($validation)
+{
+    if (empty($validation)) return;
+    $has_gaps = !empty($validation['gaps']);
+    $has_overlaps = !empty($validation['overlaps']);
+    if (!$has_gaps && !$has_overlaps) return;
+    ?>
+    <div style="margin: 10px 0;">
+    <?php if ($has_overlaps): ?>
+        <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; padding: 10px 14px; margin-bottom: 8px; color: #721c24; font-size: 13px;">
+            <strong>Overlap:</strong>
+            <?php foreach ($validation['overlaps'] as $o): ?>
+                Volume <?php echo number_format($o['start']); ?> &ndash; <?php echo ($o['end'] !== null && $o['end'] !== '') ? number_format($o['end']) : 'Unlimited'; ?> is covered by multiple tiers.
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+    <?php if ($has_gaps): ?>
+        <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 10px 14px; margin-bottom: 8px; color: #856404; font-size: 13px;">
+            <strong>Gap:</strong>
+            <?php foreach ($validation['gaps'] as $g): ?>
+                Volume <?php echo number_format($g['start']); ?> &ndash; <?php echo number_format($g['end']); ?> has no pricing.
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+    </div>
+    <?php
+}
+
+/**
  * Render system defaults list
  */
 function render_pricing_defaults($data)
@@ -36083,6 +36117,7 @@ function render_pricing_defaults($data)
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+                    <?php render_tier_range_warnings(validate_tier_ranges($service["tiers"])); ?>
                     <?php else: ?>
                         <p class="text-muted" style="margin-top: 10px;">No tiers defined.</p>
                     <?php endif; ?>
@@ -36181,10 +36216,22 @@ function render_pricing_defaults($data)
                 <button type="button" class="btn" onclick="addRow()">+ Add Tier</button>
             </div>
 
-            <div style="margin-top: 20px;">
-                <button type="submit" class="btn btn-success">Save Default Pricing</button>
-                <a href="?action=pricing_defaults" class="btn">Cancel</a>
-            </div>
+            <?php if (isset($data['validation'])): ?>
+                <?php render_tier_range_warnings($data['validation']); ?>
+            <?php endif; ?>
+
+            <?php if (!empty($data['confirm_overlap'])): ?>
+                <input type="hidden" name="confirm_overlap" value="1">
+                <div style="margin-top: 20px;">
+                    <button type="submit" class="btn" style="background: #dc3545; color: white;">Save Anyway (with overlaps)</button>
+                    <a href="?action=pricing_defaults_edit&service_id=<?php echo $data['service']['id']; ?>" class="btn">Cancel</a>
+                </div>
+            <?php else: ?>
+                <div style="margin-top: 20px;">
+                    <button type="submit" class="btn btn-success">Save Default Pricing</button>
+                    <a href="?action=pricing_defaults" class="btn">Cancel</a>
+                </div>
+            <?php endif; ?>
         </form>
     </div>
 
@@ -36361,6 +36408,7 @@ function render_pricing_group_services($data)
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+                <?php render_tier_range_warnings(validate_tier_ranges($service["tiers"])); ?>
                 <?php else: ?>
                     <p class="text-muted" style="margin-top: 10px;">No tiers defined.</p>
                 <?php endif; ?>
@@ -36472,15 +36520,27 @@ function render_pricing_group_edit($data)
                 <button type="button" class="btn" onclick="addRow()">+ Add Tier</button>
             </div>
 
-            <div style="margin-top: 20px;">
-                <button type="submit" name="form_action" value="save" class="btn btn-success">Save Group Pricing</button>
-                <?php if ($data["has_override"]): ?>
-                    <button type="submit" name="form_action" value="clear" class="btn" onclick="return confirm('Clear override and inherit from defaults?')">Clear Override</button>
-                <?php endif; ?>
-                <a href="?action=pricing_group_edit&group_id=<?php echo $data[
-                    "group"
-                ]["id"]; ?>" class="btn">Cancel</a>
-            </div>
+            <?php if (isset($data['validation'])): ?>
+                <?php render_tier_range_warnings($data['validation']); ?>
+            <?php endif; ?>
+
+            <?php if (!empty($data['confirm_overlap'])): ?>
+                <input type="hidden" name="confirm_overlap" value="1">
+                <div style="margin-top: 20px;">
+                    <button type="submit" name="form_action" value="save" class="btn" style="background: #dc3545; color: white;">Save Anyway (with overlaps)</button>
+                    <a href="?action=pricing_group_edit&group_id=<?php echo $data['group']['id']; ?>&service_id=<?php echo $data['service']['id']; ?>" class="btn">Cancel</a>
+                </div>
+            <?php else: ?>
+                <div style="margin-top: 20px;">
+                    <button type="submit" name="form_action" value="save" class="btn btn-success">Save Group Pricing</button>
+                    <?php if ($data["has_override"]): ?>
+                        <button type="submit" name="form_action" value="clear" class="btn" onclick="return confirm('Clear override and inherit from defaults?')">Clear Override</button>
+                    <?php endif; ?>
+                    <a href="?action=pricing_group_edit&group_id=<?php echo $data[
+                        "group"
+                    ]["id"]; ?>" class="btn">Cancel</a>
+                </div>
+            <?php endif; ?>
         </form>
     </div>
 
@@ -36774,6 +36834,7 @@ function render_pricing_customers($data)
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+                <?php render_tier_range_warnings(validate_tier_ranges($service["tiers"])); ?>
                 <?php else: ?>
                     <p class="text-muted" style="margin-top: 10px;">No tiers defined.</p>
                 <?php endif; ?>
@@ -36897,19 +36958,31 @@ function render_pricing_customers($data)
                 <button type="button" class="btn" onclick="addRow()">+ Add Tier</button>
             </div>
 
-            <div style="margin-top: 20px;">
-                <button type="submit" name="form_action" value="save" class="btn btn-success">Save Customer Pricing</button>
-                <?php if ($data["has_override"]): ?>
-                    <button type="submit" name="form_action" value="clear" class="btn" onclick="return confirm('Clear override and inherit from <?php echo $data[
+            <?php if (isset($data['validation'])): ?>
+                <?php render_tier_range_warnings($data['validation']); ?>
+            <?php endif; ?>
+
+            <?php if (!empty($data['confirm_overlap'])): ?>
+                <input type="hidden" name="confirm_overlap" value="1">
+                <div style="margin-top: 20px;">
+                    <button type="submit" name="form_action" value="save" class="btn" style="background: #dc3545; color: white;">Save Anyway (with overlaps)</button>
+                    <a href="?action=pricing_customer_edit&customer_id=<?php echo $data['customer']['id']; ?>&service_id=<?php echo $data['service']['id']; ?>" class="btn">Cancel</a>
+                </div>
+            <?php else: ?>
+                <div style="margin-top: 20px;">
+                    <button type="submit" name="form_action" value="save" class="btn btn-success">Save Customer Pricing</button>
+                    <?php if ($data["has_override"]): ?>
+                        <button type="submit" name="form_action" value="clear" class="btn" onclick="return confirm('Clear override and inherit from <?php echo $data[
+                            "customer"
+                        ]["group_name"]
+                            ? "group"
+                            : "defaults"; ?>?')">Clear Override</button>
+                    <?php endif; ?>
+                    <a href="?action=pricing_customer_edit&customer_id=<?php echo $data[
                         "customer"
-                    ]["group_name"]
-                        ? "group"
-                        : "defaults"; ?>?')">Clear Override</button>
-                <?php endif; ?>
-                <a href="?action=pricing_customer_edit&customer_id=<?php echo $data[
-                    "customer"
-                ]["id"]; ?>" class="btn">Cancel</a>
-            </div>
+                    ]["id"]; ?>" class="btn">Cancel</a>
+                </div>
+            <?php endif; ?>
         </form>
     </div>
 

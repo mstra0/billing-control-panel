@@ -641,11 +641,11 @@ function run_crud_tests()
     });
 
     run_test(
-        "save_default_tiers - append-only creates new effective set",
+        "save_default_tiers - second save on same day overwrites first",
         function () {
             $service_id = create_test_service(["name" => "ID Verify"]);
 
-            // Initial save
+            // Initial save: 1 tier
             save_default_tiers($service_id, [
                 [
                     "volume_start" => 0,
@@ -654,7 +654,7 @@ function run_crud_tests()
                 ],
             ]);
 
-            // Second save creates new effective set (append-only)
+            // Second save on same day: 2 tiers — should overwrite the first
             save_default_tiers($service_id, [
                 [
                     "volume_start" => 0,
@@ -668,19 +668,23 @@ function run_crud_tests()
                 ],
             ]);
 
-            // Both saves have same effective_date, so all rows come back
             $result = get_current_default_tiers($service_id);
             assert_count(
-                3,
+                2,
                 $result,
-                "All tiers from both saves (same effective_date)"
+                "Second save should overwrite first — only 2 tiers"
             );
-            // The second save's tiers appear after the first
             assert_float_equals(
                 0.6,
+                $result[0]["price_per_inquiry"],
+                0.01,
+                "First tier should be 0.60"
+            );
+            assert_float_equals(
+                0.45,
                 $result[1]["price_per_inquiry"],
                 0.01,
-                "Second save's first tier should be 0.60"
+                "Second tier should be 0.45"
             );
         }
     );
@@ -829,7 +833,7 @@ function run_crud_tests()
     });
 
     run_test(
-        "save_group_tiers - second save replaces current set",
+        "save_group_tiers - second save on same day overwrites first",
         function () {
             $group_id = create_test_group(["name" => "Temp Group"]);
             $service_id = create_test_service(["name" => "Temp Service"]);
@@ -843,7 +847,7 @@ function run_crud_tests()
                 ],
             ]);
 
-            // Second save (append-only: new effective set)
+            // Second save on same day — should overwrite the first
             save_group_tiers($group_id, $service_id, [
                 [
                     "volume_start" => 0,
@@ -852,18 +856,17 @@ function run_crud_tests()
                 ],
             ]);
 
-            // Both saves have same effective_date, so all rows come back
             $result = get_current_group_tiers($group_id, $service_id);
             assert_count(
-                2,
+                1,
                 $result,
-                "Both saves returned (same effective_date)"
+                "Second save should overwrite first — only 1 tier"
             );
             assert_float_equals(
                 0.35,
-                $result[1]["price_per_inquiry"],
+                $result[0]["price_per_inquiry"],
                 0.01,
-                "Second save's tier should be 0.35"
+                "Price should be 0.35 from second save"
             );
         }
     );
@@ -920,7 +923,7 @@ function run_crud_tests()
     });
 
     run_test(
-        "save_customer_tiers - multiple saves create history",
+        "save_customer_tiers - second save on same day overwrites first",
         function () {
             $customer_id = create_test_customer(["name" => "Update Client"]);
             $service_id = create_test_service(["name" => "Update Service"]);
@@ -934,7 +937,7 @@ function run_crud_tests()
                 ],
             ]);
 
-            // Second save (append-only system)
+            // Second save on same day — should overwrite the first
             save_customer_tiers($customer_id, $service_id, [
                 [
                     "volume_start" => 0,
@@ -945,15 +948,15 @@ function run_crud_tests()
 
             $result = get_current_customer_tiers($customer_id, $service_id);
             assert_count(
-                2,
+                1,
                 $result,
-                "Both saves returned (same effective_date)"
+                "Second save should overwrite first — only 1 tier"
             );
             assert_float_equals(
                 0.35,
-                $result[1]["price_per_inquiry"],
+                $result[0]["price_per_inquiry"],
                 0.01,
-                "Second save's tier should be 0.35"
+                "Price should be 0.35 from second save"
             );
         }
     );
@@ -1086,63 +1089,66 @@ function run_crud_tests()
         );
     });
 
-    run_test("save_escalators - append-only history", function () {
-        $customer_id = create_test_customer(["name" => "Replace Client"]);
+    run_test(
+        "save_escalators - second save on same day overwrites first",
+        function () {
+            $customer_id = create_test_customer(["name" => "Replace Client"]);
 
-        // Initial 3 years
-        save_escalators(
-            $customer_id,
-            [
+            // Initial 3 years
+            save_escalators(
+                $customer_id,
                 [
-                    "year_number" => 1,
-                    "escalator_percentage" => 0,
-                    "fixed_adjustment" => 0,
+                    [
+                        "year_number" => 1,
+                        "escalator_percentage" => 0,
+                        "fixed_adjustment" => 0,
+                    ],
+                    [
+                        "year_number" => 2,
+                        "escalator_percentage" => 5,
+                        "fixed_adjustment" => 0,
+                    ],
+                    [
+                        "year_number" => 3,
+                        "escalator_percentage" => 5,
+                        "fixed_adjustment" => 0,
+                    ],
                 ],
-                [
-                    "year_number" => 2,
-                    "escalator_percentage" => 5,
-                    "fixed_adjustment" => 0,
-                ],
-                [
-                    "year_number" => 3,
-                    "escalator_percentage" => 5,
-                    "fixed_adjustment" => 0,
-                ],
-            ],
-            "2025-01-01"
-        );
+                "2025-01-01"
+            );
 
-        // Second save creates new set (append-only)
-        save_escalators(
-            $customer_id,
-            [
+            // Second save on same day: 2 years — should overwrite the 3-year set
+            save_escalators(
+                $customer_id,
                 [
-                    "year_number" => 1,
-                    "escalator_percentage" => 0,
-                    "fixed_adjustment" => 0,
+                    [
+                        "year_number" => 1,
+                        "escalator_percentage" => 0,
+                        "fixed_adjustment" => 0,
+                    ],
+                    [
+                        "year_number" => 2,
+                        "escalator_percentage" => 10,
+                        "fixed_adjustment" => 0,
+                    ],
                 ],
-                [
-                    "year_number" => 2,
-                    "escalator_percentage" => 10,
-                    "fixed_adjustment" => 0,
-                ],
-            ],
-            "2025-01-01"
-        );
+                "2025-01-01"
+            );
 
-        $result = get_current_escalators($customer_id);
-        assert_count(
-            5,
-            $result,
-            "All escalator rows from both saves (same effective_date)"
-        );
-        assert_float_equals(
-            10,
-            $result[3]["escalator_percentage"],
-            0.01,
-            "Second save's year 2 should be 10%"
-        );
-    });
+            $result = get_current_escalators($customer_id);
+            assert_count(
+                2,
+                $result,
+                "Second save should overwrite first — only 2 escalator years"
+            );
+            assert_float_equals(
+                10,
+                $result[1]["escalator_percentage"],
+                0.01,
+                "Year 2 should be 10% from second save"
+            );
+        }
+    );
 
     run_test("apply_escalator_delay - single delay", function () {
         $customer_id = create_test_customer(["name" => "Delay Client"]);
