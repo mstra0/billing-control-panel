@@ -585,6 +585,29 @@ function render_header($title = "Control Panel")
             font-size: 13px;
             margin-top: 10px;
         }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed; top: 20px; right: 20px; z-index: 5000;
+            display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+        }
+        .toast {
+            pointer-events: auto; min-width: 300px; max-width: 450px;
+            padding: 14px 40px 14px 16px; border-radius: 6px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15); font-size: 14px; line-height: 1.4;
+            position: relative; opacity: 0; transform: translateX(80px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .toast.toast-visible { opacity: 1; transform: translateX(0); }
+        .toast.toast-fade-out { opacity: 0; transform: translateX(80px); }
+        .toast-success { background: #d4edda; color: #155724; border-left: 4px solid #27ae60; }
+        .toast-error   { background: #f8d7da; color: #721c24; border-left: 4px solid #e74c3c; }
+        .toast-info    { background: #d1ecf1; color: #0c5460; border-left: 4px solid #3498db; }
+        .toast-close {
+            position: absolute; top: 8px; right: 10px; background: none; border: none;
+            font-size: 18px; cursor: pointer; color: inherit; opacity: 0.6; padding: 0 4px;
+        }
+        .toast-close:hover { opacity: 1; }
     </style>
 </head>
 <body>
@@ -744,6 +767,8 @@ function render_header($title = "Control Panel")
     ?>
     </div>
 
+    <div id="toast-container" class="toast-container"></div>
+
     <!-- Background Job Status Modal -->
     <div id="job-modal" style="display:none;">
         <div class="job-modal-backdrop"></div>
@@ -769,241 +794,7 @@ function render_header($title = "Control Panel")
         }
         .job-modal-content h3 { margin: 0 0 10px 0; font-size: 18px; }
     </style>
-    <script>
-    // ============================================================
-    // AJAX API FRAMEWORK
-    // ============================================================
-    var API_BASE = 'api.php';
-
-    function apiGet(action, params, callback) {
-        var url = API_BASE + '?action=' + encodeURIComponent(action);
-        if (params) {
-            for (var key in params) {
-                if (params.hasOwnProperty(key) && params[key] !== null && params[key] !== undefined) {
-                    url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
-                }
-            }
-        }
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', url);
-        xhr.onload = function() {
-            if (xhr.status >= 200 && xhr.status < 300) {
-                try { callback(null, JSON.parse(xhr.responseText)); }
-                catch (e) { callback('Invalid JSON response'); }
-            } else {
-                try {
-                    var err = JSON.parse(xhr.responseText);
-                    callback(err.error || 'HTTP ' + xhr.status);
-                } catch (e) { callback('HTTP ' + xhr.status); }
-            }
-        };
-        xhr.onerror = function() { callback('Network error'); };
-        xhr.send();
-    }
-
-    function apiPost(action, body, callback) {
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', API_BASE + '?action=' + encodeURIComponent(action));
-        xhr.onload = function() {
-            if (xhr.status >= 200 && xhr.status < 300) {
-                try { callback(null, JSON.parse(xhr.responseText)); }
-                catch (e) { callback('Invalid JSON response'); }
-            } else {
-                try {
-                    var err = JSON.parse(xhr.responseText);
-                    callback(err.error || 'HTTP ' + xhr.status);
-                } catch (e) { callback('HTTP ' + xhr.status); }
-            }
-        };
-        xhr.onerror = function() { callback('Network error'); };
-        if (body instanceof FormData) {
-            xhr.send(body);
-        } else {
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            xhr.send(body);
-        }
-    }
-
-    function showLoading(containerId) {
-        var el = document.getElementById(containerId);
-        if (el) el.innerHTML = '<div class="loading-skeleton">' +
-            '<div class="skeleton-bar w75"></div>' +
-            '<div class="skeleton-bar w90"></div>' +
-            '<div class="skeleton-bar w50"></div>' +
-            '<p>Loading...</p></div>';
-    }
-
-    function showAjaxError(containerId, message) {
-        var el = document.getElementById(containerId);
-        if (el) el.innerHTML = '<div class="ajax-error"><div class="flash flash-error">' +
-            escapeHtml(message) + '</div></div>';
-    }
-
-    function buildPagination(pag, baseUrl, params) {
-        if (!pag || pag.total_pages <= 1) return '';
-        var buildUrl = function(page) {
-            var p = [];
-            for (var k in params) {
-                if (params.hasOwnProperty(k) && k !== 'page' && params[k]) {
-                    p.push(encodeURIComponent(k) + '=' + encodeURIComponent(params[k]));
-                }
-            }
-            p.push('page=' + page);
-            var sep = baseUrl.indexOf('?') !== -1 ? '&' : '?';
-            return baseUrl + sep + p.join('&');
-        };
-        var cur = pag.current, total = pag.total_pages;
-        var html = '<div class="pagination">';
-        if (pag.has_prev) { html += '<a href="' + escapeHtml(buildUrl(cur - 1)) + '">&laquo; Prev</a>'; }
-        else { html += '<span class="disabled">&laquo; Prev</span>'; }
-        var range = 2, start = Math.max(1, cur - range), end = Math.min(total, cur + range);
-        if (start > 1) {
-            html += '<a href="' + escapeHtml(buildUrl(1)) + '">1</a>';
-            if (start > 2) html += '<span class="ellipsis">...</span>';
-        }
-        for (var i = start; i <= end; i++) {
-            if (i === cur) { html += '<span class="active">' + i + '</span>'; }
-            else { html += '<a href="' + escapeHtml(buildUrl(i)) + '">' + i + '</a>'; }
-        }
-        if (end < total) {
-            if (end < total - 1) html += '<span class="ellipsis">...</span>';
-            html += '<a href="' + escapeHtml(buildUrl(total)) + '">' + total + '</a>';
-        }
-        if (pag.has_next) { html += '<a href="' + escapeHtml(buildUrl(cur + 1)) + '">Next &raquo;</a>'; }
-        else { html += '<span class="disabled">Next &raquo;</span>'; }
-        html += '</div>';
-        html += '<div class="pagination-info">Showing ' + pag.from + '-' + pag.to + ' of ' + pag.total + '</div>';
-        return html;
-    }
-
-    // ============================================================
-    // BACKGROUND JOB SYSTEM
-    // ============================================================
-    var JOB_POLL_INTERVAL_MS = 1000;
-
-    function startJob(type, params, title) {
-        var modal = document.getElementById('job-modal');
-        modal.style.display = '';
-        document.getElementById('job-modal-title').textContent = title || 'Processing...';
-        document.getElementById('job-modal-fill').style.width = '0%';
-        document.getElementById('job-modal-fill').textContent = '0%';
-        document.getElementById('job-modal-fill').className = 'fill green';
-        document.getElementById('job-modal-step').textContent = 'Starting...';
-        document.getElementById('job-modal-log').innerHTML = '';
-        document.getElementById('job-modal-result').style.display = 'none';
-
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', API_BASE + '?action=job_start');
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.onload = function() {
-            try {
-                var resp = JSON.parse(xhr.responseText);
-                if (resp.job_id) {
-                    pollJob(resp.job_id);
-                } else {
-                    showJobError(resp.error || 'Failed to start job');
-                }
-            } catch (e) {
-                showJobError('Invalid response from server');
-            }
-        };
-        xhr.onerror = function() {
-            showJobError('Network error starting job');
-        };
-        xhr.send('job_type=' + encodeURIComponent(type) +
-                 '&params=' + encodeURIComponent(JSON.stringify(params)));
-    }
-
-    function pollJob(jobId) {
-        var pollInterval = setInterval(function() {
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', API_BASE + '?action=job_status&id=' + encodeURIComponent(jobId));
-            xhr.onload = function() {
-                try {
-                    var job = JSON.parse(xhr.responseText);
-                } catch (e) {
-                    return;
-                }
-                if (!job || job.error) {
-                    clearInterval(pollInterval);
-                    showJobError(job ? job.error : 'Job not found');
-                    return;
-                }
-
-                var pct = job.total_steps > 0
-                    ? Math.round((job.progress / job.total_steps) * 100) : 0;
-                var fillEl = document.getElementById('job-modal-fill');
-                fillEl.style.width = pct + '%';
-                fillEl.textContent = pct + '%';
-
-                var stepText = job.current_step || 'Working...';
-                if (job.total_steps > 0) {
-                    stepText = 'Step ' + job.progress + ' of ' + job.total_steps + ': ' + stepText;
-                }
-                document.getElementById('job-modal-step').textContent = stepText;
-
-                var logEl = document.getElementById('job-modal-log');
-                if (job.log && job.log.length > 0) {
-                    var html = '';
-                    for (var i = 0; i < job.log.length; i++) {
-                        html += '<div>' + escapeHtml(job.log[i]) + '</div>';
-                    }
-                    logEl.innerHTML = html;
-                    logEl.scrollTop = logEl.scrollHeight;
-                }
-
-                if (job.status === 'complete') {
-                    clearInterval(pollInterval);
-                    fillEl.className = 'fill green';
-                    fillEl.style.width = '100%';
-                    fillEl.textContent = '100%';
-                    document.getElementById('job-modal-step').textContent = 'Complete!';
-                    var resultEl = document.getElementById('job-modal-result');
-                    resultEl.style.display = '';
-                    resultEl.innerHTML = '<div class="flash flash-success">' + escapeHtml(job.result) +
-                        '</div><p style="margin-top:15px; text-align:center;"><button onclick="location.reload();" class="btn btn-success">Done</button></p>';
-                }
-                if (job.status === 'failed') {
-                    clearInterval(pollInterval);
-                    fillEl.className = 'fill red';
-                    var resultEl = document.getElementById('job-modal-result');
-                    resultEl.style.display = '';
-                    resultEl.innerHTML = '<div class="flash flash-error">Error: ' + escapeHtml(job.error) +
-                        '</div><p style="margin-top:15px; text-align:center;"><button onclick="location.reload();" class="btn">Close</button></p>';
-                }
-            };
-            xhr.send();
-        }, JOB_POLL_INTERVAL_MS);
-    }
-
-    function showJobError(msg) {
-        document.getElementById('job-modal-fill').className = 'fill red';
-        document.getElementById('job-modal-step').textContent = 'Error';
-        var resultEl = document.getElementById('job-modal-result');
-        resultEl.style.display = '';
-        resultEl.innerHTML = '<div class="flash flash-error">' + escapeHtml(msg) +
-            '</div><p style="margin-top:15px; text-align:center;"><button onclick="document.getElementById(\'job-modal\').style.display=\'none\';" class="btn">Close</button></p>';
-    }
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        var div = document.createElement('div');
-        div.appendChild(document.createTextNode(str));
-        return div.innerHTML;
-    }
-
-    function numberFormat(n, decimals) {
-        if (n === null || n === undefined) return '';
-        return parseFloat(n).toLocaleString('en-US', decimals !== undefined ? {minimumFractionDigits: decimals, maximumFractionDigits: decimals} : {});
-    }
-
-    function formatFilesize(bytes) {
-        var units = ['B', 'KB', 'MB', 'GB'];
-        var i = 0;
-        while (bytes >= 1024 && i < units.length - 1) { bytes /= 1024; i++; }
-        return (Math.round(bytes * 100) / 100) + ' ' + units[i];
-    }
-    </script>
+    <script src="js/billing.js"></script>
 </body>
 </html>
 <?php
@@ -2323,13 +2114,12 @@ function render_generation_types($data)
 
                         var body = 'type_action=delete&type_id=' + encodeURIComponent(typeId);
                         apiPost('save_generation_types', body, function(err, result) {
-                            var msgDiv = document.getElementById('form-result');
                             if (err) {
-                                msgDiv.innerHTML = '<div class="flash flash-error">' + escapeHtml(err) + '</div>';
+                                showToast(err, 'error');
                             } else {
                                 var row = document.getElementById('type-row-' + typeId);
                                 if (row) row.parentNode.removeChild(row);
-                                msgDiv.innerHTML = '<div class="flash flash-success">' + escapeHtml(result.message) + '</div>';
+                                showToast(result.message, 'success');
                             }
                         });
                     });
@@ -2351,13 +2141,11 @@ function render_generation_types($data)
                         '&service_id=' + encodeURIComponent(serviceId);
 
                     apiPost('save_generation_types', body, function(err, result) {
-                        var msgDiv = document.getElementById('form-result');
                         if (err) {
-                            msgDiv.innerHTML = '<div class="flash flash-error">' + escapeHtml(err) + '</div>';
+                            showToast(err, 'error');
                         } else {
-                            msgDiv.innerHTML = '<div class="flash flash-success">' + escapeHtml(result.message) + '</div>';
-                            // Reload to show the new type in the table
-                            setTimeout(function() { window.location.reload(); }, 800);
+                            showToast(result.message, 'success');
+                            setTimeout(function() { window.location.reload(); }, 1200);
                         }
                     });
                 });
@@ -2463,22 +2251,18 @@ function render_lms_edit($data)
                     body += '&commission_rate=' + encodeURIComponent(document.getElementById('rate_input').value);
                 }
                 apiPost('save_lms', body, function(err, result) {
-                    var msgDiv = document.getElementById('form-result');
-                    if (err) {
-                        msgDiv.innerHTML = '<div class="flash flash-error">' + escapeHtml(err) + '</div>';
-                    } else {
-                        msgDiv.innerHTML = '<div class="flash flash-success">' + escapeHtml(result.message) + '</div>';
-                    }
+                    if (err) { showToast(err, 'error'); }
+                    else { showToast(result.message, 'success'); }
                 });
             });
         });
     })();
     </script>
 <?php render_footer();
-} /**
+}
+/**
  * Render LMS settings
- */
-function render_lms_settings($data)
+ */ function render_lms_settings($data)
 {
     render_header("LMS Settings - Control Panel"); ?>
     <div id="lms-settings-content" class="ajax-content">
@@ -2524,9 +2308,8 @@ function render_lms_settings($data)
                 e.preventDefault();
                 var rate = document.getElementById('default_rate_input').value;
                 apiPost('save_lms_settings', 'default_commission_rate=' + encodeURIComponent(rate), function(err, result) {
-                    var msgDiv = document.getElementById('form-result');
-                    if (err) { msgDiv.innerHTML = '<div class="flash flash-error">' + escapeHtml(err) + '</div>'; }
-                    else { msgDiv.innerHTML = '<div class="flash flash-success">' + escapeHtml(result.message) + '</div>'; }
+                    if (err) { showToast(err, 'error'); }
+                    else { showToast(result.message, 'success'); }
                 });
             });
         });
@@ -3312,9 +3095,8 @@ function render_pricing_defaults_edit($data)
                 var formData = new FormData(this);
                 formData.append('service_id', serviceId);
                 apiPost('save_default_tiers', formData, function(err, result) {
-                    var msgDiv = document.getElementById('form-result');
-                    if (err) { msgDiv.innerHTML = '<div class="flash flash-error">' + escapeHtml(err) + '</div>'; }
-                    else { msgDiv.innerHTML = '<div class="flash flash-success">' + escapeHtml(result.message) + '</div>'; }
+                    if (err) { showToast(err, 'error'); }
+                    else { showToast(result.message, 'success'); }
                 });
             });
         });
@@ -3793,12 +3575,8 @@ function render_pricing_group_edit($data)
                 clearData.append('group_id', groupId);
                 clearData.append('service_id', serviceId);
                 apiPost('clear_group_tiers', clearData, function(err, result) {
-                    var msgDiv = document.getElementById('form-result');
-                    if (err) {
-                        msgDiv.innerHTML = '<div class="flash flash-error">' + escapeHtml(err) + '</div>';
-                    } else {
-                        msgDiv.innerHTML = '<div class="flash flash-success">' + escapeHtml(result.message) + '</div>';
-                    }
+                    if (err) { showToast(err, 'error'); }
+                    else { showToast(result.message, 'success'); }
                 });
             };
 
@@ -3809,12 +3587,8 @@ function render_pricing_group_edit($data)
                 formData.append('group_id', groupId);
                 formData.append('service_id', serviceId);
                 apiPost('save_group_tiers', formData, function(err, result) {
-                    var msgDiv = document.getElementById('form-result');
-                    if (err) {
-                        msgDiv.innerHTML = '<div class="flash flash-error">' + escapeHtml(err) + '</div>';
-                    } else {
-                        msgDiv.innerHTML = '<div class="flash flash-success">' + escapeHtml(result.message) + '</div>';
-                    }
+                    if (err) { showToast(err, 'error'); }
+                    else { showToast(result.message, 'success'); }
                 });
             });
         });
@@ -4353,9 +4127,8 @@ function render_pricing_customer_edit($data)
                 formData.append('customer_id', customerId);
                 formData.append('service_id', serviceId);
                 apiPost('save_customer_tiers', formData, function(err, result) {
-                    var msgDiv = document.getElementById('form-result');
-                    if (err) { msgDiv.innerHTML = '<div class="flash flash-error">' + escapeHtml(err) + '</div>'; }
-                    else { msgDiv.innerHTML = '<div class="flash flash-success">' + escapeHtml(result.message) + '</div>'; }
+                    if (err) { showToast(err, 'error'); }
+                    else { showToast(result.message, 'success'); }
                 });
             });
         });
@@ -4529,12 +4302,8 @@ function render_pricing_customer_settings($data)
                 formData += '&look_period_months=' + encodeURIComponent(document.getElementById('look_period_months').value);
 
                 apiPost('save_customer_settings', formData, function(err, result) {
-                    var msgDiv = document.getElementById('form-result');
-                    if (err) {
-                        msgDiv.innerHTML = '<div class="flash flash-error">' + escapeHtml(err) + '</div>';
-                    } else {
-                        msgDiv.innerHTML = '<div class="flash flash-success">' + escapeHtml(result.message) + '</div>';
-                    }
+                    if (err) { showToast(err, 'error'); }
+                    else { showToast(result.message, 'success'); }
                 });
             });
         });
@@ -4759,12 +4528,8 @@ function render_escalators($data)
                 var formData = new FormData(this);
                 formData.append('customer_id', customerId);
                 apiPost('save_escalators', formData, function(err, result) {
-                    var msgDiv = document.getElementById('form-result');
-                    if (err) {
-                        msgDiv.innerHTML = '<div class="flash flash-error">' + escapeHtml(err) + '</div>';
-                    } else {
-                        msgDiv.innerHTML = '<div class="flash flash-success">' + escapeHtml(result.message) + '</div>';
-                    }
+                    if (err) { showToast(err, 'error'); }
+                    else { showToast(result.message, 'success'); }
                 });
             });
         });
@@ -5031,7 +4796,7 @@ function render_business_rule_edit($data)
                                 '&mask_action=' + encodeURIComponent(maskAction),
                                 function(postErr) {
                                     if (postErr) {
-                                        alert('Error: ' + postErr);
+                                        showToast(postErr, 'error');
                                         btn.disabled = false;
                                         btn.textContent = maskAction === 'mask' ? 'Mask' : 'Unmask';
                                         return;
@@ -7688,9 +7453,9 @@ function render_admin($data)
                         fixBtn.disabled = false;
                         fixBtn.textContent = 'Create/Fix Directories';
                         if (err) {
-                            alert('Error: ' + err);
+                            showToast(err, 'error');
                         } else {
-                            alert(result.message || 'Directories fixed.');
+                            showToast(result.message || 'Directories fixed.', 'success');
                             loadAdminData();
                         }
                     });
@@ -8452,13 +8217,11 @@ function render_billing_flags($data)
                     formData.append('level_id', levelId);
                 }
                 apiPost('save_billing_flags', formData, function(err, result) {
-                    var msgDiv = document.getElementById('flag-form-result');
                     if (err) {
-                        msgDiv.innerHTML = '<div class="flash flash-error">' + escapeHtml(err) + '</div>';
+                        showToast(err, 'error');
                     } else {
-                        msgDiv.innerHTML = '<div class="flash flash-success">' + escapeHtml(result.message) + '</div>';
-                        // Reload data to show updated flags
-                        setTimeout(function() { window.location.reload(); }, 800);
+                        showToast(result.message, 'success');
+                        setTimeout(function() { window.location.reload(); }, 1200);
                     }
                 });
             });
@@ -8471,7 +8234,7 @@ function render_billing_flags($data)
             var body = 'flag_action=delete&flag_id=' + encodeURIComponent(flagId);
             apiPost('save_billing_flags', body, function(err, result) {
                 if (err) {
-                    alert('Error: ' + err);
+                    showToast(err, 'error');
                 } else {
                     window.location.reload();
                 }
