@@ -1107,14 +1107,14 @@ function job_file($job_id)
  * @param array  $params Parameters for the job
  * @return string Job ID
  */
-function job_create($type, $params = array())
+function job_create($type, $params = [])
 {
     $job_id = uniqid("job_", true);
     $job_dir = get_temp_path() . "/jobs";
     if (!is_dir($job_dir)) {
         mkdir($job_dir, 0755, true);
     }
-    $data = array(
+    $data = [
         "id" => $job_id,
         "type" => $type,
         "params" => $params,
@@ -1122,10 +1122,10 @@ function job_create($type, $params = array())
         "progress" => 0,
         "total_steps" => 0,
         "current_step" => "",
-        "log" => array(),
+        "log" => [],
         "started_at" => date("c"),
-        "updated_at" => date("c")
-    );
+        "updated_at" => date("c"),
+    ];
     file_put_contents(job_file($job_id), json_encode($data));
     return $job_id;
 }
@@ -1225,4 +1225,35 @@ function job_cleanup($max_age_seconds = 3600)
             unlink($f);
         }
     }
+}
+
+// ============================================================
+// API RESPONSE HELPERS
+// Used by api.php standalone endpoint
+// ============================================================
+
+/**
+ * Send a JSON API response and exit
+ *
+ * @param mixed $data        Data to encode as JSON
+ * @param int   $status_code HTTP status code (default 200)
+ */
+function api_response($data, $status_code = 200)
+{
+    http_response_code($status_code);
+    header("Content-Type: application/json");
+    header("Cache-Control: no-cache, must-revalidate");
+    echo json_encode($data);
+    exit();
+}
+
+/**
+ * Send a JSON error response and exit
+ *
+ * @param string $message     Error message
+ * @param int    $status_code HTTP status code (default 400)
+ */
+function api_error($message, $status_code = 400)
+{
+    api_response(["error" => $message], $status_code);
 }

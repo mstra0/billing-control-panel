@@ -176,8 +176,10 @@ define("ITEMS_PER_PAGE", 50);
 require_once __DIR__ . "/helpers.php"; // Utilities, CSV, paths (no dependencies)
 require_once __DIR__ . "/db.php"; // Database functions (depends on helpers for paths)
 require_once __DIR__ . "/data.php"; // Data access (depends on db, helpers)
-require_once __DIR__ . "/actions.php"; // Controllers (depends on all above)
-require_once __DIR__ . "/views.php"; // Views (depends on helpers)
+if (!defined("API_MODE")) {
+    require_once __DIR__ . "/actions.php"; // Controllers (depends on all above)
+    require_once __DIR__ . "/views.php"; // Views (depends on helpers)
+}
 
 // ------------------------------------------------------------
 // RUN APPLICATION
@@ -212,7 +214,14 @@ if (!MOCK_MODE) {
             exit();
         }
 
-        // Show friendly error page with fix button
+        // Show friendly error page with fix button (or JSON error for API)
+        if (defined("API_MODE")) {
+            header("Content-Type: application/json");
+            echo json_encode([
+                "error" => "Shared directory not accessible: " . $shared_path,
+            ]);
+            exit();
+        }
         render_shared_directory_error($shared_path);
         exit();
     }
@@ -230,6 +239,6 @@ sqlite_db();
 sqlite_seed_mock_data();
 
 // Route the request (skip when loaded by background job runner)
-if (!defined("BACKGROUND_JOB")) {
+if (!defined("BACKGROUND_JOB") && !defined("API_MODE")) {
     route();
 }
