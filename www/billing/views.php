@@ -1188,335 +1188,275 @@ function render_upload_config($data)
 function render_ingestion($data)
 {
     render_header("Ingestion - Control Panel");
-    $tab = isset($data["tab"]) ? $data["tab"] : "reports";
-    $drive_files = isset($data["drive_files"]) ? $data["drive_files"] : [];
-    $not_imported = array_filter($drive_files, function ($f) {
-        return !$f["imported"];
-    });
+    $tab = isset($data['tab']) ? $data['tab'] : 'reports';
     ?>
-    <div class="card">
-        <h2>Billing Report Ingestion</h2>
 
-        <div style="display: flex; gap: 20px; margin-bottom: 20px;">
-            <div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">
-                <div style="font-size: 24px; font-weight: bold;"><?php echo isset(
-                    $data["stats"]["total_reports"],
-                )
-                    ? $data["stats"]["total_reports"]
-                    : 0; ?></div>
-                <div style="color: #666; font-size: 13px;">Imported Reports</div>
-            </div>
-            <div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">
-                <div style="font-size: 24px; font-weight: bold;"><?php echo isset(
-                    $data["stats"]["total_rows"],
-                )
-                    ? number_format($data["stats"]["total_rows"])
-                    : 0; ?></div>
-                <div style="color: #666; font-size: 13px;">Total Rows</div>
-            </div>
-            <div style="flex: 1; background: <?php echo count($not_imported) > 0
-                ? "#fff3cd"
-                : "#d4edda"; ?>; padding: 15px; border-radius: 4px;">
-                <div style="font-size: 24px; font-weight: bold;"><?php echo count(
-                    $not_imported,
-                ); ?></div>
-                <div style="color: #666; font-size: 13px;">Pending on Drive</div>
-            </div>
-            <div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">
-                <div style="font-size: 13px; color: #666;">Date Range</div>
-                <div><?php echo isset($data["stats"]["earliest"]) &&
-                $data["stats"]["earliest"]
-                    ? $data["stats"]["earliest"] .
-                        " to " .
-                        $data["stats"]["latest"]
-                    : "No data"; ?></div>
-            </div>
-        </div>
-
-        <!-- Tabs -->
-        <div style="margin-bottom: 20px; border-bottom: 2px solid #eee;">
-            <a href="?action=ingestion&tab=reports" style="display: inline-block; padding: 10px 20px; text-decoration: none; color: <?php echo $tab ===
-            "reports"
-                ? "#3498db"
-                : "#666"; ?>; border-bottom: 2px solid <?php echo $tab === "reports" ? "#3498db" : "transparent"; ?>; margin-bottom: -2px; font-weight: <?php echo $tab === "reports" ? "600" : "normal"; ?>;">
-                Imported Reports
-            </a>
-            <a href="?action=ingestion&tab=upload" style="display: inline-block; padding: 10px 20px; text-decoration: none; color: <?php echo $tab ===
-            "upload"
-                ? "#3498db"
-                : "#666"; ?>; border-bottom: 2px solid <?php echo $tab === "upload" ? "#3498db" : "transparent"; ?>; margin-bottom: -2px; font-weight: <?php echo $tab === "upload" ? "600" : "normal"; ?>;">
-                Upload File
-            </a>
-            <a href="?action=ingestion&tab=drive" style="display: inline-block; padding: 10px 20px; text-decoration: none; color: <?php echo $tab ===
-            "drive"
-                ? "#3498db"
-                : "#666"; ?>; border-bottom: 2px solid <?php echo $tab === "drive" ? "#3498db" : "transparent"; ?>; margin-bottom: -2px; font-weight: <?php echo $tab === "drive" ? "600" : "normal"; ?>;">
-                Import from Drive <?php if (
-                    count($not_imported) > 0
-                ): ?><span class="badge badge-warning"><?php echo count(
-    $not_imported,
-); ?></span><?php endif; ?>
-            </a>
-        </div>
-
-        <?php if ($tab === "upload"): ?>
-        <!-- Upload Tab -->
-        <h3>Upload Billing CSV</h3>
-        <form method="POST" enctype="multipart/form-data" style="margin-bottom: 30px;">
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="file" name="billing_csv" accept=".csv" required style="flex: 1;">
-                <button type="submit" class="btn btn-success">Upload & Import</button>
-            </div>
-            <p class="text-muted" style="margin-top: 8px; font-size: 12px;">
-                Expected format: <code>DataX_YYYY_MM_DD_humanreadable.csv</code><br>
-                Columns: <code>y,m,cust_id,cust_name,hit_code,tran_displayname,actual_unit_cost,count,revenue,EFX_code,billing_id</code>
-            </p>
-        </form>
-
-        <?php elseif ($tab === "drive"): ?>
-        <!-- Drive Tab -->
-        <h3>Import from Drive</h3>
-        <p class="text-muted" style="margin-bottom: 15px;">Files available in the archive directory for import.</p>
-
-        <?php if (empty($drive_files)): ?>
-            <p class="text-muted">No billing files found in archive directory.</p>
-        <?php else: ?>
-            <form method="POST">
-                <input type="hidden" name="bulk_import" value="1">
-                <div style="margin-bottom: 15px;">
-                    <button type="button" class="btn btn-sm" onclick="selectAllPending()">Select All Pending</button>
-                    <button type="button" class="btn btn-sm" onclick="deselectAll()">Deselect All</button>
-                    <button type="submit" class="btn btn-success" style="margin-left: 20px;">Import Selected</button>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 40px;"><input type="checkbox" id="select-all" onclick="toggleAll(this)"></th>
-                            <th>Filename</th>
-                            <th>Size</th>
-                            <th>Modified</th>
-                            <th>Status</th>
-                            <th class="text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($drive_files as $file): ?>
-                        <tr style="<?php echo $file["imported"]
-                            ? "opacity: 0.6;"
-                            : ""; ?>">
-                            <td>
-                                <input type="checkbox" name="selected_files[]" value="<?php echo h(
-                                    $file["filename"],
-                                ); ?>"
-                                    class="file-checkbox" <?php echo $file[
-                                        "imported"
-                                    ]
-                                        ? "disabled"
-                                        : ""; ?>
-                                    data-pending="<?php echo $file["imported"]
-                                        ? "0"
-                                        : "1"; ?>">
-                            </td>
-                            <td><code><?php echo h(
-                                $file["filename"],
-                            ); ?></code></td>
-                            <td><?php echo number_format(
-                                $file["size"] / 1024,
-                                1,
-                            ); ?> KB</td>
-                            <td><?php echo date(
-                                "Y-m-d H:i",
-                                $file["modified"],
-                            ); ?></td>
-                            <td>
-                                <?php if ($file["imported"]): ?>
-                                    <span class="badge badge-success">Imported</span>
-                                <?php else: ?>
-                                    <span class="badge badge-warning">Pending</span>
-                                <?php endif; ?>
-                            </td>
-                            <td class="text-right">
-                                <?php if (!$file["imported"]): ?>
-                                    <a href="?action=ingestion&import_file=<?php echo urlencode(
-                                        $file["filename"],
-                                    ); ?>" class="btn btn-sm btn-success">Import</a>
-                                <?php else: ?>
-                                    <span class="text-muted">-</span>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </form>
-            <script>
-            function toggleAll(el) {
-                var checkboxes = document.querySelectorAll('.file-checkbox:not([disabled])');
-                checkboxes.forEach(function(cb) { cb.checked = el.checked; });
-            }
-            function selectAllPending() {
-                var checkboxes = document.querySelectorAll('.file-checkbox[data-pending="1"]');
-                checkboxes.forEach(function(cb) { cb.checked = true; });
-            }
-            function deselectAll() {
-                var checkboxes = document.querySelectorAll('.file-checkbox');
-                checkboxes.forEach(function(cb) { cb.checked = false; });
-                document.getElementById('select-all').checked = false;
-            }
-            </script>
-        <?php endif; ?>
-
-        <?php else: ?>
-        <!-- Reports Tab (default) -->
-        <h3>Imported Reports</h3>
-        <?php if (empty($data["reports"])): ?>
-            <p class="text-muted">No reports imported yet. <a href="?action=ingestion&tab=drive">Import from drive</a> or <a href="?action=ingestion&tab=upload">upload a file</a>.</p>
-        <?php else: ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Type</th>
-                        <th>Date</th>
-                        <th>File</th>
-                        <th>Rows</th>
-                        <th>Imported At</th>
-                        <th class="text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($data["reports"] as $report): ?>
-                    <tr>
-                        <td>
-                            <span class="badge badge-<?php echo $report[
-                                "report_type"
-                            ] === "monthly"
-                                ? "success"
-                                : "info"; ?>">
-                                <?php echo h($report["report_type"]); ?>
-                            </span>
-                        </td>
-                        <td><?php echo h($report["report_date"]); ?></td>
-                        <td><code style="font-size: 11px;"><?php echo h(
-                            $report["file_path"],
-                        ); ?></code></td>
-                        <td><?php echo number_format(
-                            $report["record_count"],
-                        ); ?></td>
-                        <td><?php echo date(
-                            "Y-m-d H:i",
-                            strtotime($report["imported_at"]),
-                        ); ?></td>
-                        <td class="text-right">
-                            <a href="?action=ingestion_view&id=<?php echo $report[
-                                "id"
-                            ]; ?>" class="btn btn-sm">View</a>
-                            <a href="?action=ingestion&delete=<?php echo $report[
-                                "id"
-                            ]; ?>" class="btn btn-sm" style="background: #e74c3c;" onclick="return confirm('Delete this report?');">Delete</a>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php endif; ?>
-        <?php endif; ?>
-    </div>
-<?php
-}
-/**
- * Render single billing report view
- */ function render_ingestion_view($data)
-{
-    render_header("View Report - Control Panel"); ?>
-    <div id="iv-content" class="ajax-content">
+    <div id="page-data" class="ajax-content">
         <div class="loading-skeleton">
             <div class="skeleton-bar w75"></div>
             <div class="skeleton-bar w90"></div>
             <div class="skeleton-bar w50"></div>
-            <p>Loading report...</p>
+            <p>Loading ingestion data...</p>
         </div>
     </div>
+
     <script>
     (function() {
-        var params = new URLSearchParams(window.location.search);
-        var reportId = params.get('id');
-        if (!reportId) {
-            showAjaxError('iv-content', 'No report ID specified');
-            return;
-        }
-        apiGet('ingestion_view', {id: reportId}, function(err, data) {
-            if (err) { showAjaxError('iv-content', err); return; }
+        var currentTab = <?php echo json_encode($tab); ?>;
 
-            var report = data.report;
-            var lines = data.lines || [];
+        function formatDate(timestamp) {
+            var d = new Date(timestamp * 1000);
+            var pad = function(n) { return n < 10 ? '0' + n : n; };
+            return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+                ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+        }
+
+        apiGet('ingestion', {tab: currentTab}, function(err, data) {
+            if (err) { showAjaxError('page-data', err); return; }
+
+            var el = document.getElementById('page-data');
             var html = '';
 
-            // Breadcrumb
-            html += '<div class="breadcrumb"><a href="?action=ingestion">Ingestion</a><span>/</span>' +
-                escapeHtml(report.report_type) + ' - ' + escapeHtml(report.report_date) + '</div>';
+            var reports = data.reports || [];
+            var driveFiles = data.drive_files || [];
+            var stats = data.stats || {};
+            var tab = data.tab || currentTab;
 
+            // Count pending (not imported) drive files
+            var pendingCount = 0;
+            for (var p = 0; p < driveFiles.length; p++) {
+                if (!driveFiles[p].imported) { pendingCount++; }
+            }
+
+            // Outer card
             html += '<div class="card">';
-            html += '<h2>' + escapeHtml(report.report_type.charAt(0).toUpperCase() + report.report_type.slice(1)) +
-                ' Report: ' + escapeHtml(report.report_date) + '</h2>';
-            html += '<p class="text-muted">' + numberFormat(report.record_count, 0) + ' rows imported on ' +
-                escapeHtml(report.created_at || report.imported_at || '') + '</p>';
+            html += '<h2>Billing Report Ingestion</h2>';
 
-            html += '<div style="margin: 20px 0;">';
-            html += '<a href="?action=report_audit&id=' + report.id + '" class="btn">Audit All Lines</a>';
+            // Stats row
+            html += '<div style="display: flex; gap: 20px; margin-bottom: 20px;">';
+
+            html += '<div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">';
+            html += '<div style="font-size: 24px; font-weight: bold;">' + escapeHtml(String(stats.total_reports || 0)) + '</div>';
+            html += '<div style="color: #666; font-size: 13px;">Imported Reports</div>';
             html += '</div>';
 
-            // Customer Summary (extra data from API)
-            if (data.customer_summary && data.customer_summary.length > 0) {
-                html += '<h3 style="margin-top: 20px;">Customer Summary</h3>';
-                html += '<table><thead><tr><th>Customer ID</th><th>Customer Name</th><th class="text-right">Lines</th><th class="text-right">Count</th><th class="text-right">Revenue</th></tr></thead><tbody>';
-                for (var c = 0; c < data.customer_summary.length; c++) {
-                    var cs = data.customer_summary[c];
-                    html += '<tr>';
-                    html += '<td>' + escapeHtml(cs.customer_id) + '</td>';
-                    html += '<td>' + escapeHtml(cs.customer_name || '') + '</td>';
-                    html += '<td class="text-right">' + numberFormat(cs.line_count, 0) + '</td>';
-                    html += '<td class="text-right">' + numberFormat(cs.total_count, 0) + '</td>';
-                    html += '<td class="text-right">$' + numberFormat(cs.total_revenue, 2) + '</td>';
-                    html += '</tr>';
-                }
-                html += '</tbody></table>';
-            }
+            html += '<div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">';
+            html += '<div style="font-size: 24px; font-weight: bold;">' + numberFormat(stats.total_rows || 0, 0) + '</div>';
+            html += '<div style="color: #666; font-size: 13px;">Total Rows</div>';
+            html += '</div>';
 
-            // All Line Items
-            html += '<h3 style="margin-top: 20px;">All Line Items</h3>';
-            if (lines.length === 0) {
-                html += '<p class="text-muted">No line items.</p>';
+            var pendingBg = pendingCount > 0 ? '#fff3cd' : '#d4edda';
+            html += '<div style="flex: 1; background: ' + pendingBg + '; padding: 15px; border-radius: 4px;">';
+            html += '<div style="font-size: 24px; font-weight: bold;">' + escapeHtml(String(pendingCount)) + '</div>';
+            html += '<div style="color: #666; font-size: 13px;">Pending on Drive</div>';
+            html += '</div>';
+
+            html += '<div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">';
+            html += '<div style="font-size: 13px; color: #666;">Date Range</div>';
+            if (stats.earliest && stats.earliest) {
+                html += '<div>' + escapeHtml(stats.earliest) + ' to ' + escapeHtml(stats.latest) + '</div>';
             } else {
-                html += '<div style="overflow-x: auto;">';
-                html += '<table><thead><tr>';
-                html += '<th>Year</th><th>Month</th><th>Cust ID</th><th>Customer Name</th>';
-                html += '<th>Hit Code</th><th>Transaction</th><th class="text-right">Unit Cost</th>';
-                html += '<th class="text-right">Count</th><th class="text-right">Revenue</th>';
-                html += '<th>EFX Code</th><th>Billing ID</th><th>Audit</th>';
-                html += '</tr></thead><tbody>';
-                for (var i = 0; i < lines.length; i++) {
-                    var line = lines[i];
-                    html += '<tr>';
-                    html += '<td>' + escapeHtml(line.year + '') + '</td>';
-                    html += '<td>' + escapeHtml(line.month + '') + '</td>';
-                    html += '<td>' + escapeHtml(line.customer_id) + '</td>';
-                    html += '<td>' + escapeHtml(line.customer_name || '') + '</td>';
-                    html += '<td>' + escapeHtml(line.hit_code || '') + '</td>';
-                    html += '<td>' + escapeHtml(line.tran_displayname || '') + '</td>';
-                    html += '<td class="text-right">$' + numberFormat(line.actual_unit_cost, 4) + '</td>';
-                    html += '<td class="text-right">' + numberFormat(line.count, 0) + '</td>';
-                    html += '<td class="text-right">$' + numberFormat(line.revenue, 2) + '</td>';
-                    html += '<td>' + escapeHtml(line.efx_code || '') + '</td>';
-                    html += '<td>' + escapeHtml(line.billing_id || '') + '</td>';
-                    html += '<td><a href="?action=line_audit&id=' + line.id + '" title="View price calculation audit">Audit</a></td>';
-                    html += '</tr>';
+                html += '<div>No data</div>';
+            }
+            html += '</div>';
+
+            html += '</div>'; // end stats row
+
+            // Tab navigation
+            html += '<div style="margin-bottom: 20px; border-bottom: 2px solid #eee;">';
+
+            var tabs = [
+                {key: 'reports', label: 'Imported Reports'},
+                {key: 'upload', label: 'Upload File'},
+                {key: 'drive', label: 'Import from Drive'}
+            ];
+            for (var t = 0; t < tabs.length; t++) {
+                var isActive = (tab === tabs[t].key);
+                var color = isActive ? '#3498db' : '#666';
+                var border = isActive ? '#3498db' : 'transparent';
+                var weight = isActive ? '600' : 'normal';
+                html += '<a href="?action=ingestion&tab=' + escapeHtml(tabs[t].key) + '" style="display: inline-block; padding: 10px 20px; text-decoration: none; color: ' + color + '; border-bottom: 2px solid ' + border + '; margin-bottom: -2px; font-weight: ' + weight + ';">';
+                html += escapeHtml(tabs[t].label);
+                if (tabs[t].key === 'drive' && pendingCount > 0) {
+                    html += ' <span class="badge badge-warning">' + escapeHtml(String(pendingCount)) + '</span>';
                 }
-                html += '</tbody></table></div>';
+                html += '</a>';
             }
 
-            html += '</div>'; // close card
-            document.getElementById('iv-content').innerHTML = html;
+            html += '</div>'; // end tab bar
+
+            // Tab content
+            if (tab === 'upload') {
+                // ---- Upload Tab ----
+                html += '<h3>Upload Billing CSV</h3>';
+                html += '<form method="POST" enctype="multipart/form-data" style="margin-bottom: 30px;">';
+                html += '<div style="display: flex; gap: 10px; align-items: center;">';
+                html += '<input type="file" name="billing_csv" accept=".csv" required style="flex: 1;">';
+                html += '<button type="submit" class="btn btn-success">Upload &amp; Import</button>';
+                html += '</div>';
+                html += '<p class="text-muted" style="margin-top: 8px; font-size: 12px;">';
+                html += 'Expected format: <code>DataX_YYYY_MM_DD_humanreadable.csv</code><br>';
+                html += 'Columns: <code>y,m,cust_id,cust_name,hit_code,tran_displayname,actual_unit_cost,count,revenue,EFX_code,billing_id</code>';
+                html += '</p>';
+                html += '</form>';
+
+            } else if (tab === 'drive') {
+                // ---- Drive Tab ----
+                html += '<h3>Import from Drive</h3>';
+                html += '<p class="text-muted" style="margin-bottom: 15px;">Files available in the archive directory for import.</p>';
+
+                if (driveFiles.length === 0) {
+                    html += '<p class="text-muted">No billing files found in archive directory.</p>';
+                } else {
+                    html += '<form method="POST">';
+                    html += '<input type="hidden" name="bulk_import" value="1">';
+                    html += '<div style="margin-bottom: 15px;">';
+                    html += '<button type="button" class="btn btn-sm" onclick="selectAllPending()">Select All Pending</button>';
+                    html += '<button type="button" class="btn btn-sm" onclick="deselectAll()">Deselect All</button>';
+                    html += '<button type="submit" class="btn btn-success" style="margin-left: 20px;">Import Selected</button>';
+                    html += '</div>';
+
+                    html += '<table>';
+                    html += '<thead><tr>';
+                    html += '<th style="width: 40px;"><input type="checkbox" id="select-all" onclick="toggleAll(this)"></th>';
+                    html += '<th>Filename</th>';
+                    html += '<th>Size</th>';
+                    html += '<th>Modified</th>';
+                    html += '<th>Status</th>';
+                    html += '<th class="text-right">Actions</th>';
+                    html += '</tr></thead>';
+                    html += '<tbody>';
+
+                    for (var i = 0; i < driveFiles.length; i++) {
+                        var file = driveFiles[i];
+                        var rowStyle = file.imported ? 'opacity: 0.6;' : '';
+                        html += '<tr style="' + rowStyle + '">';
+
+                        // Checkbox
+                        html += '<td>';
+                        html += '<input type="checkbox" name="selected_files[]" value="' + escapeHtml(file.filename) + '"';
+                        html += ' class="file-checkbox"';
+                        if (file.imported) { html += ' disabled'; }
+                        html += ' data-pending="' + (file.imported ? '0' : '1') + '">';
+                        html += '</td>';
+
+                        // Filename
+                        html += '<td><code>' + escapeHtml(file.filename) + '</code></td>';
+
+                        // Size
+                        var sizeKB = (file.size / 1024).toFixed(1);
+                        html += '<td>' + sizeKB + ' KB</td>';
+
+                        // Modified
+                        html += '<td>' + formatDate(file.modified) + '</td>';
+
+                        // Status
+                        html += '<td>';
+                        if (file.imported) {
+                            html += '<span class="badge badge-success">Imported</span>';
+                        } else {
+                            html += '<span class="badge badge-warning">Pending</span>';
+                        }
+                        html += '</td>';
+
+                        // Actions
+                        html += '<td class="text-right">';
+                        if (!file.imported) {
+                            html += '<a href="?action=ingestion&import_file=' + encodeURIComponent(file.filename) + '" class="btn btn-sm btn-success">Import</a>';
+                        } else {
+                            html += '<span class="text-muted">-</span>';
+                        }
+                        html += '</td>';
+
+                        html += '</tr>';
+                    }
+
+                    html += '</tbody></table>';
+                    html += '</form>';
+                }
+
+            } else {
+                // ---- Reports Tab (default) ----
+                html += '<h3>Imported Reports</h3>';
+
+                if (reports.length === 0) {
+                    html += '<p class="text-muted">No reports imported yet. ';
+                    html += '<a href="?action=ingestion&tab=drive">Import from drive</a> or ';
+                    html += '<a href="?action=ingestion&tab=upload">upload a file</a>.';
+                    html += '</p>';
+                } else {
+                    html += '<table>';
+                    html += '<thead><tr>';
+                    html += '<th>Type</th>';
+                    html += '<th>Date</th>';
+                    html += '<th>File</th>';
+                    html += '<th>Rows</th>';
+                    html += '<th>Imported At</th>';
+                    html += '<th class="text-right">Actions</th>';
+                    html += '</tr></thead>';
+                    html += '<tbody>';
+
+                    for (var r = 0; r < reports.length; r++) {
+                        var report = reports[r];
+                        html += '<tr>';
+
+                        // Type badge
+                        var badgeClass = (report.report_type === 'monthly') ? 'badge-success' : 'badge-info';
+                        html += '<td><span class="badge ' + badgeClass + '">' + escapeHtml(report.report_type) + '</span></td>';
+
+                        // Date
+                        html += '<td>' + escapeHtml(report.report_date) + '</td>';
+
+                        // File
+                        html += '<td><code style="font-size: 11px;">' + escapeHtml(report.file_path) + '</code></td>';
+
+                        // Rows
+                        html += '<td>' + numberFormat(report.record_count, 0) + '</td>';
+
+                        // Imported At
+                        html += '<td>' + escapeHtml(report.imported_at) + '</td>';
+
+                        // Actions
+                        html += '<td class="text-right">';
+                        html += '<a href="?action=ingestion_view&id=' + escapeHtml(String(report.id)) + '" class="btn btn-sm">View</a>';
+                        html += '<a href="?action=ingestion&delete=' + escapeHtml(String(report.id)) + '" class="btn btn-sm" style="background: #e74c3c;" onclick="return confirm(\'Delete this report?\');">Delete</a>';
+                        html += '</td>';
+
+                        html += '</tr>';
+                    }
+
+                    html += '</tbody></table>';
+                }
+            }
+
+            html += '</div>'; // close .card
+
+            el.innerHTML = html;
         });
+
+        // Drive tab helper functions (defined globally so onclick attributes can find them)
+        window.toggleAll = function(checkbox) {
+            var checkboxes = document.querySelectorAll('.file-checkbox:not([disabled])');
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = checkbox.checked;
+            }
+        };
+
+        window.selectAllPending = function() {
+            var checkboxes = document.querySelectorAll('.file-checkbox[data-pending="1"]');
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = true;
+            }
+        };
+
+        window.deselectAll = function() {
+            var checkboxes = document.querySelectorAll('.file-checkbox');
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = false;
+            }
+            var selectAllEl = document.getElementById('select-all');
+            if (selectAllEl) { selectAllEl.checked = false; }
+        };
     })();
     </script>
 <?php render_footer();
@@ -1525,9 +1465,6 @@ function render_ingestion($data)
  */
 function render_line_audit($data)
 {
-    $audit = $data["audit"];
-    $latex = $data["latex"];
-    $variance = isset($audit["variance"]) ? $audit["variance"] : null;
     render_header("Price Audit - Control Panel");
     ?>
     <!-- MathJax for LaTeX rendering -->
@@ -1588,447 +1525,360 @@ function render_line_audit($data)
         .error-box { background: #ffebee; border: 1px solid #ffcdd2; border-radius: 4px; padding: 15px; color: #c62828; }
     </style>
 
-    <div class="breadcrumb">
-        <a href="?action=ingestion">Ingestion</a>
-        <span>/</span>
-        <a href="?action=ingestion_view&id=<?php echo $audit[
-            "report_id"
-        ]; ?>">Report <?php echo h($audit["report_date"]); ?></a>
-        <span>/</span>
-        Line Audit #<?php echo $audit["line_id"]; ?>
-    </div>
-
-    <div class="audit-container">
-        <!-- Header -->
-        <div class="audit-header">
-            <h2>Price Calculation Audit</h2>
-            <div class="audit-meta">
-                <div class="audit-meta-item">
-                    <div class="label">Report Date</div>
-                    <div class="value"><?php echo h(
-                        $audit["report_date"],
-                    ); ?> (<?php echo h($audit["report_type"]); ?>)</div>
-                </div>
-                <div class="audit-meta-item">
-                    <div class="label">Customer</div>
-                    <div class="value"><?php echo h(
-                        isset($audit["customer_name"])
-                            ? $audit["customer_name"]
-                            : "ID: " . $audit["customer_id"],
-                    ); ?></div>
-                </div>
-                <div class="audit-meta-item">
-                    <div class="label">Service</div>
-                    <div class="value"><?php echo h(
-                        isset($audit["service_name"])
-                            ? $audit["service_name"]
-                            : $audit["efx_code"],
-                    ); ?></div>
-                </div>
-                <div class="audit-meta-item">
-                    <div class="label">Transaction Count</div>
-                    <div class="value"><?php echo number_format(
-                        $audit["count"],
-                    ); ?></div>
-                </div>
-            </div>
-        </div>
-
-        <?php if (!empty($audit["errors"])): ?>
-            <div class="error-box">
-                <strong>Calculation Errors:</strong>
-                <ul style="margin: 10px 0 0 0; padding-left: 20px;">
-                    <?php foreach ($audit["errors"] as $error): ?>
-                        <li><?php echo h($error); ?></li>
-                    <?php endforeach; ?>
-                </ul>
-            </div>
-        <?php endif; ?>
-
-        <!-- Calculation Steps -->
-        <h3 style="margin-top: 30px;">Calculation Steps</h3>
-
-        <?php foreach ($audit["steps"] as $step): ?>
-            <div class="audit-step">
-                <div class="audit-step-header <?php echo $step["success"]
-                    ? "success"
-                    : "error"; ?>">
-                    <div>
-                        <span class="step-num"><?php echo $step[
-                            "step"
-                        ]; ?></span>
-                        <strong><?php echo h(
-                            ucwords(str_replace("_", " ", $step["name"])),
-                        ); ?></strong>
-                        <span style="color: #666; margin-left: 10px;"><?php echo h(
-                            $step["description"],
-                        ); ?></span>
-                    </div>
-                    <?php if ($step["success"]): ?>
-                        <span style="color: #4caf50;">&#10003;</span>
-                    <?php else: ?>
-                        <span style="color: #f44336;">&#10007;</span>
-                    <?php endif; ?>
-                </div>
-                <div class="audit-step-body">
-                    <?php if (
-                        $step["name"] === "customer_lookup" &&
-                        $step["success"]
-                    ): ?>
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <div class="label">Customer ID</div>
-                                <div class="value"><?php echo h(
-                                    $step["result"]["customer_id"],
-                                ); ?></div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="label">Customer Name</div>
-                                <div class="value"><?php echo h(
-                                    $step["result"]["customer_name"],
-                                ); ?></div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="label">Discount Group</div>
-                                <div class="value"><?php echo $step["result"][
-                                    "group_name"
-                                ]
-                                    ? h($step["result"]["group_name"])
-                                    : "<em>None</em>"; ?></div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="label">Status</div>
-                                <div class="value"><?php echo h(
-                                    $step["result"]["status"],
-                                ); ?></div>
-                            </div>
-                        </div>
-
-                    <?php elseif (
-                        $step["name"] === "service_mapping" &&
-                        $step["success"]
-                    ): ?>
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <div class="label">EFX Code</div>
-                                <div class="value"><code><?php echo h(
-                                    $step["efx_code"],
-                                ); ?></code></div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="label">Mapped Service</div>
-                                <div class="value"><?php echo h(
-                                    $step["result"]["service_name"],
-                                ); ?> (ID: <?php echo $step["result"][
-     "service_id"
- ]; ?>)</div>
-                            </div>
-                        </div>
-
-                    <?php elseif (
-                        $step["name"] === "tier_resolution" &&
-                        $step["success"]
-                    ): ?>
-                        <p><strong>Inheritance Chain:</strong></p>
-                        <div class="inheritance-chain">
-                            <?php foreach (
-                                $step["inheritance_chain"]
-                                as $i => $chain
-                            ): ?>
-                                <?php if (
-                                    $i > 0
-                                ): ?><span class="inheritance-arrow">→</span><?php endif; ?>
-                                <span class="inheritance-item <?php echo $chain[
-                                    "applied"
-                                ]
-                                    ? "applied"
-                                    : "skipped"; ?>">
-                                    <?php echo ucfirst($chain["level"]); ?>
-                                    <?php if (
-                                        isset($chain["group_name"])
-                                    ): ?>(<?php echo h(
-    $chain["group_name"],
-); ?>)<?php endif; ?>
-                                    <?php if (
-                                        $chain["applied"] &&
-                                        isset($chain["effective_date"])
-                                    ): ?>
-                                        <br><small>as of <?php echo h(
-                                            $chain["effective_date"],
-                                        ); ?></small>
-                                    <?php endif; ?>
-                                </span>
-                            <?php endforeach; ?>
-                        </div>
-                        <p style="margin-top: 15px;"><strong>Resolved Tiers (source: <?php echo h(
-                            $step["source"],
-                        ); ?>):</strong></p>
-                        <table class="tier-table">
-                            <thead>
-                                <tr>
-                                    <th>Volume Start</th>
-                                    <th>Volume End</th>
-                                    <th>Price per Inquiry</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($step["tiers"] as $tier): ?>
-                                    <tr>
-                                        <td><?php echo number_format(
-                                            $tier["volume_start"],
-                                        ); ?></td>
-                                        <td><?php echo $tier["volume_end"]
-                                            ? number_format($tier["volume_end"])
-                                            : "Unlimited"; ?></td>
-                                        <td>$<?php echo number_format(
-                                            $tier["price"],
-                                            4,
-                                        ); ?></td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-
-                    <?php elseif (
-                        $step["name"] === "tier_matching" &&
-                        $step["success"]
-                    ): ?>
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <div class="label">Transaction Volume</div>
-                                <div class="value"><?php echo number_format(
-                                    $step["volume"],
-                                ); ?></div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="label">Matched Tier</div>
-                                <div class="value">
-                                    <?php echo number_format(
-                                        $step["matched_tier"]["volume_start"],
-                                    ); ?>
-                                    - <?php echo is_numeric(
-                                        $step["matched_tier"]["volume_end"],
-                                    )
-                                        ? number_format(
-                                            $step["matched_tier"]["volume_end"],
-                                        )
-                                        : "Unlimited"; ?>
-                                </div>
-                            </div>
-                        </div>
-                        <div style="margin-top: 15px; padding: 15px; background: #e8f5e9; border-radius: 4px; text-align: center;">
-                            <div style="font-size: 12px; color: #666; text-transform: uppercase;">Base Price</div>
-                            <div style="font-size: 28px; font-weight: bold; color: #2e7d32;">$<?php echo number_format(
-                                $step["base_price"],
-                                4,
-                            ); ?></div>
-                        </div>
-
-                    <?php elseif (
-                        $step["name"] === "escalator_calculation" &&
-                        $step["success"]
-                    ): ?>
-                        <?php if ($step["has_escalator"]): ?>
-                            <div class="detail-grid">
-                                <div class="detail-item">
-                                    <div class="label">Contract Start</div>
-                                    <div class="value"><?php echo h(
-                                        $step["contract_start"],
-                                    ); ?></div>
-                                </div>
-                                <div class="detail-item">
-                                    <div class="label">Current Year</div>
-                                    <div class="value">Year <?php
-                                    echo $step["current_year"];
-                                    if (
-                                        $step["delay_months"] > 0
-                                    ): ?> <small>(+<?php echo $step[
-     "delay_months"
- ]; ?> mo delay)</small><?php endif;
-                                    ?></div>
-                                </div>
-                                <div class="detail-item">
-                                    <div class="label">Escalator %</div>
-                                    <div class="value"><?php echo $step[
-                                        "escalator_percentage"
-                                    ] > 0
-                                        ? "+" .
-                                            $step["escalator_percentage"] .
-                                            "%"
-                                        : "0%"; ?></div>
-                                </div>
-                                <div class="detail-item">
-                                    <div class="label">Fixed Adjustment</div>
-                                    <div class="value"><?php echo $step[
-                                        "fixed_adjustment"
-                                    ] != 0
-                                        ? ($step["fixed_adjustment"] > 0
-                                                ? "+"
-                                                : "") .
-                                            "$" .
-                                            number_format(
-                                                $step["fixed_adjustment"],
-                                                4,
-                                            )
-                                        : "None"; ?></div>
-                                </div>
-                            </div>
-                        <?php else: ?>
-                            <p style="color: #666;"><em>No escalator configured for this customer</em></p>
-                        <?php endif; ?>
-
-                        <div style="margin-top: 15px; padding: 15px; background: #fff3e0; border-radius: 4px; text-align: center;">
-                            <div style="font-size: 12px; color: #666; text-transform: uppercase;">Adjusted Price</div>
-                            <div style="font-size: 28px; font-weight: bold; color: #e65100;">$<?php echo number_format(
-                                $step["adjusted_price"],
-                                4,
-                            ); ?></div>
-                            <div style="font-size: 12px; color: #666; margin-top: 5px;"><?php echo h(
-                                $step["calculation"],
-                            ); ?></div>
-                        </div>
-
-                    <?php elseif (
-                        $step["name"] === "revenue_calculation" &&
-                        $step["success"]
-                    ): ?>
-                        <div style="padding: 20px; background: #e3f2fd; border-radius: 4px; text-align: center;">
-                            <div style="font-size: 12px; color: #666; text-transform: uppercase;">Expected Revenue</div>
-                            <div style="font-size: 32px; font-weight: bold; color: #1565c0;">$<?php echo number_format(
-                                $step["expected_revenue"],
-                                2,
-                            ); ?></div>
-                            <div style="font-size: 14px; color: #666; margin-top: 5px;">
-                                $<?php echo number_format(
-                                    $step["unit_price"],
-                                    4,
-                                ); ?> × <?php echo number_format(
-     $step["count"],
- ); ?> = $<?php echo number_format($step["expected_revenue"], 2); ?>
-                            </div>
-                        </div>
-
-                    <?php elseif (!$step["success"]): ?>
-                        <div class="error-box">
-                            <?php echo h(
-                                isset($step["error"])
-                                    ? $step["error"]
-                                    : "Unknown error",
-                            ); ?>
-                        </div>
-
-                    <?php else: ?>
-                        <pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px;"><?php echo h(
-                            json_encode($step, JSON_PRETTY_PRINT),
-                        ); ?></pre>
-                    <?php endif; ?>
-                </div>
-            </div>
-        <?php endforeach; ?>
-
-        <!-- LaTeX Calculation -->
-        <?php if (empty($audit["errors"])): ?>
-            <h3 style="margin-top: 30px;">Mathematical Representation</h3>
-            <div class="calculation-box">
-                \[
-                <?php echo $latex; ?>
-                \]
-            </div>
-        <?php endif; ?>
-
-        <!-- Comparison -->
-        <?php if ($variance): ?>
-            <h3 style="margin-top: 30px;">Verification: Expected vs Actual</h3>
-
-            <div class="comparison-grid">
-                <div class="comparison-cell header">Expected (Our Calculation)</div>
-                <div class="comparison-cell header">Actual (Their CSV)</div>
-                <div class="comparison-cell header">Variance</div>
-
-                <div class="comparison-cell expected">
-                    <div style="font-size: 11px; color: #666; text-transform: uppercase;">Unit Price</div>
-                    <div class="amount">$<?php echo number_format(
-                        $audit["expected_unit_price"],
-                        4,
-                    ); ?></div>
-                </div>
-                <div class="comparison-cell actual">
-                    <div style="font-size: 11px; color: #666; text-transform: uppercase;">Unit Price</div>
-                    <div class="amount">$<?php echo number_format(
-                        $audit["actual_unit_price"],
-                        4,
-                    ); ?></div>
-                </div>
-                <div class="comparison-cell <?php echo $variance["is_match"]
-                    ? "match"
-                    : "mismatch"; ?>">
-                    <div style="font-size: 11px; color: #666; text-transform: uppercase;">Difference</div>
-                    <div class="amount"><?php echo $variance["unit_price"] >= 0
-                        ? "+"
-                        : ""; ?>$<?php echo number_format(
-    $variance["unit_price"],
-    4,
-); ?></div>
-                </div>
-
-                <div class="comparison-cell expected">
-                    <div style="font-size: 11px; color: #666; text-transform: uppercase;">Revenue</div>
-                    <div class="amount">$<?php echo number_format(
-                        $audit["expected_revenue"],
-                        2,
-                    ); ?></div>
-                </div>
-                <div class="comparison-cell actual">
-                    <div style="font-size: 11px; color: #666; text-transform: uppercase;">Revenue</div>
-                    <div class="amount">$<?php echo number_format(
-                        $audit["actual_revenue"],
-                        2,
-                    ); ?></div>
-                </div>
-                <div class="comparison-cell <?php echo $variance["is_match"]
-                    ? "match"
-                    : "mismatch"; ?>">
-                    <div style="font-size: 11px; color: #666; text-transform: uppercase;">Difference</div>
-                    <div class="amount"><?php echo $variance["revenue"] >= 0
-                        ? "+"
-                        : ""; ?>$<?php echo number_format(
-    $variance["revenue"],
-    2,
-); ?></div>
-                </div>
-            </div>
-
-            <div style="text-align: center; margin: 30px 0;">
-                <?php if ($variance["status"] === "MATCH"): ?>
-                    <span class="status-badge match">VERIFIED - Prices Match</span>
-                <?php elseif ($variance["status"] === "VARIANCE"): ?>
-                    <span class="status-badge variance">VARIANCE DETECTED - <?php echo number_format(
-                        abs($variance["unit_price_pct"]),
-                        2,
-                    ); ?>% difference</span>
-                <?php else: ?>
-                    <span class="status-badge error">CALCULATION ERROR</span>
-                <?php endif; ?>
-            </div>
-        <?php endif; ?>
-
-        <!-- Navigation -->
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
-            <a href="?action=ingestion_view&id=<?php echo $audit[
-                "report_id"
-            ]; ?>" class="btn">Back to Report</a>
-            <a href="?action=report_audit&id=<?php echo $audit[
-                "report_id"
-            ]; ?>" class="btn">Audit All Lines</a>
+    <div id="page-data" class="ajax-content">
+        <div class="loading-skeleton">
+            <div class="skeleton-bar w75"></div>
+            <div class="skeleton-bar w90"></div>
+            <div class="skeleton-bar w50"></div>
+            <div class="skeleton-bar w75"></div>
+            <div class="skeleton-bar w90"></div>
+            <p>Loading price audit...</p>
         </div>
     </div>
-<?php
+
+    <script>
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        var lineId = params.get('id');
+
+        apiGet('line_audit', {id: lineId}, function(err, data) {
+            if (err) { showAjaxError('page-data', err); return; }
+
+            var audit = data.audit;
+            var latex = data.latex;
+            var variance = audit.variance || null;
+            var el = document.getElementById('page-data');
+            var html = '';
+
+            // Breadcrumb
+            html += '<div class="breadcrumb">';
+            html += '<a href="?action=ingestion">Ingestion</a>';
+            html += '<span>/</span>';
+            html += '<a href="?action=ingestion_view&id=' + escapeHtml(audit.report_id + '') + '">Report ' + escapeHtml(audit.report_date) + '</a>';
+            html += '<span>/</span>';
+            html += 'Line Audit #' + escapeHtml(audit.line_id + '');
+            html += '</div>';
+
+            html += '<div class="audit-container">';
+
+            // Audit Header
+            html += '<div class="audit-header">';
+            html += '<h2>Price Calculation Audit</h2>';
+            html += '<div class="audit-meta">';
+
+            html += '<div class="audit-meta-item">';
+            html += '<div class="label">Report Date</div>';
+            html += '<div class="value">' + escapeHtml(audit.report_date) + ' (' + escapeHtml(audit.report_type) + ')</div>';
+            html += '</div>';
+
+            html += '<div class="audit-meta-item">';
+            html += '<div class="label">Customer</div>';
+            html += '<div class="value">' + escapeHtml(audit.customer_name ? audit.customer_name : 'ID: ' + audit.customer_id) + '</div>';
+            html += '</div>';
+
+            html += '<div class="audit-meta-item">';
+            html += '<div class="label">Service</div>';
+            html += '<div class="value">' + escapeHtml(audit.service_name ? audit.service_name : audit.efx_code) + '</div>';
+            html += '</div>';
+
+            html += '<div class="audit-meta-item">';
+            html += '<div class="label">Transaction Count</div>';
+            html += '<div class="value">' + numberFormat(audit.count, 0) + '</div>';
+            html += '</div>';
+
+            html += '</div>'; // audit-meta
+            html += '</div>'; // audit-header
+
+            // Error box
+            if (audit.errors && audit.errors.length > 0) {
+                html += '<div class="error-box">';
+                html += '<strong>Calculation Errors:</strong>';
+                html += '<ul style="margin: 10px 0 0 0; padding-left: 20px;">';
+                for (var e = 0; e < audit.errors.length; e++) {
+                    html += '<li>' + escapeHtml(audit.errors[e]) + '</li>';
+                }
+                html += '</ul>';
+                html += '</div>';
+            }
+
+            // Calculation Steps
+            html += '<h3 style="margin-top: 30px;">Calculation Steps</h3>';
+
+            var steps = audit.steps || [];
+            for (var s = 0; s < steps.length; s++) {
+                var step = steps[s];
+                var headerClass = step.success ? 'success' : 'error';
+                var stepLabel = step.name.replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+
+                html += '<div class="audit-step">';
+                html += '<div class="audit-step-header ' + headerClass + '">';
+                html += '<div>';
+                html += '<span class="step-num">' + escapeHtml(step.step + '') + '</span>';
+                html += '<strong>' + escapeHtml(stepLabel) + '</strong>';
+                html += '<span style="color: #666; margin-left: 10px;">' + escapeHtml(step.description) + '</span>';
+                html += '</div>';
+                if (step.success) {
+                    html += '<span style="color: #4caf50;">&#10003;</span>';
+                } else {
+                    html += '<span style="color: #f44336;">&#10007;</span>';
+                }
+                html += '</div>'; // audit-step-header
+
+                html += '<div class="audit-step-body">';
+
+                // Step body varies by step name
+                if (step.name === 'customer_lookup' && step.success) {
+                    html += '<div class="detail-grid">';
+                    html += '<div class="detail-item">';
+                    html += '<div class="label">Customer ID</div>';
+                    html += '<div class="value">' + escapeHtml(step.result.customer_id + '') + '</div>';
+                    html += '</div>';
+                    html += '<div class="detail-item">';
+                    html += '<div class="label">Customer Name</div>';
+                    html += '<div class="value">' + escapeHtml(step.result.customer_name) + '</div>';
+                    html += '</div>';
+                    html += '<div class="detail-item">';
+                    html += '<div class="label">Discount Group</div>';
+                    html += '<div class="value">' + (step.result.group_name ? escapeHtml(step.result.group_name) : '<em>None</em>') + '</div>';
+                    html += '</div>';
+                    html += '<div class="detail-item">';
+                    html += '<div class="label">Status</div>';
+                    html += '<div class="value">' + escapeHtml(step.result.status) + '</div>';
+                    html += '</div>';
+                    html += '</div>'; // detail-grid
+
+                } else if (step.name === 'service_mapping' && step.success) {
+                    html += '<div class="detail-grid">';
+                    html += '<div class="detail-item">';
+                    html += '<div class="label">EFX Code</div>';
+                    html += '<div class="value"><code>' + escapeHtml(step.efx_code) + '</code></div>';
+                    html += '</div>';
+                    html += '<div class="detail-item">';
+                    html += '<div class="label">Mapped Service</div>';
+                    html += '<div class="value">' + escapeHtml(step.result.service_name) + ' (ID: ' + escapeHtml(step.result.service_id + '') + ')</div>';
+                    html += '</div>';
+                    html += '</div>'; // detail-grid
+
+                } else if (step.name === 'tier_resolution' && step.success) {
+                    // Inheritance chain
+                    html += '<p><strong>Inheritance Chain:</strong></p>';
+                    html += '<div class="inheritance-chain">';
+                    var chain = step.inheritance_chain || [];
+                    for (var ci = 0; ci < chain.length; ci++) {
+                        if (ci > 0) {
+                            html += '<span class="inheritance-arrow">&rarr;</span>';
+                        }
+                        var item = chain[ci];
+                        var itemClass = item.applied ? 'applied' : 'skipped';
+                        html += '<span class="inheritance-item ' + itemClass + '">';
+                        html += escapeHtml(item.level.charAt(0).toUpperCase() + item.level.slice(1));
+                        if (item.group_name) {
+                            html += ' (' + escapeHtml(item.group_name) + ')';
+                        }
+                        if (item.applied && item.effective_date) {
+                            html += '<br><small>as of ' + escapeHtml(item.effective_date) + '</small>';
+                        }
+                        html += '</span>';
+                    }
+                    html += '</div>'; // inheritance-chain
+
+                    // Tier table
+                    html += '<p style="margin-top: 15px;"><strong>Resolved Tiers (source: ' + escapeHtml(step.source) + '):</strong></p>';
+                    html += '<table class="tier-table">';
+                    html += '<thead><tr>';
+                    html += '<th>Volume Start</th>';
+                    html += '<th>Volume End</th>';
+                    html += '<th>Price per Inquiry</th>';
+                    html += '</tr></thead>';
+                    html += '<tbody>';
+                    var tiers = step.tiers || [];
+                    for (var ti = 0; ti < tiers.length; ti++) {
+                        var tier = tiers[ti];
+                        html += '<tr>';
+                        html += '<td>' + numberFormat(tier.volume_start, 0) + '</td>';
+                        html += '<td>' + (tier.volume_end ? numberFormat(tier.volume_end, 0) : 'Unlimited') + '</td>';
+                        html += '<td>$' + numberFormat(tier.price, 4) + '</td>';
+                        html += '</tr>';
+                    }
+                    html += '</tbody></table>';
+
+                } else if (step.name === 'tier_matching' && step.success) {
+                    html += '<div class="detail-grid">';
+                    html += '<div class="detail-item">';
+                    html += '<div class="label">Transaction Volume</div>';
+                    html += '<div class="value">' + numberFormat(step.volume, 0) + '</div>';
+                    html += '</div>';
+                    html += '<div class="detail-item">';
+                    html += '<div class="label">Matched Tier</div>';
+                    var matchedEnd = (step.matched_tier.volume_end !== null && step.matched_tier.volume_end !== undefined && !isNaN(Number(step.matched_tier.volume_end)))
+                        ? numberFormat(step.matched_tier.volume_end, 0)
+                        : 'Unlimited';
+                    html += '<div class="value">' + numberFormat(step.matched_tier.volume_start, 0) + ' - ' + matchedEnd + '</div>';
+                    html += '</div>';
+                    html += '</div>'; // detail-grid
+
+                    // Base price box (green)
+                    html += '<div style="margin-top: 15px; padding: 15px; background: #e8f5e9; border-radius: 4px; text-align: center;">';
+                    html += '<div style="font-size: 12px; color: #666; text-transform: uppercase;">Base Price</div>';
+                    html += '<div style="font-size: 28px; font-weight: bold; color: #2e7d32;">$' + numberFormat(step.base_price, 4) + '</div>';
+                    html += '</div>';
+
+                } else if (step.name === 'escalator_calculation' && step.success) {
+                    if (step.has_escalator) {
+                        html += '<div class="detail-grid">';
+                        html += '<div class="detail-item">';
+                        html += '<div class="label">Contract Start</div>';
+                        html += '<div class="value">' + escapeHtml(step.contract_start) + '</div>';
+                        html += '</div>';
+                        html += '<div class="detail-item">';
+                        html += '<div class="label">Current Year</div>';
+                        html += '<div class="value">Year ' + escapeHtml(step.current_year + '');
+                        if (step.delay_months > 0) {
+                            html += ' <small>(+' + escapeHtml(step.delay_months + '') + ' mo delay)</small>';
+                        }
+                        html += '</div>';
+                        html += '</div>';
+                        html += '<div class="detail-item">';
+                        html += '<div class="label">Escalator %</div>';
+                        html += '<div class="value">' + (step.escalator_percentage > 0 ? '+' + escapeHtml(step.escalator_percentage + '') + '%' : '0%') + '</div>';
+                        html += '</div>';
+                        html += '<div class="detail-item">';
+                        html += '<div class="label">Fixed Adjustment</div>';
+                        var fixedAdj = step.fixed_adjustment;
+                        var fixedAdjStr;
+                        if (fixedAdj != 0) {
+                            fixedAdjStr = (fixedAdj > 0 ? '+' : '') + '$' + numberFormat(fixedAdj, 4);
+                        } else {
+                            fixedAdjStr = 'None';
+                        }
+                        html += '<div class="value">' + fixedAdjStr + '</div>';
+                        html += '</div>';
+                        html += '</div>'; // detail-grid
+                    } else {
+                        html += '<p style="color: #666;"><em>No escalator configured for this customer</em></p>';
+                    }
+
+                    // Adjusted price box (orange)
+                    html += '<div style="margin-top: 15px; padding: 15px; background: #fff3e0; border-radius: 4px; text-align: center;">';
+                    html += '<div style="font-size: 12px; color: #666; text-transform: uppercase;">Adjusted Price</div>';
+                    html += '<div style="font-size: 28px; font-weight: bold; color: #e65100;">$' + numberFormat(step.adjusted_price, 4) + '</div>';
+                    html += '<div style="font-size: 12px; color: #666; margin-top: 5px;">' + escapeHtml(step.calculation) + '</div>';
+                    html += '</div>';
+
+                } else if (step.name === 'revenue_calculation' && step.success) {
+                    // Expected revenue box (blue)
+                    html += '<div style="padding: 20px; background: #e3f2fd; border-radius: 4px; text-align: center;">';
+                    html += '<div style="font-size: 12px; color: #666; text-transform: uppercase;">Expected Revenue</div>';
+                    html += '<div style="font-size: 32px; font-weight: bold; color: #1565c0;">$' + numberFormat(step.expected_revenue, 2) + '</div>';
+                    html += '<div style="font-size: 14px; color: #666; margin-top: 5px;">';
+                    html += '$' + numberFormat(step.unit_price, 4) + ' &times; ' + numberFormat(step.count, 0) + ' = $' + numberFormat(step.expected_revenue, 2);
+                    html += '</div>';
+                    html += '</div>';
+
+                } else if (!step.success) {
+                    // Error step
+                    html += '<div class="error-box">';
+                    html += escapeHtml(step.error ? step.error : 'Unknown error');
+                    html += '</div>';
+
+                } else {
+                    // Default: JSON dump
+                    html += '<pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px;">';
+                    html += escapeHtml(JSON.stringify(step, null, 2));
+                    html += '</pre>';
+                }
+
+                html += '</div>'; // audit-step-body
+                html += '</div>'; // audit-step
+            }
+
+            // LaTeX calculation box
+            if (!audit.errors || audit.errors.length === 0) {
+                html += '<h3 style="margin-top: 30px;">Mathematical Representation</h3>';
+                html += '<div class="calculation-box">';
+                html += '\\[';
+                html += latex;
+                html += '\\]';
+                html += '</div>';
+            }
+
+            // Variance comparison grid
+            if (variance) {
+                html += '<h3 style="margin-top: 30px;">Verification: Expected vs Actual</h3>';
+
+                html += '<div class="comparison-grid">';
+
+                // Header row
+                html += '<div class="comparison-cell header">Expected (Our Calculation)</div>';
+                html += '<div class="comparison-cell header">Actual (Their CSV)</div>';
+                html += '<div class="comparison-cell header">Variance</div>';
+
+                // Unit Price row
+                html += '<div class="comparison-cell expected">';
+                html += '<div style="font-size: 11px; color: #666; text-transform: uppercase;">Unit Price</div>';
+                html += '<div class="amount">$' + numberFormat(audit.expected_unit_price, 4) + '</div>';
+                html += '</div>';
+                html += '<div class="comparison-cell actual">';
+                html += '<div style="font-size: 11px; color: #666; text-transform: uppercase;">Unit Price</div>';
+                html += '<div class="amount">$' + numberFormat(audit.actual_unit_price, 4) + '</div>';
+                html += '</div>';
+                var varUnitClass = variance.is_match ? 'match' : 'mismatch';
+                html += '<div class="comparison-cell ' + varUnitClass + '">';
+                html += '<div style="font-size: 11px; color: #666; text-transform: uppercase;">Difference</div>';
+                html += '<div class="amount">' + (variance.unit_price >= 0 ? '+' : '') + '$' + numberFormat(variance.unit_price, 4) + '</div>';
+                html += '</div>';
+
+                // Revenue row
+                html += '<div class="comparison-cell expected">';
+                html += '<div style="font-size: 11px; color: #666; text-transform: uppercase;">Revenue</div>';
+                html += '<div class="amount">$' + numberFormat(audit.expected_revenue, 2) + '</div>';
+                html += '</div>';
+                html += '<div class="comparison-cell actual">';
+                html += '<div style="font-size: 11px; color: #666; text-transform: uppercase;">Revenue</div>';
+                html += '<div class="amount">$' + numberFormat(audit.actual_revenue, 2) + '</div>';
+                html += '</div>';
+                html += '<div class="comparison-cell ' + varUnitClass + '">';
+                html += '<div style="font-size: 11px; color: #666; text-transform: uppercase;">Difference</div>';
+                html += '<div class="amount">' + (variance.revenue >= 0 ? '+' : '') + '$' + numberFormat(variance.revenue, 2) + '</div>';
+                html += '</div>';
+
+                html += '</div>'; // comparison-grid
+
+                // Status badge
+                html += '<div style="text-align: center; margin: 30px 0;">';
+                if (variance.status === 'MATCH') {
+                    html += '<span class="status-badge match">VERIFIED - Prices Match</span>';
+                } else if (variance.status === 'VARIANCE') {
+                    html += '<span class="status-badge variance">VARIANCE DETECTED - ' + numberFormat(Math.abs(variance.unit_price_pct), 2) + '% difference</span>';
+                } else {
+                    html += '<span class="status-badge error">CALCULATION ERROR</span>';
+                }
+                html += '</div>';
+            }
+
+            // Navigation
+            html += '<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0;">';
+            html += '<a href="?action=ingestion_view&id=' + escapeHtml(audit.report_id + '') + '" class="btn">Back to Report</a>';
+            html += ' <a href="?action=report_audit&id=' + escapeHtml(audit.report_id + '') + '" class="btn">Audit All Lines</a>';
+            html += '</div>';
+
+            html += '</div>'; // audit-container
+
+            el.innerHTML = html;
+
+            // Trigger MathJax typesetting after DOM update
+            if (window.MathJax && MathJax.typesetPromise) {
+                MathJax.typesetPromise();
+            }
+        });
+    })();
+    </script>
+<?php render_footer();
 } /**
  * Render report-level audit summary
  */
 function render_report_audit($data)
 {
-    $audit = $data["audit"];
     render_header("Report Audit - Control Panel");
     ?>
     <style>
@@ -2050,269 +1900,183 @@ function render_report_audit($data)
         .audit-line-row.error td { background: #ffebee; }
     </style>
 
-    <div class="breadcrumb">
-        <a href="?action=ingestion">Ingestion</a>
-        <span>/</span>
-        <a href="?action=ingestion_view&id=<?php echo $audit[
-            "report_id"
-        ]; ?>">Report <?php echo h($audit["report_date"]); ?></a>
-        <span>/</span>
-        Full Audit
-    </div>
-
-    <div class="card">
-        <h2>Report Audit: <?php echo h(
-            $audit["report_date"],
-        ); ?> (<?php echo h($audit["report_type"]); ?>)</h2>
-
-        <div class="audit-summary">
-            <div class="audit-summary-card">
-                <div class="number"><?php echo $audit["total_lines"]; ?></div>
-                <div class="label">Total Lines</div>
-            </div>
-            <div class="audit-summary-card matches">
-                <div class="number"><?php echo $audit["matches"]; ?></div>
-                <div class="label">Matches</div>
-            </div>
-            <div class="audit-summary-card variances">
-                <div class="number"><?php echo $audit["variances"]; ?></div>
-                <div class="label">Variances</div>
-            </div>
-            <div class="audit-summary-card errors">
-                <div class="number"><?php echo $audit["errors"]; ?></div>
-                <div class="label">Errors</div>
-            </div>
+    <div id="page-data" class="ajax-content">
+        <div class="loading-skeleton">
+            <div class="skeleton-bar w75"></div>
+            <div class="skeleton-bar w90"></div>
+            <div class="skeleton-bar w50"></div>
+            <p>Loading audit...</p>
         </div>
-
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;">
-            <div style="background: #e3f2fd; padding: 15px; border-radius: 4px; text-align: center;">
-                <div style="font-size: 11px; color: #666; text-transform: uppercase;">Expected Revenue</div>
-                <div style="font-size: 24px; font-weight: bold;">$<?php echo number_format(
-                    $audit["total_expected_revenue"],
-                    2,
-                ); ?></div>
-            </div>
-            <div style="background: #fff3e0; padding: 15px; border-radius: 4px; text-align: center;">
-                <div style="font-size: 11px; color: #666; text-transform: uppercase;">Actual Revenue</div>
-                <div style="font-size: 24px; font-weight: bold;">$<?php echo number_format(
-                    $audit["total_actual_revenue"],
-                    2,
-                ); ?></div>
-            </div>
-            <div style="background: <?php echo abs($audit["total_variance"]) <
-            0.01
-                ? "#e8f5e9"
-                : "#ffebee"; ?>; padding: 15px; border-radius: 4px; text-align: center;">
-                <div style="font-size: 11px; color: #666; text-transform: uppercase;">Total Variance</div>
-                <div style="font-size: 24px; font-weight: bold;"><?php echo $audit[
-                    "total_variance"
-                ] >= 0
-                    ? "+"
-                    : ""; ?>$<?php echo number_format($audit["total_variance"], 2); ?></div>
-            </div>
-        </div>
-
-        <h3>Line Details</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Line</th>
-                    <th>Customer</th>
-                    <th>Service</th>
-                    <th>Count</th>
-                    <th>Expected</th>
-                    <th>Actual</th>
-                    <th>Variance</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($audit["lines"] as $line): ?>
-                    <?php
-                    $row_class = "match";
-                    if (!empty($line["errors"])) {
-                        $row_class = "error";
-                    } elseif (!$line["variance"]["is_match"]) {
-                        $row_class = "variance";
-                    }
-                    ?>
-                    <tr class="audit-line-row <?php echo $row_class; ?>" onclick="window.location='?action=line_audit&id=<?php echo $line[
-    "line_id"
-]; ?>'">
-                        <td>#<?php echo $line["line_id"]; ?></td>
-                        <td><?php echo h(
-                            isset($line["customer_name"])
-                                ? $line["customer_name"]
-                                : $line["customer_id"],
-                        ); ?></td>
-                        <td><?php echo h(
-                            isset($line["service_name"])
-                                ? $line["service_name"]
-                                : $line["efx_code"],
-                        ); ?></td>
-                        <td class="text-right"><?php echo number_format(
-                            $line["count"],
-                        ); ?></td>
-                        <td class="text-right">$<?php echo $line[
-                            "expected_unit_price"
-                        ] !== null
-                            ? number_format($line["expected_unit_price"], 4)
-                            : "-"; ?></td>
-                        <td class="text-right">$<?php echo number_format(
-                            $line["actual_unit_price"],
-                            4,
-                        ); ?></td>
-                        <td class="text-right">
-                            <?php if (
-                                $line["variance"]["unit_price"] !== null
-                            ): ?>
-                                <?php echo $line["variance"]["unit_price"] >= 0
-                                    ? "+"
-                                    : ""; ?>$<?php echo number_format(
-    $line["variance"]["unit_price"],
-    4,
-); ?>
-                            <?php else: ?>
-                                -
-                            <?php endif; ?>
-                        </td>
-                        <td>
-                            <?php if (!empty($line["errors"])): ?>
-                                <span class="badge badge-error">Error</span>
-                            <?php elseif ($line["variance"]["is_match"]): ?>
-                                <span class="badge badge-success">Match</span>
-                            <?php else: ?>
-                                <span class="badge badge-warning">Variance</span>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
     </div>
 
-    <div style="margin-top: 20px;">
-        <a href="?action=ingestion_view&id=<?php echo $audit[
-            "report_id"
-        ]; ?>" class="btn">Back to Report</a>
-    </div>
-<?php
-}
-/**
- * Render bulk ingestion page
- */ function render_ingestion_bulk($data)
-{
-    render_header("Bulk Ingestion - Control Panel"); ?>
-    <div class="breadcrumb"><a href="?action=ingestion">Ingestion</a><span>/</span>Bulk Import</div>
+    <script>
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        var reportId = params.get('id');
+        if (!reportId) {
+            showAjaxError('page-data', 'No report ID specified');
+            return;
+        }
+        apiGet('report_audit', {id: reportId}, function(err, data) {
+            if (err) { showAjaxError('page-data', err); return; }
 
-    <div class="card">
-        <h2>Bulk Import Results</h2>
-        <?php if (!empty($data["results"])): ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th>File</th>
-                        <th>Status</th>
-                        <th>Rows</th>
-                        <th>Message</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($data["results"] as $result): ?>
-                    <tr>
-                        <td><?php echo h($result["filename"]); ?></td>
-                        <td>
-                            <span class="badge badge-<?php echo $result[
-                                "success"
-                            ]
-                                ? "success"
-                                : "error"; ?>">
-                                <?php echo $result["success"]
-                                    ? "OK"
-                                    : "Failed"; ?>
-                            </span>
-                        </td>
-                        <td><?php echo isset($result["rows_imported"])
-                            ? $result["rows_imported"]
-                            : "-"; ?></td>
-                        <td><?php echo h(
-                            isset($result["errors"])
-                                ? implode(", ", $result["errors"])
-                                : "",
-                        ); ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php else: ?>
-            <p class="text-muted">No results.</p>
-        <?php endif; ?>
-    </div>
-<?php
+            var audit = data.audit;
+            var lines = audit.lines || [];
+            var html = '';
+
+            // Breadcrumb
+            html += '<div class="breadcrumb">';
+            html += '<a href="?action=ingestion">Ingestion</a>';
+            html += '<span>/</span>';
+            html += '<a href="?action=ingestion_view&id=' + audit.report_id + '">Report ' + escapeHtml(audit.report_date) + '</a>';
+            html += '<span>/</span>';
+            html += 'Full Audit';
+            html += '</div>';
+
+            // Card wrapper
+            html += '<div class="card">';
+            html += '<h2>Report Audit: ' + escapeHtml(audit.report_date) + ' (' + escapeHtml(audit.report_type) + ')</h2>';
+
+            // Summary cards (4-grid)
+            html += '<div class="audit-summary">';
+            html += '<div class="audit-summary-card">';
+            html += '<div class="number">' + audit.total_lines + '</div>';
+            html += '<div class="label">Total Lines</div>';
+            html += '</div>';
+            html += '<div class="audit-summary-card matches">';
+            html += '<div class="number">' + audit.matches + '</div>';
+            html += '<div class="label">Matches</div>';
+            html += '</div>';
+            html += '<div class="audit-summary-card variances">';
+            html += '<div class="number">' + audit.variances + '</div>';
+            html += '<div class="label">Variances</div>';
+            html += '</div>';
+            html += '<div class="audit-summary-card errors">';
+            html += '<div class="number">' + audit.errors + '</div>';
+            html += '<div class="label">Errors</div>';
+            html += '</div>';
+            html += '</div>';
+
+            // Revenue comparison (3-grid)
+            var varianceBg = Math.abs(audit.total_variance) < 0.01 ? '#e8f5e9' : '#ffebee';
+            var varianceSign = audit.total_variance >= 0 ? '+' : '';
+
+            html += '<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;">';
+
+            html += '<div style="background: #e3f2fd; padding: 15px; border-radius: 4px; text-align: center;">';
+            html += '<div style="font-size: 11px; color: #666; text-transform: uppercase;">Expected Revenue</div>';
+            html += '<div style="font-size: 24px; font-weight: bold;">$' + numberFormat(audit.total_expected_revenue, 2) + '</div>';
+            html += '</div>';
+
+            html += '<div style="background: #fff3e0; padding: 15px; border-radius: 4px; text-align: center;">';
+            html += '<div style="font-size: 11px; color: #666; text-transform: uppercase;">Actual Revenue</div>';
+            html += '<div style="font-size: 24px; font-weight: bold;">$' + numberFormat(audit.total_actual_revenue, 2) + '</div>';
+            html += '</div>';
+
+            html += '<div style="background: ' + varianceBg + '; padding: 15px; border-radius: 4px; text-align: center;">';
+            html += '<div style="font-size: 11px; color: #666; text-transform: uppercase;">Total Variance</div>';
+            html += '<div style="font-size: 24px; font-weight: bold;">' + varianceSign + '$' + numberFormat(audit.total_variance, 2) + '</div>';
+            html += '</div>';
+
+            html += '</div>';
+
+            // Line Details
+            html += '<h3>Line Details</h3>';
+            html += '<table>';
+            html += '<thead><tr>';
+            html += '<th>Line</th>';
+            html += '<th>Customer</th>';
+            html += '<th>Service</th>';
+            html += '<th>Count</th>';
+            html += '<th>Expected</th>';
+            html += '<th>Actual</th>';
+            html += '<th>Variance</th>';
+            html += '<th>Status</th>';
+            html += '</tr></thead>';
+            html += '<tbody>';
+
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i];
+                var rowClass = 'match';
+                if (line.errors && line.errors.length > 0) {
+                    rowClass = 'error';
+                } else if (!line.variance.is_match) {
+                    rowClass = 'variance';
+                }
+
+                html += '<tr class="audit-line-row ' + rowClass + '" onclick="window.location=\'?action=line_audit&id=' + line.line_id + '\'">';
+                html += '<td>#' + line.line_id + '</td>';
+                html += '<td>' + escapeHtml(line.customer_name ? line.customer_name : line.customer_id) + '</td>';
+                html += '<td>' + escapeHtml(line.service_name ? line.service_name : line.efx_code) + '</td>';
+                html += '<td class="text-right">' + numberFormat(line.count, 0) + '</td>';
+
+                // Expected unit price
+                if (line.expected_unit_price !== null && line.expected_unit_price !== undefined) {
+                    html += '<td class="text-right">$' + numberFormat(line.expected_unit_price, 4) + '</td>';
+                } else {
+                    html += '<td class="text-right">-</td>';
+                }
+
+                // Actual unit price
+                html += '<td class="text-right">$' + numberFormat(line.actual_unit_price, 4) + '</td>';
+
+                // Variance
+                if (line.variance.unit_price !== null && line.variance.unit_price !== undefined) {
+                    var vpSign = line.variance.unit_price >= 0 ? '+' : '';
+                    html += '<td class="text-right">' + vpSign + '$' + numberFormat(line.variance.unit_price, 4) + '</td>';
+                } else {
+                    html += '<td class="text-right">-</td>';
+                }
+
+                // Status badge
+                if (line.errors && line.errors.length > 0) {
+                    html += '<td><span class="badge badge-error">Error</span></td>';
+                } else if (line.variance.is_match) {
+                    html += '<td><span class="badge badge-success">Match</span></td>';
+                } else {
+                    html += '<td><span class="badge badge-warning">Variance</span></td>';
+                }
+
+                html += '</tr>';
+            }
+
+            html += '</tbody></table>';
+            html += '</div>'; // close card
+
+            // Back button
+            html += '<div style="margin-top: 20px;">';
+            html += '<a href="?action=ingestion_view&id=' + audit.report_id + '" class="btn">Back to Report</a>';
+            html += '</div>';
+
+            document.getElementById('page-data').innerHTML = html;
+        });
+    })();
+    </script>
+<?php render_footer();
 } /**
  * Render generation page - generate tier_pricing.csv
  */
 function render_generation($data)
 {
     render_header("Generation - Control Panel"); ?>
+
     <div class="card">
         <h2>Generate Tier Pricing CSV</h2>
 
-        <div style="display: flex; gap: 20px; margin-bottom: 20px;">
-            <div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">
-                <div style="font-size: 24px; font-weight: bold;"><?php echo $data[
-                    "active_customers"
-                ]; ?></div>
-                <div style="color: #666; font-size: 13px;">Active Customers</div>
-            </div>
-            <div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">
-                <div style="font-size: 24px; font-weight: bold;"><?php echo $data[
-                    "services_count"
-                ]; ?></div>
-                <div style="color: #666; font-size: 13px;">Services</div>
-            </div>
-            <div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">
-                <div style="font-size: 24px; font-weight: bold;"><?php echo $data[
-                    "transaction_types_count"
-                ]; ?></div>
-                <div style="color: #666; font-size: 13px;">Transaction Types</div>
+        <div id="page-data" class="ajax-content">
+            <div class="loading-skeleton">
+                <div class="skeleton-bar w75"></div>
+                <div class="skeleton-bar w90"></div>
+                <div class="skeleton-bar w50"></div>
+                <p>Loading generation data...</p>
             </div>
         </div>
-
-        <form method="POST" style="margin-bottom: 30px; background: #f8f9fa; padding: 20px; border-radius: 4px;">
-            <div style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
-                <div>
-                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">As of Date</label>
-                    <input type="date" name="as_of_date" value="<?php echo h(
-                        $data["as_of_date"],
-                    ); ?>" class="form-control">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 5px;">
-                        <input type="checkbox" name="include_inactive" value="1" <?php echo $data[
-                            "include_inactive"
-                        ]
-                            ? "checked"
-                            : ""; ?>>
-                        Include inactive customers
-                    </label>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button type="submit" name="preview" value="1" class="btn">Preview</button>
-                    <button type="submit" name="action" value="save_pending" class="btn btn-success">Generate & Save</button>
-                    <a href="?action=generation&download=1&as_of_date=<?php
-                    echo h($data["as_of_date"]);
-                    echo $data["include_inactive"] ? "&include_inactive=1" : "";
-                    ?>" class="btn btn-info">Download CSV</a>
-                </div>
-            </div>
-        </form>
 
         <?php if (!empty($data["preview"])): ?>
         <h3>Preview (<?php echo $data["preview"]["row_count"]; ?> rows)</h3>
         <?php if (!empty($data["preview"]["errors"])): ?>
             <div class="flash flash-error"><?php echo h(
-                implode(", ", $data["preview"]["errors"]),
+                implode(", ", $data["preview"]["errors"])
             ); ?></div>
         <?php endif; ?>
 
@@ -2344,36 +2108,9 @@ function render_generation($data)
                 </table>
             </div>
             <?php if ($data["preview"]["row_count"] > 50): ?>
-                <p class="text-muted">Showing first 50 of <?php echo $data[
-                    "preview"
-                ]["row_count"]; ?> rows.</p>
+                <p class="text-muted">Showing first 50 of <?php echo $data["preview"]["row_count"]; ?> rows.</p>
             <?php endif; ?>
         <?php endif; ?>
-        <?php endif; ?>
-
-        <?php if (!empty($data["pending_files"])): ?>
-        <h3 style="margin-top: 30px;">Recent Generated Files</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Filename</th>
-                    <th>Size</th>
-                    <th>Generated</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($data["pending_files"] as $file): ?>
-                <tr>
-                    <td><?php echo h($file["filename"]); ?></td>
-                    <td><?php echo format_filesize($file["size"]); ?></td>
-                    <td><?php echo date(
-                        "Y-m-d H:i:s",
-                        $file["modified"],
-                    ); ?></td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
         <?php endif; ?>
     </div>
 
@@ -2382,7 +2119,94 @@ function render_generation($data)
         <p class="text-muted">Manage EFX code to service mappings.</p>
         <a href="?action=generation_types" class="btn">Manage Transaction Types</a>
     </div>
-<?php
+
+    <script>
+    (function() {
+        function formatFilesize(bytes) {
+            var units = ['B', 'KB', 'MB', 'GB'];
+            var i = 0;
+            while (bytes >= 1024 && i < units.length - 1) { bytes /= 1024; i++; }
+            return (Math.round(bytes * 100) / 100) + ' ' + units[i];
+        }
+
+        function formatDate(timestamp) {
+            var d = new Date(timestamp * 1000);
+            var pad = function(n) { return n < 10 ? '0' + n : n; };
+            return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+                ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+        }
+
+        apiGet('generation', null, function(err, data) {
+            if (err) { showAjaxError('page-data', err); return; }
+
+            var el = document.getElementById('page-data');
+            var html = '';
+
+            // Stats row
+            html += '<div style="display: flex; gap: 20px; margin-bottom: 20px;">';
+            html += '<div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">';
+            html += '<div style="font-size: 24px; font-weight: bold;">' + numberFormat(data.active_customers, 0) + '</div>';
+            html += '<div style="color: #666; font-size: 13px;">Active Customers</div>';
+            html += '</div>';
+            html += '<div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">';
+            html += '<div style="font-size: 24px; font-weight: bold;">' + numberFormat(data.services_count, 0) + '</div>';
+            html += '<div style="color: #666; font-size: 13px;">Services</div>';
+            html += '</div>';
+            html += '<div style="flex: 1; background: #f8f9fa; padding: 15px; border-radius: 4px;">';
+            html += '<div style="font-size: 24px; font-weight: bold;">' + numberFormat(data.transaction_types_count, 0) + '</div>';
+            html += '<div style="color: #666; font-size: 13px;">Transaction Types</div>';
+            html += '</div>';
+            html += '</div>';
+
+            // Form (traditional POST for preview/generate actions)
+            html += '<form method="POST" action="?action=generation" style="margin-bottom: 30px; background: #f8f9fa; padding: 20px; border-radius: 4px;">';
+            html += '<div style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">';
+            html += '<div>';
+            html += '<label style="display: block; margin-bottom: 5px; font-weight: 500;">As of Date</label>';
+            html += '<input type="date" name="as_of_date" value="' + escapeHtml(data.as_of_date) + '" class="form-control">';
+            html += '</div>';
+            html += '<div>';
+            html += '<label style="display: block; margin-bottom: 5px;">';
+            html += '<input type="checkbox" name="include_inactive" value="1"' + (data.include_inactive ? ' checked' : '') + '>';
+            html += ' Include inactive customers';
+            html += '</label>';
+            html += '</div>';
+            html += '<div style="display: flex; gap: 10px;">';
+            html += '<button type="submit" name="preview" value="1" class="btn">Preview</button>';
+            html += '<button type="submit" name="action" value="save_pending" class="btn btn-success">Generate &amp; Save</button>';
+
+            // Download CSV link using window.open
+            var downloadUrl = '?action=generation&download=1&as_of_date=' + encodeURIComponent(data.as_of_date);
+            if (data.include_inactive) {
+                downloadUrl += '&include_inactive=1';
+            }
+            html += '<a href="javascript:void(0);" onclick="window.open(\'' + escapeHtml(downloadUrl) + '\', \'_blank\');" class="btn btn-info">Download CSV</a>';
+            html += '</div>';
+            html += '</div>';
+            html += '</form>';
+
+            // Recent Generated Files table
+            if (data.pending_files && data.pending_files.length > 0) {
+                html += '<h3 style="margin-top: 30px;">Recent Generated Files</h3>';
+                html += '<table>';
+                html += '<thead><tr><th>Filename</th><th>Size</th><th>Generated</th></tr></thead>';
+                html += '<tbody>';
+                for (var i = 0; i < data.pending_files.length; i++) {
+                    var file = data.pending_files[i];
+                    html += '<tr>';
+                    html += '<td>' + escapeHtml(file.filename) + '</td>';
+                    html += '<td>' + formatFilesize(file.size) + '</td>';
+                    html += '<td>' + formatDate(file.modified) + '</td>';
+                    html += '</tr>';
+                }
+                html += '</tbody></table>';
+            }
+
+            el.innerHTML = html;
+        });
+    })();
+    </script>
+<?php render_footer();
 } /**
  * Render transaction types management
  */
@@ -2391,165 +2215,158 @@ function render_generation_types($data)
     render_header("Transaction Types - Control Panel"); ?>
     <div class="breadcrumb"><a href="?action=generation">Generation</a><span>/</span>Transaction Types</div>
 
-    <div class="card">
-        <h2>Transaction Types</h2>
-        <p class="text-muted">Map EFX codes to services for billing generation.</p>
-
-        <h3>Import from CSV</h3>
-        <form method="POST" enctype="multipart/form-data" style="margin-bottom: 30px;">
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="file" name="types_csv" accept=".csv" required style="flex: 1;">
-                <button type="submit" class="btn btn-success">Upload & Import</button>
-            </div>
-            <p class="text-muted" style="margin-top: 8px; font-size: 12px;">
-                CSV format: <code>efx_code,description,service_id</code>
-            </p>
-        </form>
-
-        <h3>Current Transaction Types</h3>
-        <?php if (empty($data["types"])): ?>
-            <p class="text-muted">No transaction types defined.</p>
-        <?php else: ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th>EFX Code</th>
-                        <th>Description</th>
-                        <th>Service</th>
-                        <th class="text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($data["types"] as $type): ?>
-                    <tr>
-                        <td><code><?php echo h(
-                            $type["efx_code"],
-                        ); ?></code></td>
-                        <td><?php echo h($type["description"]); ?></td>
-                        <td><?php echo h(
-                            isset($type["service_name"])
-                                ? $type["service_name"]
-                                : "-",
-                        ); ?></td>
-                        <td class="text-right">
-                            <a href="?action=generation_types&delete=<?php echo $type[
-                                "id"
-                            ]; ?>" class="btn btn-sm" style="background: #e74c3c;" onclick="return confirm('Delete this type?');">Delete</a>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php endif; ?>
-
-        <h3 style="margin-top: 30px;">Add Transaction Type</h3>
-        <form method="POST">
-            <input type="hidden" name="add_type" value="1">
-            <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
-                <div>
-                    <label style="display: block; margin-bottom: 5px;">EFX Code</label>
-                    <input type="text" name="efx_code" required class="form-control" style="width: 150px;">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 5px;">Description</label>
-                    <input type="text" name="description" required class="form-control" style="width: 250px;">
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 5px;">Service</label>
-                    <select name="service_id" class="form-control">
-                        <option value="">-- None --</option>
-                        <?php foreach ($data["services"] as $svc): ?>
-                            <option value="<?php echo $svc[
-                                "id"
-                            ]; ?>"><?php echo h($svc["name"]); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-success">Add</button>
-            </div>
-        </form>
-    </div>
-<?php
-}
-/**
- * Render LMS list
- */ function render_lms($data)
-{
-    render_header("LMS Management - Control Panel"); ?>
-    <div class="card">
-        <h2>LMS Management</h2>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <p class="text-muted" style="margin: 0;">Manage Loan Management System entries and commission rates.</p>
-            <div>
-                <a href="?action=lms_settings" class="btn">Settings</a>
-                <a href="?action=lms&sync=1" class="btn btn-info">Sync from Remote</a>
-            </div>
-        </div>
-
-        <?php
-        $search_val = isset($data["search"]) ? $data["search"] : "";
-        render_search_bar("lms", [
-            "search" => $search_val,
-            "placeholder" => "Search LMS...",
-        ]);?>
-
-        <div id="lms-content" class="ajax-content">
-            <div class="loading-skeleton">
-                <div class="skeleton-bar w75"></div>
-                <div class="skeleton-bar w90"></div>
-                <div class="skeleton-bar w50"></div>
-                <p>Loading LMS data...</p>
-            </div>
+    <div id="page-data" class="ajax-content">
+        <div class="loading-skeleton">
+            <div class="skeleton-bar w75"></div>
+            <div class="skeleton-bar w90"></div>
+            <div class="skeleton-bar w50"></div>
+            <p>Loading transaction types...</p>
         </div>
     </div>
 
     <script>
     (function() {
-        var params = {};
-        var urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('search')) params.search = urlParams.get('search');
-        if (urlParams.get('page')) params.page = urlParams.get('page');
+        apiGet('generation_types', null, function(err, data) {
+            if (err) { showAjaxError('page-data', err); return; }
 
-        apiGet('lms', params, function(err, data) {
-            if (err) { showAjaxError('lms-content', err); return; }
-            var el = document.getElementById('lms-content');
+            var el = document.getElementById('page-data');
+            var types = data.types || [];
+            var services = data.services || [];
             var html = '';
 
-            // Default rate banner
-            var rateText = data.default_rate !== null ? parseFloat(data.default_rate).toFixed(2) + '%' : 'Not set';
-            html += '<div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin-bottom: 20px;"><strong>Default Commission Rate:</strong> ' + escapeHtml(rateText) + '</div>';
+            html += '<div class="card">';
+            html += '<h2>Transaction Types</h2>';
+            html += '<p class="text-muted">Map EFX codes to services for billing generation.</p>';
 
-            // Unassigned warning
-            if (data.unassigned_customers && data.unassigned_customers.length > 0) {
-                html += '<div style="background: #fff3cd; padding: 15px; border-radius: 4px; margin-bottom: 20px; border-left: 4px solid #ffc107;"><strong>Warning:</strong> ' + data.unassigned_customers.length + ' customer(s) have no LMS assigned.</div>';
-            }
+            // Import from CSV - traditional POST form (file upload)
+            html += '<h3>Import from CSV</h3>';
+            html += '<form method="POST" enctype="multipart/form-data" style="margin-bottom: 30px;">';
+            html += '<div style="display: flex; gap: 10px; align-items: center;">';
+            html += '<input type="file" name="types_csv" accept=".csv" required style="flex: 1;">';
+            html += '<button type="submit" class="btn btn-success">Upload &amp; Import</button>';
+            html += '</div>';
+            html += '<p class="text-muted" style="margin-top: 8px; font-size: 12px;">';
+            html += 'CSV format: <code>efx_code,description,service_id</code>';
+            html += '</p>';
+            html += '</form>';
 
-            if (!data.lms_list || data.lms_list.length === 0) {
-                var searchActive = urlParams.get('search');
-                html += '<p class="text-muted">No LMS entries found. ' + (searchActive ? 'Try a different search.' : 'Click "Sync from Remote" to import.') + '</p>';
+            // Current Transaction Types table
+            html += '<h3>Current Transaction Types</h3>';
+
+            if (types.length === 0) {
+                html += '<p class="text-muted">No transaction types defined.</p>';
             } else {
-                html += '<table><thead><tr><th>LMS ID</th><th>Name</th><th>Commission Rate</th><th>Customers</th><th class="text-right">Actions</th></tr></thead><tbody>';
-                for (var i = 0; i < data.lms_list.length; i++) {
-                    var l = data.lms_list[i];
-                    var inherited = l.is_inherited ? ' <span class="text-muted" style="font-size: 11px;">(default)</span>' : '';
-                    html += '<tr>';
-                    html += '<td><code>' + escapeHtml(String(l.id)) + '</code></td>';
-                    html += '<td>' + escapeHtml(l.name) + '</td>';
-                    html += '<td>' + parseFloat(l.effective_rate).toFixed(2) + '%' + inherited + '</td>';
-                    html += '<td>' + l.customer_count + '</td>';
-                    html += '<td class="text-right"><a href="?action=lms_edit&lms_id=' + encodeURIComponent(l.id) + '" class="btn btn-sm">Edit</a></td>';
+                html += '<table>';
+                html += '<thead><tr>';
+                html += '<th>EFX Code</th>';
+                html += '<th>Description</th>';
+                html += '<th>Service</th>';
+                html += '<th class="text-right">Actions</th>';
+                html += '</tr></thead>';
+                html += '<tbody>';
+                for (var i = 0; i < types.length; i++) {
+                    var t = types[i];
+                    var serviceName = t.service_name ? t.service_name : '-';
+                    html += '<tr id="type-row-' + t.id + '">';
+                    html += '<td><code>' + escapeHtml(t.efx_code) + '</code></td>';
+                    html += '<td>' + escapeHtml(t.description) + '</td>';
+                    html += '<td>' + escapeHtml(serviceName) + '</td>';
+                    html += '<td class="text-right">';
+                    html += '<button type="button" class="btn btn-sm" style="background: #e74c3c;" data-delete-id="' + t.id + '">Delete</button>';
+                    html += '</td>';
                     html += '</tr>';
                 }
                 html += '</tbody></table>';
-                if (data.pagination && data.pagination.total_pages > 1) {
-                    html += buildPagination(data.pagination, '?action=lms', params);
-                }
             }
+
+            // Add Transaction Type form
+            html += '<h3 style="margin-top: 30px;">Add Transaction Type</h3>';
+            html += '<form id="add-type-form">';
+            html += '<div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">';
+
+            html += '<div>';
+            html += '<label style="display: block; margin-bottom: 5px;">EFX Code</label>';
+            html += '<input type="text" name="efx_code" required class="form-control" style="width: 150px;">';
+            html += '</div>';
+
+            html += '<div>';
+            html += '<label style="display: block; margin-bottom: 5px;">Description</label>';
+            html += '<input type="text" name="description" required class="form-control" style="width: 250px;">';
+            html += '</div>';
+
+            html += '<div>';
+            html += '<label style="display: block; margin-bottom: 5px;">Service</label>';
+            html += '<select name="service_id" class="form-control">';
+            html += '<option value="">-- None --</option>';
+            for (var s = 0; s < services.length; s++) {
+                html += '<option value="' + escapeHtml(String(services[s].id)) + '">' + escapeHtml(services[s].name) + '</option>';
+            }
+            html += '</select>';
+            html += '</div>';
+
+            html += '<button type="submit" class="btn btn-success">Add</button>';
+            html += '</div>';
+            html += '</form>';
+
+            html += '<div id="form-result"></div>';
+
+            html += '</div>'; // close card
+
             el.innerHTML = html;
+
+            // Attach delete handlers
+            var deleteButtons = el.querySelectorAll('[data-delete-id]');
+            for (var d = 0; d < deleteButtons.length; d++) {
+                (function(btn) {
+                    btn.addEventListener('click', function() {
+                        var typeId = btn.getAttribute('data-delete-id');
+                        if (!confirm('Delete this type?')) return;
+
+                        var body = 'type_action=delete&type_id=' + encodeURIComponent(typeId);
+                        apiPost('save_generation_types', body, function(err, result) {
+                            var msgDiv = document.getElementById('form-result');
+                            if (err) {
+                                msgDiv.innerHTML = '<div class="flash flash-error">' + escapeHtml(err) + '</div>';
+                            } else {
+                                var row = document.getElementById('type-row-' + typeId);
+                                if (row) row.parentNode.removeChild(row);
+                                msgDiv.innerHTML = '<div class="flash flash-success">' + escapeHtml(result.message) + '</div>';
+                            }
+                        });
+                    });
+                })(deleteButtons[d]);
+            }
+
+            // Attach add form handler
+            var addForm = document.getElementById('add-type-form');
+            if (addForm) {
+                addForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    var efxCode = addForm.querySelector('[name="efx_code"]').value;
+                    var description = addForm.querySelector('[name="description"]').value;
+                    var serviceId = addForm.querySelector('[name="service_id"]').value;
+
+                    var body = 'efx_code=' + encodeURIComponent(efxCode) +
+                        '&efx_displayname=' + encodeURIComponent(description) +
+                        '&type=' + encodeURIComponent(description) +
+                        '&service_id=' + encodeURIComponent(serviceId);
+
+                    apiPost('save_generation_types', body, function(err, result) {
+                        var msgDiv = document.getElementById('form-result');
+                        if (err) {
+                            msgDiv.innerHTML = '<div class="flash flash-error">' + escapeHtml(err) + '</div>';
+                        } else {
+                            msgDiv.innerHTML = '<div class="flash flash-success">' + escapeHtml(result.message) + '</div>';
+                            // Reload to show the new type in the table
+                            setTimeout(function() { window.location.reload(); }, 800);
+                        }
+                    });
+                });
+            }
         });
     })();
     </script>
-<?php
+<?php render_footer();
 } /**
  * Render LMS edit form
  */
@@ -3568,274 +3385,472 @@ function render_pricing_defaults_edit($data)
  */
 function render_pricing_group_services($data)
 {
-    render_header("Group Pricing - " . h($data["group"]["name"])); ?>
-    <div class="card">
-        <h2 style="display: flex; justify-content: space-between; align-items: center;">
-            <?php echo h($data["group"]["name"]); ?> - Service Pricing
-            <span style="font-size: 12px; font-weight: normal;">
-                <a href="javascript:void(0)" onclick="expandAll()" class="btn btn-sm">Expand All</a>
-                <a href="javascript:void(0)" onclick="collapseAll()" class="btn btn-sm">Collapse All</a>
-            </span>
-        </h2>
-        <p class="text-muted mb-20">Select a service to override pricing. Inherited values come from System Defaults.</p>
+    $group_id   = $data["group"]["id"];
+    $group_name = $data["group"]["name"];
 
-        <?php foreach ($data["services"] as $service): ?>
-        <div class="tier-section" style="border: 1px solid #eee; border-radius: 4px; margin-bottom: 15px; overflow: hidden;">
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #f8f9fa; cursor: pointer;" onclick="toggleTiers('group-<?php echo $service[
-                "id"
-            ]; ?>')">
-                <div>
-                    <strong><?php echo h($service["name"]); ?></strong>
-                    <?php if ($service["has_override"]): ?>
-                        <span style="color: #27ae60; margin-left: 15px;">Overridden</span>
-                    <?php else: ?>
-                        <span class="text-muted" style="margin-left: 15px;">Inherited</span>
-                    <?php endif; ?>
-                    <?php if (!empty($service["tiers"])): ?>
-                        <span class="text-muted" style="margin-left: 15px;">
-                            $<?php echo number_format(
-                                $service["tiers"][count($service["tiers"]) - 1][
-                                    "price_per_inquiry"
-                                ],
-                                2,
-                            ); ?>
-                            - $<?php echo number_format(
-                                $service["tiers"][0]["price_per_inquiry"],
-                                2,
-                            ); ?>
-                        </span>
-                    <?php endif; ?>
-                </div>
-                <div>
-                    <span class="toggle-icon" id="icon-group-<?php echo $service[
-                        "id"
-                    ]; ?>" style="margin-right: 10px; color: #999;">&#9650;</span>
-                    <a href="?action=pricing_group_edit&group_id=<?php echo $data[
-                        "group"
-                    ]["id"]; ?>&service_id=<?php echo $service[
-    "id"
-]; ?>" class="btn btn-sm" onclick="event.stopPropagation();">
-                        <?php echo $service["has_override"]
-                            ? "Edit"
-                            : "Override"; ?>
-                    </a>
-                </div>
-            </div>
-            <div class="tier-content" id="tiers-group-<?php echo $service[
-                "id"
-            ]; ?>" style="padding: 0 15px 15px 15px;">
-                <?php if (!empty($service["tiers"])): ?>
-                <table style="margin-top: 10px; font-size: 13px;">
-                    <thead>
-                        <tr>
-                            <th style="padding: 6px 10px;">Volume Start</th>
-                            <th style="padding: 6px 10px;">Volume End</th>
-                            <th style="padding: 6px 10px;">Price Per Inquiry</th>
-                            <th style="padding: 6px 10px;">Source</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($service["tiers"] as $tier): ?>
-                        <tr>
-                            <td style="padding: 6px 10px;"><?php echo number_format(
-                                $tier["volume_start"],
-                            ); ?></td>
-                            <td style="padding: 6px 10px;"><?php echo $tier[
-                                "volume_end"
-                            ] !== null
-                                ? number_format($tier["volume_end"])
-                                : "<em>Unlimited</em>"; ?></td>
-                            <td style="padding: 6px 10px;">$<?php echo number_format(
-                                $tier["price_per_inquiry"],
-                                4,
-                            ); ?></td>
-                            <td style="padding: 6px 10px;">
-                                <?php if ($tier["source"] === "group"): ?>
-                                    <span style="color: #27ae60;">Group</span>
-                                <?php else: ?>
-                                    <span class="text-muted">Default</span>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-                <?php render_tier_range_warnings(
-                    validate_tier_ranges($service["tiers"]),
-                ); ?>
-                <?php else: ?>
-                    <p class="text-muted" style="margin-top: 10px;">No tiers defined.</p>
-                <?php endif; ?>
-            </div>
+    render_header("Group Pricing - " . h($group_name));
+?>
+    <div id="page-data" class="ajax-content">
+        <div class="loading-skeleton">
+            <div class="skeleton-bar w75"></div>
+            <div class="skeleton-bar w90"></div>
+            <div class="skeleton-bar w50"></div>
+            <p>Loading group services...</p>
         </div>
-        <?php endforeach; ?>
     </div>
 
     <script>
-    function toggleTiers(id) {
-        var el = document.getElementById('tiers-' + id);
-        var icon = document.getElementById('icon-' + id);
-        if (el.style.display === 'none') {
-            el.style.display = 'block';
-            icon.innerHTML = '&#9650;';
-        } else {
-            el.style.display = 'none';
-            icon.innerHTML = '&#9660;';
-        }
-    }
-    function expandAll() {
-        var contents = document.querySelectorAll('.tier-content');
-        var icons = document.querySelectorAll('.toggle-icon');
-        for (var i = 0; i < contents.length; i++) {
-            contents[i].style.display = 'block';
-        }
-        for (var i = 0; i < icons.length; i++) {
-            icons[i].innerHTML = '&#9650;';
-        }
-    }
-    function collapseAll() {
-        var contents = document.querySelectorAll('.tier-content');
-        var icons = document.querySelectorAll('.toggle-icon');
-        for (var i = 0; i < contents.length; i++) {
-            contents[i].style.display = 'none';
-        }
-        for (var i = 0; i < icons.length; i++) {
-            icons[i].innerHTML = '&#9660;';
-        }
-    }
-    </script>
+    (function() {
+        var groupId   = <?php echo (int) $group_id; ?>;
+        var groupName = <?php echo json_encode($group_name); ?>;
 
-    <div class="breadcrumb"><a href="?action=pricing_groups">Groups</a><span>/</span><?php echo h(
-        $data["group"]["name"],
-    ); ?></div>
-<?php
+        function numberFormat(n, decimals) {
+            if (n === null || n === undefined) return '';
+            return parseFloat(n).toLocaleString('en-US', decimals !== undefined ? {minimumFractionDigits: decimals, maximumFractionDigits: decimals} : {});
+        }
+
+        function validateTierRanges(tiers) {
+            var gaps = [], overlaps = [];
+            if (!tiers || tiers.length === 0) return {gaps: gaps, overlaps: overlaps};
+
+            var sorted = tiers.slice().sort(function(a, b) {
+                return parseInt(a.volume_start, 10) - parseInt(b.volume_start, 10);
+            });
+
+            var firstStart = parseInt(sorted[0].volume_start, 10);
+            if (firstStart > 1) {
+                gaps.push({start: 1, end: firstStart - 1});
+            }
+
+            for (var i = 0; i < sorted.length - 1; i++) {
+                var currEnd   = sorted[i].volume_end;
+                var nextStart = parseInt(sorted[i + 1].volume_start, 10);
+
+                if (currEnd === null || currEnd === '' || currEnd === undefined) {
+                    overlaps.push({start: nextStart, end: sorted[i + 1].volume_end});
+                    continue;
+                }
+
+                currEnd = parseInt(currEnd, 10);
+
+                if (nextStart > currEnd + 1) {
+                    gaps.push({start: currEnd + 1, end: nextStart - 1});
+                }
+
+                if (nextStart <= currEnd) {
+                    var overlapEnd = sorted[i + 1].volume_end;
+                    if (overlapEnd !== null && overlapEnd !== '' && overlapEnd !== undefined) {
+                        overlapEnd = Math.min(parseInt(overlapEnd, 10), currEnd);
+                    }
+                    overlaps.push({start: nextStart, end: overlapEnd});
+                }
+            }
+
+            return {gaps: gaps, overlaps: overlaps};
+        }
+
+        function renderTierRangeWarnings(validation) {
+            if (!validation) return '';
+            var hasGaps = validation.gaps && validation.gaps.length > 0;
+            var hasOverlaps = validation.overlaps && validation.overlaps.length > 0;
+            if (!hasGaps && !hasOverlaps) return '';
+
+            var html = '<div style="margin: 10px 0;">';
+            if (hasOverlaps) {
+                html += '<div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; padding: 10px 14px; margin-bottom: 8px; color: #721c24; font-size: 13px;">';
+                html += '<strong>Overlap:</strong> ';
+                for (var i = 0; i < validation.overlaps.length; i++) {
+                    var o = validation.overlaps[i];
+                    html += 'Volume ' + numberFormat(o.start, 0) + ' &ndash; ';
+                    html += (o.end !== null && o.end !== '' && o.end !== undefined) ? numberFormat(parseInt(o.end, 10), 0) : 'Unlimited';
+                    html += ' is covered by multiple tiers. ';
+                }
+                html += '</div>';
+            }
+            if (hasGaps) {
+                html += '<div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 10px 14px; margin-bottom: 8px; color: #856404; font-size: 13px;">';
+                html += '<strong>Gap:</strong> ';
+                for (var i = 0; i < validation.gaps.length; i++) {
+                    var g = validation.gaps[i];
+                    html += 'Volume ' + numberFormat(g.start, 0) + ' &ndash; ' + numberFormat(g.end, 0) + ' has no pricing. ';
+                }
+                html += '</div>';
+            }
+            html += '</div>';
+            return html;
+        }
+
+        apiGet('pricing_group_edit', {group_id: groupId}, function(err, data) {
+            if (err) { showAjaxError('page-data', err); return; }
+
+            var group    = data.group;
+            var services = data.services;
+            var html     = '';
+
+            // Card header with group name + Expand/Collapse buttons
+            html += '<div class="card">';
+            html += '<h2 style="display: flex; justify-content: space-between; align-items: center;">';
+            html += escapeHtml(group.name) + ' - Service Pricing';
+            html += ' <span style="font-size: 12px; font-weight: normal;">';
+            html += '<a href="javascript:void(0)" onclick="expandAll()" class="btn btn-sm">Expand All</a> ';
+            html += '<a href="javascript:void(0)" onclick="collapseAll()" class="btn btn-sm">Collapse All</a>';
+            html += '</span>';
+            html += '</h2>';
+            html += '<p class="text-muted mb-20">Select a service to override pricing. Inherited values come from System Defaults.</p>';
+
+            // Each service
+            for (var s = 0; s < services.length; s++) {
+                var svc = services[s];
+                var svcIdStr = 'group-' + svc.id;
+
+                html += '<div class="tier-section" style="border: 1px solid #eee; border-radius: 4px; margin-bottom: 15px; overflow: hidden;">';
+
+                // Clickable header row
+                html += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #f8f9fa; cursor: pointer;" onclick="toggleTiers(\'' + svcIdStr + '\')">';
+                html += '<div>';
+                html += '<strong>' + escapeHtml(svc.name) + '</strong>';
+
+                if (svc.has_override) {
+                    html += ' <span style="color: #27ae60; margin-left: 15px;">Overridden</span>';
+                } else {
+                    html += ' <span class="text-muted" style="margin-left: 15px;">Inherited</span>';
+                }
+
+                // Price range from tiers (last tier price - first tier price)
+                if (svc.tiers && svc.tiers.length > 0) {
+                    var lastPrice  = svc.tiers[svc.tiers.length - 1].price_per_inquiry;
+                    var firstPrice = svc.tiers[0].price_per_inquiry;
+                    html += ' <span class="text-muted" style="margin-left: 15px;">';
+                    html += '$' + numberFormat(lastPrice, 2) + ' - $' + numberFormat(firstPrice, 2);
+                    html += '</span>';
+                }
+
+                html += '</div>';
+                html += '<div>';
+                html += '<span class="toggle-icon" id="icon-' + svcIdStr + '" style="margin-right: 10px; color: #999;">&#9650;</span>';
+                html += '<a href="?action=pricing_group_edit&amp;group_id=' + group.id + '&amp;service_id=' + svc.id + '" class="btn btn-sm" onclick="event.stopPropagation();">';
+                html += svc.has_override ? 'Edit' : 'Override';
+                html += '</a>';
+                html += '</div>';
+                html += '</div>';
+
+                // Collapsible tier content
+                html += '<div class="tier-content" id="tiers-' + svcIdStr + '" style="padding: 0 15px 15px 15px;">';
+
+                if (svc.tiers && svc.tiers.length > 0) {
+                    html += '<table style="margin-top: 10px; font-size: 13px;">';
+                    html += '<thead><tr>';
+                    html += '<th style="padding: 6px 10px;">Volume Start</th>';
+                    html += '<th style="padding: 6px 10px;">Volume End</th>';
+                    html += '<th style="padding: 6px 10px;">Price Per Inquiry</th>';
+                    html += '<th style="padding: 6px 10px;">Source</th>';
+                    html += '</tr></thead>';
+                    html += '<tbody>';
+
+                    for (var t = 0; t < svc.tiers.length; t++) {
+                        var tier = svc.tiers[t];
+                        html += '<tr>';
+                        html += '<td style="padding: 6px 10px;">' + numberFormat(tier.volume_start, 0) + '</td>';
+                        html += '<td style="padding: 6px 10px;">';
+                        if (tier.volume_end !== null && tier.volume_end !== undefined) {
+                            html += numberFormat(tier.volume_end, 0);
+                        } else {
+                            html += '<em>Unlimited</em>';
+                        }
+                        html += '</td>';
+                        html += '<td style="padding: 6px 10px;">$' + numberFormat(tier.price_per_inquiry, 4) + '</td>';
+                        html += '<td style="padding: 6px 10px;">';
+                        if (tier.source === 'group') {
+                            html += '<span style="color: #27ae60;">Group</span>';
+                        } else {
+                            html += '<span class="text-muted">Default</span>';
+                        }
+                        html += '</td>';
+                        html += '</tr>';
+                    }
+
+                    html += '</tbody></table>';
+
+                    // Tier range validation warnings
+                    html += renderTierRangeWarnings(validateTierRanges(svc.tiers));
+                } else {
+                    html += '<p class="text-muted" style="margin-top: 10px;">No tiers defined.</p>';
+                }
+
+                html += '</div>'; // end tier-content
+                html += '</div>'; // end tier-section
+            }
+
+            html += '</div>'; // end card
+
+            // Breadcrumb
+            html += '<div class="breadcrumb"><a href="?action=pricing_groups">Groups</a><span>/</span>' + escapeHtml(group.name) + '</div>';
+
+            document.getElementById('page-data').innerHTML = html;
+        });
+
+        // --------------------------------------------------------
+        // Toggle / Expand / Collapse helpers (attached to window)
+        // --------------------------------------------------------
+        window.toggleTiers = function(id) {
+            var el   = document.getElementById('tiers-' + id);
+            var icon = document.getElementById('icon-' + id);
+            if (el.style.display === 'none') {
+                el.style.display = 'block';
+                icon.innerHTML   = '&#9650;';
+            } else {
+                el.style.display = 'none';
+                icon.innerHTML   = '&#9660;';
+            }
+        };
+
+        window.expandAll = function() {
+            var contents = document.querySelectorAll('.tier-content');
+            var icons    = document.querySelectorAll('.toggle-icon');
+            for (var i = 0; i < contents.length; i++) {
+                contents[i].style.display = 'block';
+            }
+            for (var i = 0; i < icons.length; i++) {
+                icons[i].innerHTML = '&#9650;';
+            }
+        };
+
+        window.collapseAll = function() {
+            var contents = document.querySelectorAll('.tier-content');
+            var icons    = document.querySelectorAll('.toggle-icon');
+            for (var i = 0; i < contents.length; i++) {
+                contents[i].style.display = 'none';
+            }
+            for (var i = 0; i < icons.length; i++) {
+                icons[i].innerHTML = '&#9660;';
+            }
+        };
+    })();
+    </script>
+<?php render_footer();
 } /**
  * Render group tier edit form
  */
 function render_pricing_group_edit($data)
 {
-    render_header("Edit Group Pricing - " . h($data["group"]["name"])); ?>
-    <div class="card">
-        <h2><?php echo h(
-            $data["group"]["name"],
-        ); ?>: <?php echo h($data["service"]["name"]); ?></h2>
-
-        <?php if ($data["has_override"]): ?>
-            <p class="text-muted mb-20">
-                <span style="color: #27ae60;">This group has custom pricing.</span>
-                Modify tiers below or clear to inherit from defaults.
-            </p>
-        <?php else: ?>
-            <p class="text-muted mb-20">
-                Currently inheriting from System Defaults. Save to create a group override.
-            </p>
-        <?php endif; ?>
-
-        <form method="post" id="tier-form">
-            <table id="tiers-table">
-                <thead>
-                    <tr>
-                        <th>Volume Start</th>
-                        <th>Volume End</th>
-                        <th>Price Per Inquiry</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($data["tiers"])): ?>
-                    <tr class="tier-row">
-                        <td><input type="number" name="volume_start[]" class="form-control" value="0" min="0" required></td>
-                        <td><input type="number" name="volume_end[]" class="form-control" placeholder="Unlimited" min="0"></td>
-                        <td><input type="number" name="price_per_inquiry[]" class="form-control" step="any" min="0" required></td>
-                        <td><button type="button" class="btn btn-sm" onclick="removeRow(this)">Remove</button></td>
-                    </tr>
-                    <?php else: ?>
-                        <?php foreach ($data["tiers"] as $tier): ?>
-                        <tr class="tier-row">
-                            <td><input type="number" name="volume_start[]" class="form-control" value="<?php echo h(
-                                $tier["volume_start"],
-                            ); ?>" min="0" required></td>
-                            <td><input type="number" name="volume_end[]" class="form-control" value="<?php echo $tier[
-                                "volume_end"
-                            ] !== null
-                                ? h($tier["volume_end"])
-                                : ""; ?>" placeholder="Unlimited" min="0"></td>
-                            <td><input type="number" name="price_per_inquiry[]" class="form-control" value="<?php echo h(
-                                $tier["price_per_inquiry"],
-                            ); ?>" step="any" min="0" required></td>
-                            <td><button type="button" class="btn btn-sm" onclick="removeRow(this)">Remove</button></td>
-                        </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-
-            <div style="margin: 15px 0;">
-                <button type="button" class="btn" onclick="addRow()">+ Add Tier</button>
-            </div>
-
-            <?php if (isset($data["validation"])): ?>
-                <?php render_tier_range_warnings($data["validation"]); ?>
-            <?php endif; ?>
-
-            <?php if (!empty($data["confirm_overlap"])): ?>
-                <input type="hidden" name="confirm_overlap" value="1">
-                <div style="margin-top: 20px;">
-                    <button type="submit" name="form_action" value="save" class="btn" style="background: #dc3545; color: white;">Save Anyway (with overlaps)</button>
-                    <a href="?action=pricing_group_edit&group_id=<?php echo $data[
-                        "group"
-                    ]["id"]; ?>&service_id=<?php echo $data["service"][
-    "id"
-]; ?>" class="btn">Cancel</a>
-                </div>
-            <?php else: ?>
-                <div style="margin-top: 20px;">
-                    <button type="submit" name="form_action" value="save" class="btn btn-success">Save Group Pricing</button>
-                    <?php if ($data["has_override"]): ?>
-                        <button type="submit" name="form_action" value="clear" class="btn" onclick="return confirm('Clear override and inherit from defaults?')">Clear Override</button>
-                    <?php endif; ?>
-                    <a href="?action=pricing_group_edit&group_id=<?php echo $data[
-                        "group"
-                    ]["id"]; ?>" class="btn">Cancel</a>
-                </div>
-            <?php endif; ?>
-        </form>
+    render_header("Edit Group Pricing"); ?>
+    <div id="page-data" class="ajax-content">
+        <div class="loading-skeleton">
+            <div class="skeleton-bar w75"></div>
+            <div class="skeleton-bar w90"></div>
+            <div class="skeleton-bar w50"></div>
+            <p>Loading...</p>
+        </div>
     </div>
 
     <script>
-    function addRow() {
-        var tbody = document.querySelector('#tiers-table tbody');
-        var lastRow = tbody.querySelector('.tier-row:last-child');
-        var nextStart = 0;
+    (function() {
+        var urlParams = new URLSearchParams(window.location.search);
+        var groupId = urlParams.get('group_id');
+        var serviceId = urlParams.get('service_id');
 
-        if (lastRow) {
-            var endInput = lastRow.querySelector('input[name="volume_end[]"]');
-            if (endInput.value) {
-                nextStart = parseInt(endInput.value) + 1;
+        if (!groupId || !serviceId) {
+            showAjaxError('page-data', 'Missing group_id or service_id parameter');
+            return;
+        }
+
+        function numberFormat(n, decimals) {
+            if (n === null || n === undefined) return '';
+            return parseFloat(n).toLocaleString('en-US', decimals !== undefined ? {minimumFractionDigits: decimals, maximumFractionDigits: decimals} : {});
+        }
+
+        function renderValidation(validation) {
+            if (!validation) return '';
+            var hasGaps = validation.gaps && validation.gaps.length > 0;
+            var hasOverlaps = validation.overlaps && validation.overlaps.length > 0;
+            if (!hasGaps && !hasOverlaps) return '';
+
+            var vHtml = '<div style="margin: 10px 0;">';
+
+            if (hasOverlaps) {
+                vHtml += '<div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; padding: 10px 14px; margin-bottom: 8px; color: #721c24; font-size: 13px;">';
+                vHtml += '<strong>Overlap:</strong> ';
+                for (var i = 0; i < validation.overlaps.length; i++) {
+                    var o = validation.overlaps[i];
+                    var endStr = (o.end !== null && o.end !== '' && o.end !== undefined) ? numberFormat(o.end) : 'Unlimited';
+                    vHtml += 'Volume ' + numberFormat(o.start) + ' &ndash; ' + endStr + ' is covered by multiple tiers. ';
+                }
+                vHtml += '</div>';
             }
+
+            if (hasGaps) {
+                vHtml += '<div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 10px 14px; margin-bottom: 8px; color: #856404; font-size: 13px;">';
+                vHtml += '<strong>Gap:</strong> ';
+                for (var j = 0; j < validation.gaps.length; j++) {
+                    var g = validation.gaps[j];
+                    vHtml += 'Volume ' + numberFormat(g.start) + ' &ndash; ' + numberFormat(g.end) + ' has no pricing. ';
+                }
+                vHtml += '</div>';
+            }
+
+            vHtml += '</div>';
+            return vHtml;
         }
 
-        var row = document.createElement('tr');
-        row.className = 'tier-row';
-        row.innerHTML = '<td><input type="number" name="volume_start[]" class="form-control" value="' + nextStart + '" min="0" required></td>' +
-            '<td><input type="number" name="volume_end[]" class="form-control" placeholder="Unlimited" min="0"></td>' +
-            '<td><input type="number" name="price_per_inquiry[]" class="form-control" step="any" min="0" required></td>' +
-            '<td><button type="button" class="btn btn-sm" onclick="removeRow(this)">Remove</button></td>';
-        tbody.appendChild(row);
-    }
+        apiGet('pricing_group_edit', {group_id: groupId, service_id: serviceId}, function(err, data) {
+            if (err) { showAjaxError('page-data', err); return; }
 
-    function removeRow(btn) {
-        var rows = document.querySelectorAll('.tier-row');
-        if (rows.length > 1) {
-            btn.closest('tr').remove();
-        }
-    }
+            var el = document.getElementById('page-data');
+            var group = data.group;
+            var service = data.service;
+            var tiers = data.tiers || [];
+            var hasOverride = data.has_override;
+            var validation = data.validation || {};
+
+            var html = '';
+
+            // Card
+            html += '<div class="card">';
+            html += '<h2>' + escapeHtml(group.name) + ': ' + escapeHtml(service.name) + '</h2>';
+
+            // Override / inherit message
+            if (hasOverride) {
+                html += '<p class="text-muted mb-20">';
+                html += '<span style="color: #27ae60;">This group has custom pricing.</span> ';
+                html += 'Modify tiers below or clear to inherit from defaults.';
+                html += '</p>';
+            } else {
+                html += '<p class="text-muted mb-20">';
+                html += 'Currently inheriting from System Defaults. Save to create a group override.';
+                html += '</p>';
+            }
+
+            // Form
+            html += '<form id="tier-form">';
+
+            // Tier table
+            html += '<table id="tiers-table">';
+            html += '<thead><tr>';
+            html += '<th>Volume Start</th>';
+            html += '<th>Volume End</th>';
+            html += '<th>Price Per Inquiry</th>';
+            html += '<th></th>';
+            html += '</tr></thead>';
+            html += '<tbody>';
+
+            if (tiers.length === 0) {
+                html += '<tr class="tier-row">';
+                html += '<td><input type="number" name="volume_start[]" class="form-control" value="0" min="0" required></td>';
+                html += '<td><input type="number" name="volume_end[]" class="form-control" placeholder="Unlimited" min="0"></td>';
+                html += '<td><input type="number" name="price_per_inquiry[]" class="form-control" step="any" min="0" required></td>';
+                html += '<td><button type="button" class="btn btn-sm" onclick="removeRow(this)">Remove</button></td>';
+                html += '</tr>';
+            } else {
+                for (var i = 0; i < tiers.length; i++) {
+                    var t = tiers[i];
+                    html += '<tr class="tier-row">';
+                    html += '<td><input type="number" name="volume_start[]" class="form-control" value="' + escapeHtml(String(t.volume_start)) + '" min="0" required></td>';
+                    html += '<td><input type="number" name="volume_end[]" class="form-control" value="' + (t.volume_end !== null ? escapeHtml(String(t.volume_end)) : '') + '" placeholder="Unlimited" min="0"></td>';
+                    html += '<td><input type="number" name="price_per_inquiry[]" class="form-control" value="' + escapeHtml(String(t.price_per_inquiry)) + '" step="any" min="0" required></td>';
+                    html += '<td><button type="button" class="btn btn-sm" onclick="removeRow(this)">Remove</button></td>';
+                    html += '</tr>';
+                }
+            }
+
+            html += '</tbody>';
+            html += '</table>';
+
+            // Add Tier button
+            html += '<div style="margin: 15px 0;">';
+            html += '<button type="button" class="btn" onclick="addRow()">+ Add Tier</button>';
+            html += '</div>';
+
+            // Validation warnings
+            html += renderValidation(validation);
+
+            // Action buttons
+            html += '<div style="margin-top: 20px;">';
+            html += '<button type="submit" class="btn btn-success">Save Group Pricing</button> ';
+            if (hasOverride) {
+                html += '<button type="button" id="clear-override-btn" class="btn" onclick="clearOverride()">Clear Override</button> ';
+            }
+            html += '<a href="?action=pricing_group_edit&group_id=' + encodeURIComponent(groupId) + '" class="btn">Cancel</a>';
+            html += '</div>';
+
+            html += '</form>';
+
+            html += '<div id="form-result"></div>';
+
+            html += '</div>';
+
+            // Back link
+            html += '<p style="margin-top: 20px;"><a href="?action=pricing_group_edit&group_id=' + encodeURIComponent(groupId) + '">&larr; Back to Services</a></p>';
+
+            el.innerHTML = html;
+
+            // addRow
+            window.addRow = function() {
+                var tbody = document.querySelector('#tiers-table tbody');
+                var lastRow = tbody.querySelector('.tier-row:last-child');
+                var nextStart = 0;
+
+                if (lastRow) {
+                    var endInput = lastRow.querySelector('input[name="volume_end[]"]');
+                    if (endInput && endInput.value) {
+                        nextStart = parseInt(endInput.value, 10) + 1;
+                    }
+                }
+
+                var row = document.createElement('tr');
+                row.className = 'tier-row';
+                row.innerHTML = '<td><input type="number" name="volume_start[]" class="form-control" value="' + nextStart + '" min="0" required></td>' +
+                    '<td><input type="number" name="volume_end[]" class="form-control" placeholder="Unlimited" min="0"></td>' +
+                    '<td><input type="number" name="price_per_inquiry[]" class="form-control" step="any" min="0" required></td>' +
+                    '<td><button type="button" class="btn btn-sm" onclick="removeRow(this)">Remove</button></td>';
+                tbody.appendChild(row);
+            };
+
+            // removeRow
+            window.removeRow = function(btn) {
+                var rows = document.querySelectorAll('.tier-row');
+                if (rows.length > 1) {
+                    var row = btn.closest ? btn.closest('tr') : btn.parentNode.parentNode;
+                    row.parentNode.removeChild(row);
+                }
+            };
+
+            // clearOverride
+            window.clearOverride = function() {
+                if (!confirm('Clear override and inherit from defaults?')) {
+                    return;
+                }
+                var clearData = new FormData();
+                clearData.append('group_id', groupId);
+                clearData.append('service_id', serviceId);
+                apiPost('clear_group_tiers', clearData, function(err, result) {
+                    var msgDiv = document.getElementById('form-result');
+                    if (err) {
+                        msgDiv.innerHTML = '<div class="flash flash-error">' + escapeHtml(err) + '</div>';
+                    } else {
+                        msgDiv.innerHTML = '<div class="flash flash-success">' + escapeHtml(result.message) + '</div>';
+                    }
+                });
+            };
+
+            // Form submit handler
+            document.getElementById('tier-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                var formData = new FormData(this);
+                formData.append('group_id', groupId);
+                formData.append('service_id', serviceId);
+                apiPost('save_group_tiers', formData, function(err, result) {
+                    var msgDiv = document.getElementById('form-result');
+                    if (err) {
+                        msgDiv.innerHTML = '<div class="flash flash-error">' + escapeHtml(err) + '</div>';
+                    } else {
+                        msgDiv.innerHTML = '<div class="flash flash-success">' + escapeHtml(result.message) + '</div>';
+                    }
+                });
+            });
+        });
+    })();
     </script>
-
-    <p style="margin-top: 20px;"><a href="?action=pricing_group_edit&group_id=<?php echo $data[
-        "group"
-    ]["id"]; ?>">&larr; Back to Services</a></p>
-<?php
+<?php render_footer();
 } /**
  * Render customers list
  */
@@ -3964,126 +3979,221 @@ function render_pricing_customer_services($data)
         </div>
     </div>
 
-    <div class="card">
-        <h2 style="display: flex; justify-content: space-between; align-items: center;">
-            Service Pricing
-            <span style="font-size: 12px; font-weight: normal;">
-                <a href="javascript:void(0)" onclick="expandAll()" class="btn btn-sm">Expand All</a>
-                <a href="javascript:void(0)" onclick="collapseAll()" class="btn btn-sm">Collapse All</a>
-            </span>
-        </h2>
-        <p class="text-muted mb-20">Select a service to override pricing. Inherited values show their source.</p>
-
-        <?php foreach ($data["services"] as $service): ?>
-        <?php
-        $source_label = $service["source"];
-        $source_style = "";
-        if ($service["source"] === "customer") {
-            $source_label = "Customer";
-            $source_style = "color: #27ae60; font-weight: bold;";
-        } elseif ($service["source"] === "group") {
-            $source_label = "Group";
-            $source_style = "color: #3498db;";
-        } else {
-            $source_label = "Default";
-            $source_style = "color: #999;";
-        }
-        ?>
-        <div class="tier-section" style="border: 1px solid #eee; border-radius: 4px; margin-bottom: 15px; overflow: hidden;">
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #f8f9fa; cursor: pointer;" onclick="toggleTiers('cust-<?php echo $service[
-                "id"
-            ]; ?>')">
-                <div>
-                    <strong><?php echo h($service["name"]); ?></strong>
-                    <?php if ($service["has_override"]): ?>
-                        <span style="color: #27ae60; margin-left: 15px;">Overridden</span>
-                    <?php else: ?>
-                        <span class="text-muted" style="margin-left: 15px;">Inherited</span>
-                    <?php endif; ?>
-                    <span style="<?php echo $source_style; ?> margin-left: 10px;">(<?php echo $source_label; ?>)</span>
-                    <?php if (!empty($service["tiers"])): ?>
-                        <span class="text-muted" style="margin-left: 15px;">
-                            $<?php echo number_format(
-                                $service["tiers"][count($service["tiers"]) - 1][
-                                    "price_per_inquiry"
-                                ],
-                                2,
-                            ); ?>
-                            - $<?php echo number_format(
-                                $service["tiers"][0]["price_per_inquiry"],
-                                2,
-                            ); ?>
-                        </span>
-                    <?php endif; ?>
-                </div>
-                <div>
-                    <span class="toggle-icon" id="icon-cust-<?php echo $service[
-                        "id"
-                    ]; ?>" style="margin-right: 10px; color: #999;">&#9650;</span>
-                    <a href="?action=pricing_customer_edit&customer_id=<?php echo $data[
-                        "customer"
-                    ]["id"]; ?>&service_id=<?php echo $service[
-    "id"
-]; ?>" class="btn btn-sm" onclick="event.stopPropagation();">
-                        <?php echo $service["has_override"]
-                            ? "Edit"
-                            : "Override"; ?>
-                    </a>
-                </div>
-            </div>
-            <div class="tier-content" id="tiers-cust-<?php echo $service[
-                "id"
-            ]; ?>" style="padding: 0 15px 15px 15px;">
-                <?php if (!empty($service["tiers"])): ?>
-                <table style="margin-top: 10px; font-size: 13px;">
-                    <thead>
-                        <tr>
-                            <th style="padding: 6px 10px;">Volume Start</th>
-                            <th style="padding: 6px 10px;">Volume End</th>
-                            <th style="padding: 6px 10px;">Price Per Inquiry</th>
-                            <th style="padding: 6px 10px;">Source</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($service["tiers"] as $tier): ?>
-                        <tr>
-                            <td style="padding: 6px 10px;"><?php echo number_format(
-                                $tier["volume_start"],
-                            ); ?></td>
-                            <td style="padding: 6px 10px;"><?php echo $tier[
-                                "volume_end"
-                            ] !== null
-                                ? number_format($tier["volume_end"])
-                                : "<em>Unlimited</em>"; ?></td>
-                            <td style="padding: 6px 10px;">$<?php echo number_format(
-                                $tier["price_per_inquiry"],
-                                4,
-                            ); ?></td>
-                            <td style="padding: 6px 10px;">
-                                <?php if ($tier["source"] === "customer"): ?>
-                                    <span style="color: #27ae60;">Customer</span>
-                                <?php elseif ($tier["source"] === "group"): ?>
-                                    <span style="color: #3498db;">Group</span>
-                                <?php else: ?>
-                                    <span class="text-muted">Default</span>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-                <?php render_tier_range_warnings(
-                    validate_tier_ranges($service["tiers"]),
-                ); ?>
-                <?php else: ?>
-                    <p class="text-muted" style="margin-top: 10px;">No tiers defined.</p>
-                <?php endif; ?>
-            </div>
+    <div id="page-data" class="ajax-content">
+        <div class="loading-skeleton">
+            <div class="skeleton-bar w75"></div>
+            <div class="skeleton-bar w90"></div>
+            <div class="skeleton-bar w50"></div>
+            <div class="skeleton-bar w75"></div>
+            <div class="skeleton-bar w90"></div>
+            <p>Loading services...</p>
         </div>
-        <?php endforeach; ?>
     </div>
 
     <script>
+    (function() {
+        var customerId = <?php echo (int) $data["customer"]["id"]; ?>;
+
+        function numberFormat(n, decimals) {
+            if (n === null || n === undefined) return '';
+            return parseFloat(n).toLocaleString('en-US', decimals !== undefined ? {minimumFractionDigits: decimals, maximumFractionDigits: decimals} : {});
+        }
+
+        function validateTierRanges(tiers) {
+            var result = {gaps: [], overlaps: []};
+            if (!tiers || tiers.length === 0) return result;
+
+            var sorted = tiers.slice().sort(function(a, b) {
+                return parseInt(a.volume_start) - parseInt(b.volume_start);
+            });
+
+            var firstStart = parseInt(sorted[0].volume_start);
+            if (firstStart > 1) {
+                result.gaps.push({start: 1, end: firstStart - 1});
+            }
+
+            for (var i = 0; i < sorted.length - 1; i++) {
+                var currEnd = sorted[i].volume_end;
+                var nextStart = parseInt(sorted[i + 1].volume_start);
+
+                if (currEnd === null || currEnd === '' || currEnd === undefined) {
+                    result.overlaps.push({start: nextStart, end: sorted[i + 1].volume_end});
+                    continue;
+                }
+
+                currEnd = parseInt(currEnd);
+
+                if (nextStart > currEnd + 1) {
+                    result.gaps.push({start: currEnd + 1, end: nextStart - 1});
+                }
+
+                if (nextStart <= currEnd) {
+                    var overlapEnd = sorted[i + 1].volume_end;
+                    if (overlapEnd !== null && overlapEnd !== '' && overlapEnd !== undefined) {
+                        overlapEnd = Math.min(parseInt(overlapEnd), currEnd);
+                    } else {
+                        overlapEnd = currEnd;
+                    }
+                    result.overlaps.push({start: nextStart, end: overlapEnd});
+                }
+            }
+
+            return result;
+        }
+
+        function buildTierWarnings(validation) {
+            if (!validation) return '';
+            var hasGaps = validation.gaps && validation.gaps.length > 0;
+            var hasOverlaps = validation.overlaps && validation.overlaps.length > 0;
+            if (!hasGaps && !hasOverlaps) return '';
+
+            var html = '<div style="margin: 10px 0;">';
+            if (hasOverlaps) {
+                html += '<div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; padding: 10px 14px; margin-bottom: 8px; color: #721c24; font-size: 13px;">';
+                html += '<strong>Overlap:</strong> ';
+                for (var i = 0; i < validation.overlaps.length; i++) {
+                    var o = validation.overlaps[i];
+                    html += 'Volume ' + numberFormat(o.start) + ' &ndash; ';
+                    html += (o.end !== null && o.end !== '' && o.end !== undefined) ? numberFormat(o.end) : 'Unlimited';
+                    html += ' is covered by multiple tiers. ';
+                }
+                html += '</div>';
+            }
+            if (hasGaps) {
+                html += '<div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 10px 14px; margin-bottom: 8px; color: #856404; font-size: 13px;">';
+                html += '<strong>Gap:</strong> ';
+                for (var i = 0; i < validation.gaps.length; i++) {
+                    var g = validation.gaps[i];
+                    html += 'Volume ' + numberFormat(g.start) + ' &ndash; ' + numberFormat(g.end) + ' has no pricing. ';
+                }
+                html += '</div>';
+            }
+            html += '</div>';
+            return html;
+        }
+
+        function buildSourceLabel(source) {
+            if (source === 'customer') {
+                return '<span style="color: #27ae60; font-weight: bold;">Customer</span>';
+            } else if (source === 'group') {
+                return '<span style="color: #3498db;">Group</span>';
+            } else {
+                return '<span class="text-muted">Default</span>';
+            }
+        }
+
+        function buildSourceStyle(source) {
+            if (source === 'customer') {
+                return 'color: #27ae60; font-weight: bold;';
+            } else if (source === 'group') {
+                return 'color: #3498db;';
+            } else {
+                return 'color: #999;';
+            }
+        }
+
+        function buildSourceName(source) {
+            if (source === 'customer') return 'Customer';
+            if (source === 'group') return 'Group';
+            return 'Default';
+        }
+
+        function renderServices(data) {
+            var services = data.services;
+            var html = '';
+
+            html += '<div class="card">';
+            html += '<h2 style="display: flex; justify-content: space-between; align-items: center;">';
+            html += 'Service Pricing';
+            html += '<span style="font-size: 12px; font-weight: normal;">';
+            html += '<a href="javascript:void(0)" onclick="expandAll()" class="btn btn-sm">Expand All</a> ';
+            html += '<a href="javascript:void(0)" onclick="collapseAll()" class="btn btn-sm">Collapse All</a>';
+            html += '</span>';
+            html += '</h2>';
+            html += '<p class="text-muted mb-20">Select a service to override pricing. Inherited values show their source.</p>';
+
+            for (var i = 0; i < services.length; i++) {
+                var service = services[i];
+                var sourceStyle = buildSourceStyle(service.source);
+                var sourceName = buildSourceName(service.source);
+                var tierId = 'cust-' + service.id;
+
+                html += '<div class="tier-section" style="border: 1px solid #eee; border-radius: 4px; margin-bottom: 15px; overflow: hidden;">';
+
+                // Header row
+                html += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #f8f9fa; cursor: pointer;" onclick="toggleTiers(\'' + tierId + '\')">';
+                html += '<div>';
+                html += '<strong>' + escapeHtml(service.name) + '</strong>';
+                if (service.has_override) {
+                    html += '<span style="color: #27ae60; margin-left: 15px;">Overridden</span>';
+                } else {
+                    html += '<span class="text-muted" style="margin-left: 15px;">Inherited</span>';
+                }
+                html += '<span style="' + sourceStyle + ' margin-left: 10px;">(' + escapeHtml(sourceName) + ')</span>';
+                if (service.tiers && service.tiers.length > 0) {
+                    var lastTier = service.tiers[service.tiers.length - 1];
+                    var firstTier = service.tiers[0];
+                    html += '<span class="text-muted" style="margin-left: 15px;">';
+                    html += '$' + numberFormat(lastTier.price_per_inquiry, 2);
+                    html += ' - $' + numberFormat(firstTier.price_per_inquiry, 2);
+                    html += '</span>';
+                }
+                html += '</div>';
+
+                html += '<div>';
+                html += '<span class="toggle-icon" id="icon-' + tierId + '" style="margin-right: 10px; color: #999;">&#9650;</span>';
+                html += '<a href="?action=pricing_customer_edit&customer_id=' + customerId + '&service_id=' + service.id + '" class="btn btn-sm" onclick="event.stopPropagation();">';
+                html += service.has_override ? 'Edit' : 'Override';
+                html += '</a>';
+                html += '</div>';
+                html += '</div>';
+
+                // Tier content
+                html += '<div class="tier-content" id="tiers-' + tierId + '" style="padding: 0 15px 15px 15px;">';
+                if (service.tiers && service.tiers.length > 0) {
+                    html += '<table style="margin-top: 10px; font-size: 13px;">';
+                    html += '<thead><tr>';
+                    html += '<th style="padding: 6px 10px;">Volume Start</th>';
+                    html += '<th style="padding: 6px 10px;">Volume End</th>';
+                    html += '<th style="padding: 6px 10px;">Price Per Inquiry</th>';
+                    html += '<th style="padding: 6px 10px;">Source</th>';
+                    html += '</tr></thead>';
+                    html += '<tbody>';
+                    for (var t = 0; t < service.tiers.length; t++) {
+                        var tier = service.tiers[t];
+                        html += '<tr>';
+                        html += '<td style="padding: 6px 10px;">' + numberFormat(tier.volume_start) + '</td>';
+                        html += '<td style="padding: 6px 10px;">';
+                        if (tier.volume_end !== null && tier.volume_end !== undefined) {
+                            html += numberFormat(tier.volume_end);
+                        } else {
+                            html += '<em>Unlimited</em>';
+                        }
+                        html += '</td>';
+                        html += '<td style="padding: 6px 10px;">$' + numberFormat(tier.price_per_inquiry, 4) + '</td>';
+                        html += '<td style="padding: 6px 10px;">' + buildSourceLabel(tier.source) + '</td>';
+                        html += '</tr>';
+                    }
+                    html += '</tbody></table>';
+                    html += buildTierWarnings(validateTierRanges(service.tiers));
+                } else {
+                    html += '<p class="text-muted" style="margin-top: 10px;">No tiers defined.</p>';
+                }
+                html += '</div>';
+
+                html += '</div>';
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        apiGet('pricing_customer_edit', {customer_id: customerId}, function(err, data) {
+            if (err) { showAjaxError('page-data', err); return; }
+            document.getElementById('page-data').innerHTML = renderServices(data);
+        });
+    })();
+
     function toggleTiers(id) {
         var el = document.getElementById('tiers-' + id);
         var icon = document.getElementById('icon-' + id);
@@ -4120,7 +4230,7 @@ function render_pricing_customer_services($data)
     <div class="breadcrumb"><a href="?action=pricing_customers">Customers</a><span>/</span><?php echo h(
         $data["customer"]["name"],
     ); ?></div>
-<?php
+<?php render_footer();
 } /**
  * Render customer tier edit form
  */
@@ -4294,147 +4404,179 @@ function render_pricing_customer_edit($data)
 function render_pricing_customer_settings($data)
 {
     render_header("Customer Settings - " . h($data["customer"]["name"])); ?>
-    <div class="card">
-        <h2><?php echo h($data["customer"]["name"]); ?></h2>
-        <p class="text-muted mb-20">
-            <?php if ($data["customer"]["group_name"]): ?>
-                Group: <strong><?php echo h(
-                    $data["customer"]["group_name"],
-                ); ?></strong> |
-            <?php else: ?>
-                <span style="color: #e67e22;">No discount group</span> |
-            <?php endif; ?>
-            Status:
-            <?php
-            $status_class = "";
-            if ($data["customer"]["status"] === "active") {
-                $status_class = "color: #27ae60;";
-            } elseif ($data["customer"]["status"] === "paused") {
-                $status_class = "color: #f39c12;";
-            } else {
-                $status_class = "color: #e74c3c;";
-            }
-            ?>
-            <span style="<?php echo $status_class; ?>"><?php echo ucfirst($data["customer"]["status"]); ?></span>
-        </p>
-
-        <div style="margin-bottom: 20px;">
-            <a href="?action=pricing_customer_edit&customer_id=<?php echo $data[
-                "customer"
-            ][
-                "id"
-            ]; ?>&tab=services" class="btn <?php echo $data["tab"] === "services" ? "btn-success" : ""; ?>">Service Pricing</a>
-            <a href="?action=pricing_customer_edit&customer_id=<?php echo $data[
-                "customer"
-            ][
-                "id"
-            ]; ?>&tab=settings" class="btn <?php echo $data["tab"] === "settings" ? "btn-success" : ""; ?>">Settings</a>
-            <a href="?action=escalator_edit&customer_id=<?php echo $data[
-                "customer"
-            ]["id"]; ?>" class="btn">Escalators</a>
+    <div id="page-data" class="ajax-content">
+        <div class="loading-skeleton">
+            <div class="skeleton-bar w75"></div>
+            <div class="skeleton-bar w90"></div>
+            <div class="skeleton-bar w50"></div>
+            <p>Loading customer settings...</p>
         </div>
     </div>
 
-    <div class="card">
-        <h2>Customer Settings</h2>
+    <script>
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        var customerId = params.get('customer_id');
+        if (!customerId) {
+            showAjaxError('page-data', 'No customer_id specified');
+            return;
+        }
 
-        <form method="post">
-            <div class="form-group">
-                <label for="lms_id">LMS (Loan Management System) <span style="color: #dc3545;">*</span></label>
-                <select name="lms_id" id="lms_id" class="form-control" style="width: 300px;">
-                    <option value="">-- Select LMS --</option>
-                    <?php foreach ($data["all_lms"] as $lms): ?>
-                    <option value="<?php echo $lms["id"]; ?>" <?php echo $data[
-    "customer"
-]["lms_id"] == $lms["id"]
-    ? "selected"
-    : ""; ?>>
-                        <?php echo h($lms["name"]); ?>
-                    </option>
-                    <?php endforeach; ?>
-                </select>
-                <small class="text-muted">Required for billing calculations. <a href="?action=lms&sync=1">Sync LMS list</a> if empty.</small>
-                <?php if (empty($data["customer"]["lms_id"])): ?>
-                <div style="margin-top: 8px; padding: 10px; background: #f8d7da; border-radius: 4px; font-size: 13px; color: #721c24;">
-                    <strong>Warning:</strong> This customer has no LMS assigned. LMS is required for revenue/commission calculations.
-                </div>
-                <?php endif; ?>
-            </div>
+        apiGet('pricing_customer_settings', {customer_id: customerId}, function(err, data) {
+            if (err) { showAjaxError('page-data', err); return; }
 
-            <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+            var customer = data.customer;
+            var settings = data.settings;
+            var allLms = data.all_lms || [];
+            var tab = data.tab || 'settings';
+            var el = document.getElementById('page-data');
+            var html = '';
 
-            <div class="form-group">
-                <label for="monthly_minimum">Monthly Minimum ($)</label>
-                <input type="number" name="monthly_minimum" id="monthly_minimum" class="form-control"
-                        value="<?php echo $data["settings"][
-                            "monthly_minimum"
-                        ] !== null
-                            ? h($data["settings"]["monthly_minimum"])
-                            : ""; ?>"
-                        step="any" min="0" placeholder="No minimum">
-                <small class="text-muted">Leave empty for no minimum charge. When set, if the customer's monthly usage is below this amount, a "gap" line item will be added to bring the invoice total to this minimum.</small>
-                <?php if (
-                    $data["settings"]["monthly_minimum"] &&
-                    $data["settings"]["monthly_minimum"] > 0
-                ): ?>
-                <div style="margin-top: 8px; padding: 10px; background: #e8f4fd; border-radius: 4px; font-size: 13px;">
-                    <strong>Current Minimum:</strong> $<?php echo number_format(
-                        $data["settings"]["monthly_minimum"],
-                        2,
-                    ); ?>/month
-                    <br><span class="text-muted">If monthly usage &lt; $<?php echo number_format(
-                        $data["settings"]["monthly_minimum"],
-                        2,
-                    ); ?>, a gap line item will be added.</span>
-                </div>
-                <?php endif; ?>
-            </div>
+            // Customer header card
+            html += '<div class="card">';
+            html += '<h2>' + escapeHtml(customer.name) + '</h2>';
+            html += '<p class="text-muted mb-20">';
+            if (customer.group_name) {
+                html += 'Group: <strong>' + escapeHtml(customer.group_name) + '</strong> | ';
+            } else {
+                html += '<span style="color: #e67e22;">No discount group</span> | ';
+            }
+            html += 'Status: ';
+            var statusStyle = '';
+            if (customer.status === 'active') {
+                statusStyle = 'color: #27ae60;';
+            } else if (customer.status === 'paused') {
+                statusStyle = 'color: #f39c12;';
+            } else {
+                statusStyle = 'color: #e74c3c;';
+            }
+            html += '<span style="' + statusStyle + '">' + escapeHtml(customer.status.charAt(0).toUpperCase() + customer.status.slice(1)) + '</span>';
+            html += '</p>';
 
-            <div class="form-group">
-                <label>
-                    <input type="checkbox" name="uses_annualized" value="1"
-                            <?php echo $data["settings"]["uses_annualized"]
-                                ? "checked"
-                                : ""; ?>>
-                    Uses Annualized Tiers
-                </label>
-                <small class="text-muted" style="display: block;">Enable volume calculation over a look-back period.</small>
-            </div>
+            // Tab navigation
+            html += '<div style="margin-bottom: 20px;">';
+            html += '<a href="?action=pricing_customer_edit&customer_id=' + encodeURIComponent(customer.id) + '&tab=services" class="btn' + (tab === 'services' ? ' btn-success' : '') + '">Service Pricing</a>';
+            html += '<a href="?action=pricing_customer_edit&customer_id=' + encodeURIComponent(customer.id) + '&tab=settings" class="btn' + (tab === 'settings' ? ' btn-success' : '') + '">Settings</a>';
+            html += '<a href="?action=escalator_edit&customer_id=' + encodeURIComponent(customer.id) + '" class="btn">Escalators</a>';
+            html += '</div>';
+            html += '</div>';
 
-            <div class="form-group">
-                <label for="annualized_start_date">Annualized Start Date</label>
-                <input type="date" name="annualized_start_date" id="annualized_start_date" class="form-control"
-                        value="<?php echo $data["settings"][
-                            "annualized_start_date"
-                        ]
-                            ? h($data["settings"]["annualized_start_date"])
-                            : ""; ?>">
-                <small class="text-muted">When annualized tier calculation begins.</small>
-            </div>
+            // Customer Settings card with form
+            html += '<div class="card">';
+            html += '<h2>Customer Settings</h2>';
 
-            <div class="form-group">
-                <label for="look_period_months">Look Period (Months)</label>
-                <input type="number" name="look_period_months" id="look_period_months" class="form-control"
-                        value="<?php echo $data["settings"][
-                            "look_period_months"
-                        ] !== null
-                            ? h($data["settings"]["look_period_months"])
-                            : ""; ?>"
-                        min="1" max="12" placeholder="e.g., 6">
-                <small class="text-muted">Number of months to look back for volume calculation.</small>
-            </div>
+            html += '<form id="customer-settings-form">';
+            html += '<input type="hidden" name="customer_id" value="' + escapeHtml(String(customer.id)) + '">';
 
-            <div style="margin-top: 20px;">
-                <button type="submit" class="btn btn-success">Save Settings</button>
-                <a href="?action=pricing_customer_edit&customer_id=<?php echo $data[
-                    "customer"
-                ]["id"]; ?>" class="btn">Cancel</a>
-            </div>
-        </form>
-    </div>
+            // LMS dropdown
+            html += '<div class="form-group">';
+            html += '<label for="lms_id">LMS (Loan Management System) <span style="color: #dc3545;">*</span></label>';
+            html += '<select name="lms_id" id="lms_id" class="form-control" style="width: 300px;">';
+            html += '<option value="">-- Select LMS --</option>';
+            for (var i = 0; i < allLms.length; i++) {
+                var lms = allLms[i];
+                var selected = (customer.lms_id && String(customer.lms_id) === String(lms.id)) ? ' selected' : '';
+                html += '<option value="' + escapeHtml(String(lms.id)) + '"' + selected + '>' + escapeHtml(lms.name) + '</option>';
+            }
+            html += '</select>';
+            html += '<small class="text-muted">Required for billing calculations. <a href="?action=lms&sync=1">Sync LMS list</a> if empty.</small>';
 
-    <div class="breadcrumb" style="margin-top: 20px;"><a href="?action=pricing_customers">Customers</a><span>/</span>Edit Tiers</div>
-<?php
+            // Warning if no LMS assigned
+            if (!customer.lms_id) {
+                html += '<div style="margin-top: 8px; padding: 10px; background: #f8d7da; border-radius: 4px; font-size: 13px; color: #721c24;">';
+                html += '<strong>Warning:</strong> This customer has no LMS assigned. LMS is required for revenue/commission calculations.';
+                html += '</div>';
+            }
+            html += '</div>';
+
+            html += '<hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">';
+
+            // Monthly Minimum
+            html += '<div class="form-group">';
+            html += '<label for="monthly_minimum">Monthly Minimum ($)</label>';
+            html += '<input type="number" name="monthly_minimum" id="monthly_minimum" class="form-control"';
+            html += ' value="' + (settings.monthly_minimum !== null ? escapeHtml(String(settings.monthly_minimum)) : '') + '"';
+            html += ' step="any" min="0" placeholder="No minimum">';
+            html += '<small class="text-muted">Leave empty for no minimum charge. When set, if the customer\'s monthly usage is below this amount, a "gap" line item will be added to bring the invoice total to this minimum.</small>';
+
+            // Info box if minimum is set
+            if (settings.monthly_minimum && settings.monthly_minimum > 0) {
+                html += '<div style="margin-top: 8px; padding: 10px; background: #e8f4fd; border-radius: 4px; font-size: 13px;">';
+                html += '<strong>Current Minimum:</strong> $' + numberFormat(settings.monthly_minimum, 2) + '/month';
+                html += '<br><span class="text-muted">If monthly usage &lt; $' + numberFormat(settings.monthly_minimum, 2) + ', a gap line item will be added.</span>';
+                html += '</div>';
+            }
+            html += '</div>';
+
+            // Uses Annualized Tiers checkbox
+            html += '<div class="form-group">';
+            html += '<label>';
+            html += '<input type="checkbox" name="uses_annualized" value="1"' + (settings.uses_annualized ? ' checked' : '') + '>';
+            html += ' Uses Annualized Tiers';
+            html += '</label>';
+            html += '<small class="text-muted" style="display: block;">Enable volume calculation over a look-back period.</small>';
+            html += '</div>';
+
+            // Annualized Start Date
+            html += '<div class="form-group">';
+            html += '<label for="annualized_start_date">Annualized Start Date</label>';
+            html += '<input type="date" name="annualized_start_date" id="annualized_start_date" class="form-control"';
+            html += ' value="' + (settings.annualized_start_date ? escapeHtml(settings.annualized_start_date) : '') + '">';
+            html += '<small class="text-muted">When annualized tier calculation begins.</small>';
+            html += '</div>';
+
+            // Look Period Months
+            html += '<div class="form-group">';
+            html += '<label for="look_period_months">Look Period (Months)</label>';
+            html += '<input type="number" name="look_period_months" id="look_period_months" class="form-control"';
+            html += ' value="' + (settings.look_period_months !== null ? escapeHtml(String(settings.look_period_months)) : '') + '"';
+            html += ' min="1" max="12" placeholder="e.g., 6">';
+            html += '<small class="text-muted">Number of months to look back for volume calculation.</small>';
+            html += '</div>';
+
+            // Submit buttons
+            html += '<div style="margin-top: 20px;">';
+            html += '<button type="submit" class="btn btn-success">Save Settings</button>';
+            html += '<a href="?action=pricing_customer_edit&customer_id=' + encodeURIComponent(customer.id) + '" class="btn">Cancel</a>';
+            html += '</div>';
+
+            html += '<div id="form-result" style="margin-top: 15px;"></div>';
+
+            html += '</form>';
+            html += '</div>'; // close settings card
+
+            // Breadcrumb
+            html += '<div class="breadcrumb" style="margin-top: 20px;"><a href="?action=pricing_customers">Customers</a><span>/</span>Edit Tiers</div>';
+
+            el.innerHTML = html;
+
+            // Attach form submit handler
+            document.getElementById('customer-settings-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                var formData = '';
+                formData += 'customer_id=' + encodeURIComponent(customerId);
+                formData += '&lms_id=' + encodeURIComponent(document.getElementById('lms_id').value);
+                formData += '&monthly_minimum=' + encodeURIComponent(document.getElementById('monthly_minimum').value);
+
+                var annualizedCheckbox = document.querySelector('input[name="uses_annualized"]');
+                formData += '&uses_annualized=' + (annualizedCheckbox && annualizedCheckbox.checked ? '1' : '0');
+
+                formData += '&annualized_start_date=' + encodeURIComponent(document.getElementById('annualized_start_date').value);
+                formData += '&look_period_months=' + encodeURIComponent(document.getElementById('look_period_months').value);
+
+                apiPost('save_customer_settings', formData, function(err, result) {
+                    var msgDiv = document.getElementById('form-result');
+                    if (err) {
+                        msgDiv.innerHTML = '<div class="flash flash-error">' + escapeHtml(err) + '</div>';
+                    } else {
+                        msgDiv.innerHTML = '<div class="flash flash-success">' + escapeHtml(result.message) + '</div>';
+                    }
+                });
+            });
+        });
+    })();
+    </script>
+<?php render_footer();
 } /**
  * Render escalators list (customers with escalators)
  */
@@ -4832,71 +4974,117 @@ function render_business_rules_all($data)
  */
 function render_business_rule_edit($data)
 {
-    render_header("Business Rules - " . h($data["customer"]["name"])); ?>
-    <div class="card">
-        <h2><?php echo h($data["customer"]["name"]); ?> - Business Rules</h2>
-        <p class="text-muted mb-20">
-            Masked rules are excluded from billing calculations. Toggle a rule's status using the buttons below.
-        </p>
-
-        <?php if (empty($data["rules"])): ?>
-            <p class="text-muted">No business rules defined for this customer.</p>
-        <?php else: ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Rule Name</th>
-                        <th>Description</th>
-                        <th>Status</th>
-                        <th class="text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($data["rules"] as $rule): ?>
-                    <tr>
-                        <td><strong><?php echo h(
-                            $rule["rule_name"],
-                        ); ?></strong></td>
-                        <td><?php echo $rule["rule_description"]
-                            ? h($rule["rule_description"])
-                            : '<span class="text-muted">No description</span>'; ?></td>
-                        <td>
-                            <?php if ($rule["is_masked"]): ?>
-                                <span style="color: #e67e22; font-weight: bold;">MASKED</span>
-                            <?php else: ?>
-                                <span style="color: #27ae60;">Active</span>
-                            <?php endif; ?>
-                        </td>
-                        <td class="text-right">
-                            <?php if ($rule["is_masked"]): ?>
-                                <a href="?action=business_rule_toggle&customer_id=<?php echo $data[
-                                    "customer"
-                                ]["id"]; ?>&rule_name=<?php echo urlencode(
-    $rule["rule_name"],
-); ?>&mask_action=unmask"
-                                    class="btn btn-sm btn-success"
-                                    onclick="return confirm('Unmask this rule? It will be included in billing.')">Unmask</a>
-                            <?php else: ?>
-                                <a href="?action=business_rule_toggle&customer_id=<?php echo $data[
-                                    "customer"
-                                ]["id"]; ?>&rule_name=<?php echo urlencode(
-    $rule["rule_name"],
-); ?>&mask_action=mask"
-                                    class="btn btn-sm"
-                                    onclick="return confirm('Mask this rule? It will be excluded from billing.')">Mask</a>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php endif; ?>
+    render_header("Business Rules - Control Panel"); ?>
+    <div id="page-data" class="ajax-content">
+        <div class="loading-skeleton">
+            <div class="skeleton-bar w75"></div>
+            <div class="skeleton-bar w90"></div>
+            <div class="skeleton-bar w50"></div>
+            <p>Loading business rules...</p>
+        </div>
     </div>
+    <script>
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        var customerId = params.get('customer_id');
+        if (!customerId) {
+            showAjaxError('page-data', 'No customer ID specified');
+            return;
+        }
 
-    <div class="breadcrumb"><a href="?action=business_rules">Rules</a><span>/</span><?php echo h(
-        $data["customer"]["name"],
-    ); ?></div>
-<?php
+        function loadRules() {
+            apiGet('business_rule_edit', {customer_id: customerId}, function(err, data) {
+                if (err) { showAjaxError('page-data', err); return; }
+
+                var customer = data.customer;
+                var rules = data.rules || [];
+                var html = '';
+
+                html += '<div class="card">';
+                html += '<h2>' + escapeHtml(customer.name) + ' - Business Rules</h2>';
+                html += '<p class="text-muted mb-20">';
+                html += 'Masked rules are excluded from billing calculations. Toggle a rule\'s status using the buttons below.';
+                html += '</p>';
+
+                if (rules.length === 0) {
+                    html += '<p class="text-muted">No business rules defined for this customer.</p>';
+                } else {
+                    html += '<table>';
+                    html += '<thead><tr>';
+                    html += '<th>Rule Name</th>';
+                    html += '<th>Description</th>';
+                    html += '<th>Status</th>';
+                    html += '<th class="text-right">Actions</th>';
+                    html += '</tr></thead>';
+                    html += '<tbody>';
+                    for (var i = 0; i < rules.length; i++) {
+                        var rule = rules[i];
+                        html += '<tr>';
+                        html += '<td><strong>' + escapeHtml(rule.rule_name) + '</strong></td>';
+                        html += '<td>' + (rule.rule_description ? escapeHtml(rule.rule_description) : '<span class="text-muted">No description</span>') + '</td>';
+                        html += '<td>';
+                        if (rule.is_masked) {
+                            html += '<span style="color: #e67e22; font-weight: bold;">MASKED</span>';
+                        } else {
+                            html += '<span style="color: #27ae60;">Active</span>';
+                        }
+                        html += '</td>';
+                        html += '<td class="text-right">';
+                        if (rule.is_masked) {
+                            html += '<button class="btn btn-sm btn-success" data-rule="' + escapeHtml(rule.rule_name) + '" data-action="unmask">Unmask</button>';
+                        } else {
+                            html += '<button class="btn btn-sm" data-rule="' + escapeHtml(rule.rule_name) + '" data-action="mask">Mask</button>';
+                        }
+                        html += '</td>';
+                        html += '</tr>';
+                    }
+                    html += '</tbody></table>';
+                }
+
+                html += '</div>';
+
+                html += '<div class="breadcrumb"><a href="?action=business_rules">Rules</a><span>/</span>' +
+                    escapeHtml(customer.name) + '</div>';
+
+                document.getElementById('page-data').innerHTML = html;
+
+                // Bind toggle buttons
+                var buttons = document.getElementById('page-data').querySelectorAll('button[data-rule]');
+                for (var b = 0; b < buttons.length; b++) {
+                    (function(btn) {
+                        btn.addEventListener('click', function() {
+                            var ruleName = btn.getAttribute('data-rule');
+                            var maskAction = btn.getAttribute('data-action');
+                            var confirmMsg = maskAction === 'mask'
+                                ? 'Mask this rule? It will be excluded from billing.'
+                                : 'Unmask this rule? It will be included in billing.';
+                            if (!confirm(confirmMsg)) return;
+                            btn.disabled = true;
+                            btn.textContent = maskAction === 'mask' ? 'Masking...' : 'Unmasking...';
+                            apiPost('toggle_business_rule',
+                                'customer_id=' + encodeURIComponent(customerId) +
+                                '&rule_name=' + encodeURIComponent(ruleName) +
+                                '&mask_action=' + encodeURIComponent(maskAction),
+                                function(postErr) {
+                                    if (postErr) {
+                                        alert('Error: ' + postErr);
+                                        btn.disabled = false;
+                                        btn.textContent = maskAction === 'mask' ? 'Mask' : 'Unmask';
+                                        return;
+                                    }
+                                    loadRules();
+                                }
+                            );
+                        });
+                    })(buttons[b]);
+                }
+            });
+        }
+
+        loadRules();
+    })();
+    </script>
+<?php render_footer();
 } /**
  * Render history/audit trail
  */
@@ -7069,11 +7257,6 @@ function render_billing_service($data)
 function render_admin($data)
 {
     $tab = isset($data["tab"]) ? $data["tab"] : "overview";
-    $stats = $data["stats"];
-    $sync_status = isset($data["sync_status"]) ? $data["sync_status"] : [];
-    $sync_log = isset($data["sync_log"]) ? $data["sync_log"] : [];
-    $filesystem = isset($data["filesystem"]) ? $data["filesystem"] : [];
-    $environment = isset($data["environment"]) ? $data["environment"] : [];
     render_header("Admin - Control Panel");
     ?>
     <style>
@@ -7147,27 +7330,25 @@ function render_admin($data)
         .mode-banner p { margin: 5px 0 0 0; opacity: 0.9; font-size: 13px; }
     </style>
 
-    <!-- Environment Banner -->
+    <!-- Environment Banner (server-rendered - uses PHP constants) -->
     <?php
     $env_code = defined("CODE_ENVIRONMENT") ? CODE_ENVIRONMENT : "mock_prod";
-    $env_colors = [
+    $env_colors = array(
         "default" => "linear-gradient(135deg, #4b6cb7 0%, #182848 100%)",
         "dev" => "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         "rc" => "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
         "live" => "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)",
         "mock_prod" => "linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%)",
-    ];
-    $env_labels = [
+    );
+    $env_labels = array(
         "default" => "Default",
         "dev" => "Development",
         "rc" => "Release Candidate",
         "live" => "Production",
         "mock_prod" => "Mock Production",
-    ];
+    );
     ?>
-    <div class="mode-banner" style="background: <?php echo $env_colors[
-        $env_code
-    ]; ?>;">
+    <div class="mode-banner" style="background: <?php echo $env_colors[$env_code]; ?>;">
         <div>
             <h3 style="display: flex; align-items: center; gap: 10px;">
                 <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 4px; font-size: 12px; text-transform: uppercase;">
@@ -7176,8 +7357,8 @@ function render_admin($data)
                 <?php echo $env_labels[$env_code]; ?> Environment
             </h3>
             <p>
-                <?php echo isset($environment["env_description"])
-                    ? $environment["env_description"]
+                <?php echo isset($data["environment"]["env_description"])
+                    ? htmlspecialchars($data["environment"]["env_description"])
                     : ""; ?>
                 &mdash;
                 <?php echo MOCK_MODE
@@ -7186,579 +7367,723 @@ function render_admin($data)
             </p>
         </div>
         <div style="display: flex; gap: 10px;">
-            <a href="?mock=<?php echo MOCK_MODE
-                ? "0"
-                : "1"; ?>" class="btn" style="background: rgba(255,255,255,0.2); color: white;">
+            <a href="?mock=<?php echo MOCK_MODE ? "0" : "1"; ?>" class="btn" style="background: rgba(255,255,255,0.2); color: white;">
                 <?php echo MOCK_MODE ? "Use Live Data" : "Use Mock Data"; ?>
             </a>
         </div>
     </div>
 
-    <!-- Tabs -->
+    <!-- Tabs (server-rendered - uses $data["tab"] for active class) -->
     <div class="admin-tabs">
-        <a href="?action=admin&tab=overview" class="<?php echo $tab ===
-        "overview"
-            ? "active"
-            : ""; ?>">Overview</a>
-        <a href="?action=admin&tab=sync" class="<?php echo $tab === "sync"
-            ? "active"
-            : ""; ?>">Data Sync</a>
-        <a href="?action=admin&tab=filesystem" class="<?php echo $tab ===
-        "filesystem"
-            ? "active"
-            : ""; ?>">File System</a>
-        <a href="?action=admin&tab=environment" class="<?php echo $tab ===
-        "environment"
-            ? "active"
-            : ""; ?>">Environment</a>
-        <a href="?action=admin&tab=data" class="<?php echo $tab === "data"
-            ? "active"
-            : ""; ?>">Data Management</a>
-        <a href="?action=admin&tab=seed" class="<?php echo $tab === "seed"
-            ? "active"
-            : ""; ?>">Test Data</a>
+        <a href="?action=admin&tab=overview" class="<?php echo $tab === "overview" ? "active" : ""; ?>">Overview</a>
+        <a href="?action=admin&tab=sync" class="<?php echo $tab === "sync" ? "active" : ""; ?>">Data Sync</a>
+        <a href="?action=admin&tab=filesystem" class="<?php echo $tab === "filesystem" ? "active" : ""; ?>">File System</a>
+        <a href="?action=admin&tab=environment" class="<?php echo $tab === "environment" ? "active" : ""; ?>">Environment</a>
+        <a href="?action=admin&tab=data" class="<?php echo $tab === "data" ? "active" : ""; ?>">Data Management</a>
+        <a href="?action=admin&tab=seed" class="<?php echo $tab === "seed" ? "active" : ""; ?>">Test Data</a>
     </div>
 
-    <?php if ($tab === "overview"): ?>
-    <!-- OVERVIEW TAB -->
-    <div class="card admin-section">
-        <h3><span class="icon">&#128202;</span> Database Statistics</h3>
-        <div class="stats-grid">
-            <div class="stat-card highlight">
-                <div class="number"><?php echo number_format(
-                    $stats["customers"]["count"],
-                ); ?></div>
-                <div class="label">Customers</div>
-            </div>
-            <div class="stat-card">
-                <div class="number"><?php echo number_format(
-                    $stats["customers_active"]["count"],
-                ); ?></div>
-                <div class="label">Active</div>
-            </div>
-            <div class="stat-card">
-                <div class="number"><?php echo number_format(
-                    $stats["services"]["count"],
-                ); ?></div>
-                <div class="label">Services</div>
-            </div>
-            <div class="stat-card">
-                <div class="number"><?php echo number_format(
-                    $stats["discount_groups"]["count"],
-                ); ?></div>
-                <div class="label">Groups</div>
-            </div>
-            <div class="stat-card">
-                <div class="number"><?php echo number_format(
-                    $stats["pricing_tiers"]["count"],
-                ); ?></div>
-                <div class="label">Pricing Tiers</div>
-            </div>
-            <div class="stat-card">
-                <div class="number"><?php echo number_format(
-                    $stats["billing_reports"]["count"],
-                ); ?></div>
-                <div class="label">Reports</div>
-            </div>
-            <div class="stat-card">
-                <div class="number"><?php echo number_format(
-                    $stats["billing_report_lines"]["count"],
-                ); ?></div>
-                <div class="label">Billing Lines</div>
-            </div>
-            <div class="stat-card">
-                <div class="number"><?php echo number_format(
-                    $stats["transaction_types"]["count"],
-                ); ?></div>
-                <div class="label">Transaction Types</div>
-            </div>
+    <!-- AJAX content area -->
+    <div id="admin-content" class="ajax-content">
+        <div class="loading-skeleton">
+            <div class="skeleton-bar w75"></div>
+            <div class="skeleton-bar w90"></div>
+            <div class="skeleton-bar w50"></div>
+            <p>Loading admin data...</p>
         </div>
     </div>
 
-    <!-- Quick Status -->
-    <div class="card admin-section">
-        <h3><span class="icon">&#9889;</span> Quick Status</h3>
-        <div class="stats-grid">
-            <?php
-            $fs_ok = true;
-            foreach ($filesystem as $fs) {
-                if ($fs["status"] !== "ok") {
-                    $fs_ok = false;
+    <script>
+    (function() {
+        var currentTab = <?php echo json_encode($tab); ?>;
+
+        function statusBadgeClass(status) {
+            if (status === 'success' || status === 'ok') return 'ok';
+            if (status === 'warning' || status === 'partial') return 'warning';
+            if (status === 'error' || status === 'missing') return 'error';
+            if (status === 'mock') return 'mock';
+            return 'warning';
+        }
+
+        function statusBadge(text, badgeClass) {
+            return '<span class="status-badge ' + badgeClass + '"><span class="dot"></span>' + escapeHtml(text) + '</span>';
+        }
+
+        function ucwords(str) {
+            return str.replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+        }
+
+        // =====================================================================
+        // OVERVIEW TAB
+        // =====================================================================
+        function renderOverview(data) {
+            var stats = data.stats || {};
+            var syncLog = data.sync_log || [];
+            var filesystem = data.filesystem || {};
+            var environment = data.environment || {};
+            var html = '';
+
+            // Database Statistics
+            html += '<div class="card admin-section">';
+            html += '<h3><span class="icon">&#128202;</span> Database Statistics</h3>';
+            html += '<div class="stats-grid">';
+
+            var statCards = [
+                { key: 'customers', label: 'Customers', highlight: true },
+                { key: 'customers_active', label: 'Active', highlight: false },
+                { key: 'services', label: 'Services', highlight: false },
+                { key: 'discount_groups', label: 'Groups', highlight: false },
+                { key: 'pricing_tiers', label: 'Pricing Tiers', highlight: false },
+                { key: 'billing_reports', label: 'Reports', highlight: false },
+                { key: 'billing_report_lines', label: 'Billing Lines', highlight: false },
+                { key: 'transaction_types', label: 'Transaction Types', highlight: false }
+            ];
+
+            for (var i = 0; i < statCards.length; i++) {
+                var sc = statCards[i];
+                var count = (stats[sc.key] && stats[sc.key].count !== undefined) ? stats[sc.key].count : 0;
+                html += '<div class="stat-card' + (sc.highlight ? ' highlight' : '') + '">';
+                html += '<div class="number">' + numberFormat(count, 0) + '</div>';
+                html += '<div class="label">' + escapeHtml(sc.label) + '</div>';
+                html += '</div>';
+            }
+
+            html += '</div>'; // stats-grid
+            html += '</div>'; // card
+
+            // Quick Status
+            html += '<div class="card admin-section">';
+            html += '<h3><span class="icon">&#9889;</span> Quick Status</h3>';
+            html += '<div class="stats-grid">';
+
+            // File System status
+            var fsOk = true;
+            for (var fsKey in filesystem) {
+                if (filesystem.hasOwnProperty(fsKey) && filesystem[fsKey].status !== 'ok') {
+                    fsOk = false;
                 }
             }
-            ?>
-            <div class="stat-card">
-                <div class="number" style="font-size: 20px;">
-                    <span class="status-badge <?php echo $fs_ok
-                        ? "ok"
-                        : "warning"; ?>">
-                        <span class="dot"></span>
-                        <?php echo $fs_ok ? "OK" : "Issues"; ?>
-                    </span>
-                </div>
-                <div class="label">File System</div>
-            </div>
-            <div class="stat-card">
-                <div class="number" style="font-size: 20px;">
-                    <span class="status-badge <?php echo MOCK_MODE
-                        ? "mock"
-                        : "ok"; ?>">
-                        <span class="dot"></span>
-                        <?php echo MOCK_MODE ? "Mock" : "Production"; ?>
-                    </span>
-                </div>
-                <div class="label">Mode</div>
-            </div>
-            <div class="stat-card">
-                <div class="number" style="font-size: 20px;">
-                    <span class="status-badge <?php echo !empty($sync_log)
-                        ? "ok"
-                        : "warning"; ?>">
-                        <span class="dot"></span>
-                        <?php echo !empty($sync_log) ? "Active" : "Never"; ?>
-                    </span>
-                </div>
-                <div class="label">Last Sync</div>
-            </div>
-            <div class="stat-card">
-                <div class="number" style="font-size: 20px;">
-                    <span class="status-badge <?php echo isset(
-                        $environment["remote_db_configured"],
-                    ) && $environment["remote_db_configured"]
-                        ? "ok"
-                        : "warning"; ?>">
-                        <span class="dot"></span>
-                        <?php echo isset(
-                            $environment["remote_db_configured"],
-                        ) && $environment["remote_db_configured"]
-                            ? "Yes"
-                            : "No"; ?>
-                    </span>
-                </div>
-                <div class="label">Remote DB</div>
-            </div>
-        </div>
-    </div>
+            html += '<div class="stat-card">';
+            html += '<div class="number" style="font-size: 20px;">';
+            html += statusBadge(fsOk ? 'OK' : 'Issues', fsOk ? 'ok' : 'warning');
+            html += '</div>';
+            html += '<div class="label">File System</div>';
+            html += '</div>';
 
-    <!-- Recent Sync Log -->
-    <?php if (!empty($sync_log)): ?>
-    <div class="card admin-section">
-        <h3><span class="icon">&#128203;</span> Recent Sync Activity</h3>
-        <table class="log-table">
-            <thead>
-                <tr><th>Time</th><th>Entity</th><th>Records</th><th>Status</th></tr>
-            </thead>
-            <tbody>
-                <?php foreach (array_slice($sync_log, 0, 5) as $log): ?>
-                <tr>
-                    <td class="time"><?php echo h($log["synced_at"]); ?></td>
-                    <td><?php echo ucwords(
-                        str_replace("_", " ", $log["entity_type"]),
-                    ); ?></td>
-                    <td><?php echo number_format($log["record_count"]); ?></td>
-                    <td><span class="status-badge <?php echo $log["status"] ===
-                    "success"
-                        ? "ok"
-                        : "warning"; ?>"><?php echo h(
-    $log["status"],
-); ?></span></td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-        <p style="margin-top: 15px;"><a href="?action=admin&tab=sync">View all sync history &rarr;</a></p>
-    </div>
-    <?php endif; ?>
+            // Mode status
+            var mockMode = environment.mock_mode;
+            html += '<div class="stat-card">';
+            html += '<div class="number" style="font-size: 20px;">';
+            html += statusBadge(mockMode ? 'Mock' : 'Production', mockMode ? 'mock' : 'ok');
+            html += '</div>';
+            html += '<div class="label">Mode</div>';
+            html += '</div>';
 
-    <?php elseif ($tab === "sync"): ?>
-    <!-- SYNC TAB -->
-    <div class="card admin-section">
-        <h3><span class="icon">&#128259;</span> Data Sync Status</h3>
-        <p class="text-muted" style="margin-bottom: 20px;">
-            <?php if (MOCK_MODE): ?>
-                Running in <strong>Mock Mode</strong> - sync operations will log activity but use seeded data.
-            <?php else: ?>
-                Running in <strong>Production Mode</strong> - sync operations will query the main database.
-            <?php endif; ?>
-        </p>
+            // Last Sync status
+            var hasSyncLog = syncLog.length > 0;
+            html += '<div class="stat-card">';
+            html += '<div class="number" style="font-size: 20px;">';
+            html += statusBadge(hasSyncLog ? 'Active' : 'Never', hasSyncLog ? 'ok' : 'warning');
+            html += '</div>';
+            html += '<div class="label">Last Sync</div>';
+            html += '</div>';
 
-        <table class="sync-table">
-            <thead>
-                <tr>
-                    <th>Entity</th>
-                    <th>Current Count</th>
-                    <th>Last Sync</th>
-                    <th>Last Count</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($sync_status as $entity => $status): ?>
-                <tr>
-                    <td><strong><?php echo h(
-                        $status["display_name"],
-                    ); ?></strong></td>
-                    <td><?php echo number_format(
-                        $status["current_count"],
-                    ); ?></td>
-                    <td>
-                        <?php if ($status["last_sync"]): ?>
-                            <span class="time"><?php echo h(
-                                $status["last_sync"],
-                            ); ?></span>
-                        <?php else: ?>
-                            <span class="text-muted">Never</span>
-                        <?php endif; ?>
-                    </td>
-                    <td><?php echo $status["last_sync_count"] !== null
-                        ? number_format($status["last_sync_count"])
-                        : "-"; ?></td>
-                    <td>
-                        <?php if ($status["last_status"]): ?>
-                            <span class="status-badge <?php echo $status[
-                                "last_status"
-                            ] === "success"
-                                ? "ok"
-                                : "warning"; ?>">
-                                <?php echo h($status["last_status"]); ?>
-                            </span>
-                        <?php else: ?>
-                            <span class="status-badge warning">Not synced</span>
-                        <?php endif; ?>
-                    </td>
-                    <td>
-                        <form method="POST" action="?action=admin_sync" style="display: inline;">
-                            <input type="hidden" name="entity" value="<?php echo h(
-                                $entity,
-                            ); ?>">
-                            <button type="submit" class="btn btn-sm btn-sync">Sync</button>
-                        </form>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+            // Remote DB status
+            var remoteDb = environment.remote_db_configured;
+            html += '<div class="stat-card">';
+            html += '<div class="number" style="font-size: 20px;">';
+            html += statusBadge(remoteDb ? 'Yes' : 'No', remoteDb ? 'ok' : 'warning');
+            html += '</div>';
+            html += '<div class="label">Remote DB</div>';
+            html += '</div>';
 
-        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
-            <form method="POST" action="?action=admin_sync" style="display: inline;" onsubmit="event.preventDefault(); startJob('sync', {entity: 'all'}, 'Syncing All Master Data...'); return false;">
-                <input type="hidden" name="entity" value="all">
-                <button type="submit" class="btn btn-sync">Sync All Master Data</button>
-            </form>
-        </div>
-    </div>
+            html += '</div>'; // stats-grid
+            html += '</div>'; // card
 
-    <!-- Sync Log -->
-    <div class="card admin-section">
-        <h3><span class="icon">&#128203;</span> Sync History</h3>
-        <?php if (empty($sync_log)): ?>
-            <p class="text-muted">No sync activity recorded yet.</p>
-        <?php else: ?>
-            <table class="log-table">
-                <thead>
-                    <tr><th>Time</th><th>Entity</th><th>Records</th><th>Status</th><th>Notes</th></tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($sync_log as $log): ?>
-                    <tr>
-                        <td class="time"><?php echo h(
-                            $log["synced_at"],
-                        ); ?></td>
-                        <td><?php echo ucwords(
-                            str_replace("_", " ", $log["entity_type"]),
-                        ); ?></td>
-                        <td><?php echo number_format(
-                            $log["record_count"],
-                        ); ?></td>
-                        <td><span class="status-badge <?php echo $log[
-                            "status"
-                        ] === "success"
-                            ? "ok"
-                            : "warning"; ?>"><?php echo h(
-    $log["status"],
-); ?></span></td>
-                        <td class="text-muted" style="font-size: 12px;"><?php echo h(
-                            isset($log["notes"]) ? $log["notes"] : "",
-                        ); ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php endif; ?>
-    </div>
+            // Recent Sync Log
+            if (syncLog.length > 0) {
+                html += '<div class="card admin-section">';
+                html += '<h3><span class="icon">&#128203;</span> Recent Sync Activity</h3>';
+                html += '<table class="log-table">';
+                html += '<thead><tr><th>Time</th><th>Entity</th><th>Records</th><th>Status</th></tr></thead>';
+                html += '<tbody>';
 
-    <?php elseif ($tab === "filesystem"): ?>
-    <!-- FILESYSTEM TAB -->
-    <div class="card admin-section">
-        <h3><span class="icon">&#128193;</span> File System Status</h3>
-        <p class="text-muted" style="margin-bottom: 20px;">Directory status for CSV exchange and storage.</p>
+                var showCount = Math.min(syncLog.length, 5);
+                for (var j = 0; j < showCount; j++) {
+                    var log = syncLog[j];
+                    html += '<tr>';
+                    html += '<td class="time">' + escapeHtml(log.synced_at || '') + '</td>';
+                    html += '<td>' + escapeHtml(ucwords(log.entity_type || '')) + '</td>';
+                    html += '<td>' + numberFormat(log.record_count || 0, 0) + '</td>';
+                    html += '<td>' + statusBadge(log.status || '', statusBadgeClass(log.status)) + '</td>';
+                    html += '</tr>';
+                }
 
-        <table class="sync-table fs-table">
-            <thead>
-                <tr>
-                    <th>Directory</th>
-                    <th>Path</th>
-                    <th>Status</th>
-                    <th>CSV Files</th>
-                    <th>Permissions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($filesystem as $key => $fs): ?>
-                <tr>
-                    <td><strong><?php echo h(
-                        $fs["description"],
-                    ); ?></strong></td>
-                    <td class="path" title="<?php echo h(
-                        $fs["path"],
-                    ); ?>"><?php echo h($fs["path"]); ?></td>
-                    <td>
-                        <span class="status-badge <?php echo $fs["status"] ===
-                        "ok"
-                            ? "ok"
-                            : ($fs["status"] === "partial"
-                                ? "warning"
-                                : "error"); ?>">
-                            <span class="dot"></span>
-                            <?php echo $fs["exists"]
-                                ? ($fs["status"] === "ok"
-                                    ? "OK"
-                                    : "Partial")
-                                : "Missing"; ?>
-                        </span>
-                    </td>
-                    <td><?php echo $fs["exists"]
-                        ? number_format($fs["file_count"])
-                        : "-"; ?></td>
-                    <td>
-                        <?php if ($fs["exists"]): ?>
-                            <span style="color: <?php echo $fs["readable"]
-                                ? "#27ae60"
-                                : "#e74c3c"; ?>;">R</span>
-                            <span style="color: <?php echo $fs["writable"]
-                                ? "#27ae60"
-                                : "#e74c3c"; ?>;">W</span>
-                        <?php else: ?>
-                            -
-                        <?php endif; ?>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+                html += '</tbody></table>';
+                html += '<p style="margin-top: 15px;"><a href="?action=admin&tab=sync">View all sync history &rarr;</a></p>';
+                html += '</div>';
+            }
 
-        <div style="margin-top: 20px;">
-            <form method="POST" action="?action=admin_fix_directories" style="display: inline;">
-                <button type="submit" class="btn btn-success">Create/Fix Directories</button>
-            </form>
-        </div>
-    </div>
+            return html;
+        }
 
-    <?php elseif ($tab === "environment"): ?>
-    <!-- ENVIRONMENT TAB -->
-    <div class="card admin-section">
-        <h3><span class="icon">&#9881;</span> Environment Configuration</h3>
-        <div class="env-grid">
-            <div class="env-item">
-                <span class="label">Mock Mode</span>
-                <span class="value <?php echo $environment["mock_mode"]
-                    ? "true"
-                    : "false"; ?>">
-                    <?php echo $environment["mock_mode"]
-                        ? "ENABLED"
-                        : "DISABLED"; ?>
-                </span>
-            </div>
-            <div class="env-item">
-                <span class="label">PHP Version</span>
-                <span class="value"><?php echo h(
-                    $environment["php_version"],
-                ); ?></span>
-            </div>
-            <div class="env-item">
-                <span class="label">SQLite Version</span>
-                <span class="value"><?php echo h(
-                    $environment["sqlite_version"],
-                ); ?></span>
-            </div>
-            <div class="env-item">
-                <span class="label">Shared Base Path</span>
-                <span class="value" style="font-size: 11px;"><?php echo h(
-                    $environment["shared_base_path"],
-                ); ?></span>
-            </div>
-            <div class="env-item">
-                <span class="label">Memory Limit</span>
-                <span class="value"><?php echo h(
-                    $environment["memory_limit"],
-                ); ?></span>
-            </div>
-            <div class="env-item">
-                <span class="label">Max Execution Time</span>
-                <span class="value"><?php echo h(
-                    $environment["max_execution_time"],
-                ); ?>s</span>
-            </div>
-            <div class="env-item">
-                <span class="label">Upload Max Filesize</span>
-                <span class="value"><?php echo h(
-                    $environment["upload_max_filesize"],
-                ); ?></span>
-            </div>
-            <div class="env-item">
-                <span class="label">Remote DB Configured</span>
-                <span class="value <?php echo $environment[
-                    "remote_db_configured"
-                ]
-                    ? "true"
-                    : "false"; ?>">
-                    <?php echo $environment["remote_db_configured"]
-                        ? "YES"
-                        : "NO"; ?>
-                </span>
-            </div>
-            <div class="env-item">
-                <span class="label">Session Active</span>
-                <span class="value <?php echo $environment["session_active"]
-                    ? "true"
-                    : "false"; ?>">
-                    <?php echo $environment["session_active"] ? "YES" : "NO"; ?>
-                </span>
-            </div>
-        </div>
-    </div>
+        // =====================================================================
+        // SYNC TAB
+        // =====================================================================
+        function renderSync(data) {
+            var syncStatus = data.sync_status || {};
+            var syncLog = data.sync_log || [];
+            var environment = data.environment || {};
+            var html = '';
 
-    <div class="card admin-section">
-        <h3><span class="icon">&#128268;</span> Production Configuration</h3>
-        <p class="text-muted">To connect to the production database, configure these constants in <code>control_panel.php</code>:</p>
-        <pre style="background: #f8f9fa; padding: 15px; border-radius: 6px; overflow-x: auto; font-size: 13px;">
-// Remote database connection
-define("REMOTE_DB_HOST", "your-db-host");
-define("REMOTE_DB_NAME", "main_application");
-define("REMOTE_DB_USER", "billing_readonly");
-define("REMOTE_DB_PASS", "secure_password");
+            // Sync Status
+            html += '<div class="card admin-section">';
+            html += '<h3><span class="icon">&#128259;</span> Data Sync Status</h3>';
 
-// Then update db.php remote_db_query() function
-</pre>
-    </div>
+            if (environment.mock_mode) {
+                html += '<p class="text-muted" style="margin-bottom: 20px;">Running in <strong>Mock Mode</strong> - sync operations will log activity but use seeded data.</p>';
+            } else {
+                html += '<p class="text-muted" style="margin-bottom: 20px;">Running in <strong>Production Mode</strong> - sync operations will query the main database.</p>';
+            }
 
-    <?php elseif ($tab === "data"): ?>
-    <!-- DATA MANAGEMENT TAB -->
-    <div class="card admin-section">
-        <h3><span class="icon">&#128451;</span> Clear Entity Data</h3>
-        <p class="text-muted">Remove all records from a specific table. Use with caution.</p>
+            html += '<table class="sync-table">';
+            html += '<thead><tr>';
+            html += '<th>Entity</th><th>Current Count</th><th>Last Sync</th><th>Last Count</th><th>Status</th><th>Action</th>';
+            html += '</tr></thead>';
+            html += '<tbody>';
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
-            <?php
-            $clearable = [
-                "billing_reports" => "Billing Reports & Lines",
-                "pricing_tiers" => "Pricing Tiers",
-                "customer_settings" => "Customer Settings",
-                "customer_escalators" => "Customer Escalators",
-                "customers" => "Customers",
-                "services" => "Services",
-                "discount_groups" => "Discount Groups",
-                "lms" => "LMS",
-                "business_rules" => "Business Rules",
+            for (var entity in syncStatus) {
+                if (!syncStatus.hasOwnProperty(entity)) continue;
+                var st = syncStatus[entity];
+                html += '<tr>';
+                html += '<td><strong>' + escapeHtml(st.display_name || entity) + '</strong></td>';
+                html += '<td>' + numberFormat(st.current_count || 0, 0) + '</td>';
+                html += '<td>';
+                if (st.last_sync) {
+                    html += '<span class="time">' + escapeHtml(st.last_sync) + '</span>';
+                } else {
+                    html += '<span class="text-muted">Never</span>';
+                }
+                html += '</td>';
+                html += '<td>' + (st.last_sync_count !== null && st.last_sync_count !== undefined ? numberFormat(st.last_sync_count, 0) : '-') + '</td>';
+                html += '<td>';
+                if (st.last_status) {
+                    html += statusBadge(st.last_status, statusBadgeClass(st.last_status));
+                } else {
+                    html += statusBadge('Not synced', 'warning');
+                }
+                html += '</td>';
+                html += '<td>';
+                html += '<button type="button" class="btn btn-sm btn-sync" data-sync-entity="' + escapeHtml(entity) + '">Sync</button>';
+                html += '<span class="sync-result-' + escapeHtml(entity) + '" style="margin-left: 8px;"></span>';
+                html += '</td>';
+                html += '</tr>';
+            }
+
+            html += '</tbody></table>';
+
+            // Sync All button
+            html += '<div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">';
+            html += '<button type="button" class="btn btn-sync" id="btn-sync-all">Sync All Master Data</button>';
+            html += '</div>';
+
+            html += '</div>'; // card
+
+            // Sync History
+            html += '<div class="card admin-section">';
+            html += '<h3><span class="icon">&#128203;</span> Sync History</h3>';
+
+            if (syncLog.length === 0) {
+                html += '<p class="text-muted">No sync activity recorded yet.</p>';
+            } else {
+                html += '<table class="log-table">';
+                html += '<thead><tr><th>Time</th><th>Entity</th><th>Records</th><th>Status</th><th>Notes</th></tr></thead>';
+                html += '<tbody>';
+
+                for (var k = 0; k < syncLog.length; k++) {
+                    var log = syncLog[k];
+                    html += '<tr>';
+                    html += '<td class="time">' + escapeHtml(log.synced_at || '') + '</td>';
+                    html += '<td>' + escapeHtml(ucwords(log.entity_type || '')) + '</td>';
+                    html += '<td>' + numberFormat(log.record_count || 0, 0) + '</td>';
+                    html += '<td>' + statusBadge(log.status || '', statusBadgeClass(log.status)) + '</td>';
+                    html += '<td class="text-muted" style="font-size: 12px;">' + escapeHtml(log.notes || '') + '</td>';
+                    html += '</tr>';
+                }
+
+                html += '</tbody></table>';
+            }
+
+            html += '</div>'; // card
+
+            return html;
+        }
+
+        function bindSyncEvents() {
+            // Individual sync buttons
+            var syncBtns = document.querySelectorAll('[data-sync-entity]');
+            for (var i = 0; i < syncBtns.length; i++) {
+                (function(btn) {
+                    btn.addEventListener('click', function() {
+                        var entity = btn.getAttribute('data-sync-entity');
+                        var resultSpan = document.querySelector('.sync-result-' + entity);
+                        btn.disabled = true;
+                        btn.textContent = 'Syncing...';
+                        if (resultSpan) resultSpan.innerHTML = '';
+
+                        apiPost('admin_sync', 'entity=' + encodeURIComponent(entity), function(err, result) {
+                            btn.disabled = false;
+                            btn.textContent = 'Sync';
+                            if (err) {
+                                if (resultSpan) resultSpan.innerHTML = '<span class="status-badge error">' + escapeHtml(err) + '</span>';
+                            } else {
+                                if (resultSpan) resultSpan.innerHTML = '<span class="status-badge ok">' + escapeHtml(result.message || 'Done') + '</span>';
+                                // Reload after brief delay to show updated counts
+                                setTimeout(function() { loadAdminData(); }, 1200);
+                            }
+                        });
+                    });
+                })(syncBtns[i]);
+            }
+
+            // Sync All button
+            var syncAllBtn = document.getElementById('btn-sync-all');
+            if (syncAllBtn) {
+                syncAllBtn.addEventListener('click', function() {
+                    startJob('sync', {entity: 'all'}, 'Syncing All Master Data...');
+                });
+            }
+        }
+
+        // =====================================================================
+        // FILESYSTEM TAB
+        // =====================================================================
+        function renderFilesystem(data) {
+            var filesystem = data.filesystem || {};
+            var html = '';
+
+            html += '<div class="card admin-section">';
+            html += '<h3><span class="icon">&#128193;</span> File System Status</h3>';
+            html += '<p class="text-muted" style="margin-bottom: 20px;">Directory status for CSV exchange and storage.</p>';
+
+            html += '<table class="sync-table fs-table">';
+            html += '<thead><tr>';
+            html += '<th>Directory</th><th>Path</th><th>Status</th><th>CSV Files</th><th>Permissions</th>';
+            html += '</tr></thead>';
+            html += '<tbody>';
+
+            for (var key in filesystem) {
+                if (!filesystem.hasOwnProperty(key)) continue;
+                var fs = filesystem[key];
+                var fsStatusClass = fs.status === 'ok' ? 'ok' : (fs.status === 'partial' ? 'warning' : 'error');
+                var fsStatusText = fs.exists ? (fs.status === 'ok' ? 'OK' : 'Partial') : 'Missing';
+
+                html += '<tr>';
+                html += '<td><strong>' + escapeHtml(fs.description || key) + '</strong></td>';
+                html += '<td class="path" title="' + escapeHtml(fs.path || '') + '">' + escapeHtml(fs.path || '') + '</td>';
+                html += '<td>' + statusBadge(fsStatusText, fsStatusClass) + '</td>';
+                html += '<td>' + (fs.exists ? numberFormat(fs.file_count || 0, 0) : '-') + '</td>';
+                html += '<td>';
+                if (fs.exists) {
+                    html += '<span style="color: ' + (fs.readable ? '#27ae60' : '#e74c3c') + ';">R</span> ';
+                    html += '<span style="color: ' + (fs.writable ? '#27ae60' : '#e74c3c') + ';">W</span>';
+                } else {
+                    html += '-';
+                }
+                html += '</td>';
+                html += '</tr>';
+            }
+
+            html += '</tbody></table>';
+
+            html += '<div style="margin-top: 20px;">';
+            html += '<button type="button" class="btn btn-success" id="btn-fix-dirs">Create/Fix Directories</button>';
+            html += '</div>';
+
+            html += '</div>'; // card
+
+            return html;
+        }
+
+        function bindFilesystemEvents() {
+            var fixBtn = document.getElementById('btn-fix-dirs');
+            if (fixBtn) {
+                fixBtn.addEventListener('click', function() {
+                    fixBtn.disabled = true;
+                    fixBtn.textContent = 'Working...';
+                    apiPost('admin_fix_directories', '', function(err, result) {
+                        fixBtn.disabled = false;
+                        fixBtn.textContent = 'Create/Fix Directories';
+                        if (err) {
+                            alert('Error: ' + err);
+                        } else {
+                            alert(result.message || 'Directories fixed.');
+                            loadAdminData();
+                        }
+                    });
+                });
+            }
+        }
+
+        // =====================================================================
+        // ENVIRONMENT TAB
+        // =====================================================================
+        function renderEnvironment(data) {
+            var env = data.environment || {};
+            var html = '';
+
+            html += '<div class="card admin-section">';
+            html += '<h3><span class="icon">&#9881;</span> Environment Configuration</h3>';
+            html += '<div class="env-grid">';
+
+            // Mock Mode
+            html += '<div class="env-item">';
+            html += '<span class="label">Mock Mode</span>';
+            html += '<span class="value ' + (env.mock_mode ? 'true' : 'false') + '">' + (env.mock_mode ? 'ENABLED' : 'DISABLED') + '</span>';
+            html += '</div>';
+
+            // PHP Version
+            html += '<div class="env-item">';
+            html += '<span class="label">PHP Version</span>';
+            html += '<span class="value">' + escapeHtml(env.php_version || '') + '</span>';
+            html += '</div>';
+
+            // SQLite Version
+            html += '<div class="env-item">';
+            html += '<span class="label">SQLite Version</span>';
+            html += '<span class="value">' + escapeHtml(env.sqlite_version || '') + '</span>';
+            html += '</div>';
+
+            // Shared Base Path
+            html += '<div class="env-item">';
+            html += '<span class="label">Shared Base Path</span>';
+            html += '<span class="value" style="font-size: 11px;">' + escapeHtml(env.shared_base_path || '') + '</span>';
+            html += '</div>';
+
+            // Memory Limit
+            html += '<div class="env-item">';
+            html += '<span class="label">Memory Limit</span>';
+            html += '<span class="value">' + escapeHtml(env.memory_limit || '') + '</span>';
+            html += '</div>';
+
+            // Max Execution Time
+            html += '<div class="env-item">';
+            html += '<span class="label">Max Execution Time</span>';
+            html += '<span class="value">' + escapeHtml(env.max_execution_time || '') + 's</span>';
+            html += '</div>';
+
+            // Upload Max Filesize
+            html += '<div class="env-item">';
+            html += '<span class="label">Upload Max Filesize</span>';
+            html += '<span class="value">' + escapeHtml(env.upload_max_filesize || '') + '</span>';
+            html += '</div>';
+
+            // Remote DB Configured
+            html += '<div class="env-item">';
+            html += '<span class="label">Remote DB Configured</span>';
+            html += '<span class="value ' + (env.remote_db_configured ? 'true' : 'false') + '">' + (env.remote_db_configured ? 'YES' : 'NO') + '</span>';
+            html += '</div>';
+
+            // Session Active
+            html += '<div class="env-item">';
+            html += '<span class="label">Session Active</span>';
+            html += '<span class="value ' + (env.session_active ? 'true' : 'false') + '">' + (env.session_active ? 'YES' : 'NO') + '</span>';
+            html += '</div>';
+
+            html += '</div>'; // env-grid
+            html += '</div>'; // card
+
+            // Production Configuration
+            html += '<div class="card admin-section">';
+            html += '<h3><span class="icon">&#128268;</span> Production Configuration</h3>';
+            html += '<p class="text-muted">To connect to the production database, configure these constants in <code>control_panel.php</code>:</p>';
+            html += '<pre style="background: #f8f9fa; padding: 15px; border-radius: 6px; overflow-x: auto; font-size: 13px;">';
+            html += '// Remote database connection\n';
+            html += 'define("REMOTE_DB_HOST", "your-db-host");\n';
+            html += 'define("REMOTE_DB_NAME", "main_application");\n';
+            html += 'define("REMOTE_DB_USER", "billing_readonly");\n';
+            html += 'define("REMOTE_DB_PASS", "secure_password");\n';
+            html += '\n';
+            html += '// Then update db.php remote_db_query() function';
+            html += '</pre>';
+
+            html += '</div>'; // card
+
+            return html;
+        }
+
+        // =====================================================================
+        // DATA MANAGEMENT TAB
+        // =====================================================================
+        function renderData(data) {
+            var html = '';
+
+            var clearable = [
+                { entity: 'billing_reports', label: 'Billing Reports & Lines' },
+                { entity: 'pricing_tiers', label: 'Pricing Tiers' },
+                { entity: 'customer_settings', label: 'Customer Settings' },
+                { entity: 'customer_escalators', label: 'Customer Escalators' },
+                { entity: 'customers', label: 'Customers' },
+                { entity: 'services', label: 'Services' },
+                { entity: 'discount_groups', label: 'Discount Groups' },
+                { entity: 'lms', label: 'LMS' },
+                { entity: 'business_rules', label: 'Business Rules' }
             ];
-            foreach ($clearable as $entity => $label): ?>
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <strong><?php echo h($label); ?></strong>
-                <form method="POST" action="?action=admin_clear_entity" style="margin-top: 10px;" class="form-inline"
-                      onsubmit="return this.confirm.value === '<?php echo $entity; ?>';">
-                    <input type="hidden" name="entity" value="<?php echo h(
-                        $entity,
-                    ); ?>">
-                    <input type="text" name="confirm" placeholder="Type '<?php echo $entity; ?>'" autocomplete="off" style="flex: 1;">
-                    <button type="submit" class="btn btn-sm btn-danger">Clear</button>
-                </form>
-            </div>
-            <?php endforeach;
-            ?>
-        </div>
-    </div>
 
-    <div class="card admin-section">
-        <div class="danger-zone">
-            <h4>Clear Entire Database</h4>
-            <p>This will permanently delete ALL data from the database. This action cannot be undone.</p>
+            // Clear Entity Data
+            html += '<div class="card admin-section">';
+            html += '<h3><span class="icon">&#128451;</span> Clear Entity Data</h3>';
+            html += '<p class="text-muted">Remove all records from a specific table. Use with caution.</p>';
 
-            <form method="POST" action="?action=admin_clear" class="form-inline" onsubmit="return this.elements['confirm_text'].value === 'CLEAR';">
-                <input type="text" name="confirm_text" placeholder="Type 'CLEAR'" autocomplete="off">
-                <button type="submit" class="btn btn-danger">Clear All Data</button>
-            </form>
-        </div>
-    </div>
+            html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">';
 
-    <?php elseif ($tab === "seed"): ?>
-    <!-- TEST DATA TAB -->
-    <div class="card admin-section">
-        <h3><span class="icon">&#127793;</span> Generate Test Data</h3>
-        <p>Generate audit-compatible test data. Billing reports will use calculated prices from the pricing tier system with controlled variance for testing.</p>
+            for (var i = 0; i < clearable.length; i++) {
+                var item = clearable[i];
+                html += '<div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">';
+                html += '<strong>' + escapeHtml(item.label) + '</strong>';
+                html += '<div class="form-inline" style="margin-top: 10px;" data-clear-entity="' + escapeHtml(item.entity) + '">';
+                html += '<input type="text" class="clear-confirm-input" placeholder="Type \'' + escapeHtml(item.entity) + '\'" autocomplete="off" style="flex: 1;">';
+                html += '<button type="button" class="btn btn-sm btn-danger clear-entity-btn">Clear</button>';
+                html += '</div>';
+                html += '<span class="clear-result-' + escapeHtml(item.entity) + '" style="display: block; margin-top: 5px; font-size: 12px;"></span>';
+                html += '</div>';
+            }
 
-        <form method="POST" action="?action=admin_reseed" onsubmit="event.preventDefault(); startJob('seed', {
-            days_of_history: this.days.value,
-            customer_count: this.customers.value,
-            exact_match_pct: this.exact_pct.value,
-            small_variance_pct: this.small_pct.value,
-            large_variance_pct: this.large_pct.value,
-            clear_first: this.clear_first.checked ? '1' : '0'
-        }, 'Seeding Database...'); return false;">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Days of History</label>
-                    <input type="number" name="days" value="90" min="7" max="365">
-                </div>
-                <div class="form-group">
-                    <label>Customers</label>
-                    <input type="number" name="customers" value="100" min="10" max="500">
-                </div>
-                <div class="form-group">
-                    <label>Exact Match %</label>
-                    <input type="number" name="exact_pct" value="85" min="0" max="100">
-                </div>
-                <div class="form-group">
-                    <label>Small Variance %</label>
-                    <input type="number" name="small_pct" value="10" min="0" max="100">
-                </div>
-                <div class="form-group">
-                    <label>Large Variance %</label>
-                    <input type="number" name="large_pct" value="5" min="0" max="100">
-                </div>
-            </div>
+            html += '</div>'; // grid
+            html += '</div>'; // card
 
-            <div class="form-group checkbox-group">
-                <input type="checkbox" name="clear_first" value="1" id="clear_first" checked>
-                <label for="clear_first" style="margin-bottom: 0; font-weight: normal;">Clear database before seeding</label>
-            </div>
+            // Clear Entire Database
+            html += '<div class="card admin-section">';
+            html += '<div class="danger-zone">';
+            html += '<h4>Clear Entire Database</h4>';
+            html += '<p>This will permanently delete ALL data from the database. This action cannot be undone.</p>';
+            html += '<div class="form-inline" id="clear-all-form">';
+            html += '<input type="text" id="clear-all-confirm" placeholder="Type \'CLEAR\'" autocomplete="off">';
+            html += '<button type="button" class="btn btn-danger" id="btn-clear-all">Clear All Data</button>';
+            html += '</div>';
+            html += '<span id="clear-all-result" style="display: block; margin-top: 5px; font-size: 12px;"></span>';
+            html += '</div>';
+            html += '</div>'; // card
 
-            <p style="margin-top: 15px;">
-                <button type="submit" class="btn btn-warning">Reseed Database</button>
-            </p>
-        </form>
-    </div>
+            return html;
+        }
 
-    <div class="card admin-section">
-        <h3><span class="icon">&#128218;</span> Test Data Info</h3>
-        <p>The test data generator creates:</p>
-        <ul style="margin: 15px 0 0 20px; line-height: 1.8;">
-            <li><strong>Customers</strong> - With random discount groups and LMS assignments</li>
-            <li><strong>Services</strong> - Standard service types with default pricing</li>
-            <li><strong>Pricing Tiers</strong> - Volume-based pricing at default, group, and customer levels</li>
-            <li><strong>Escalators</strong> - Annual price increases for some customers</li>
-            <li><strong>Billing Reports</strong> - Daily humanreadable CSVs with transaction data</li>
-            <li><strong>Transaction Types</strong> - EFX code mappings</li>
-        </ul>
-        <p style="margin-top: 15px;">
-            Billing line prices are calculated using the actual pricing engine, then variance is applied:
-        </p>
-        <ul style="margin: 10px 0 0 20px; line-height: 1.8;">
-            <li><strong>Exact match</strong> - Price matches calculated price exactly</li>
-            <li><strong>Small variance</strong> - ±5% difference (rounding, timing)</li>
-            <li><strong>Large variance</strong> - ±20% difference (errors to investigate)</li>
-        </ul>
-    </div>
-    <?php endif; ?>
+        function bindDataEvents() {
+            // Clear entity buttons
+            var clearForms = document.querySelectorAll('[data-clear-entity]');
+            for (var i = 0; i < clearForms.length; i++) {
+                (function(form) {
+                    var entity = form.getAttribute('data-clear-entity');
+                    var btn = form.querySelector('.clear-entity-btn');
+                    var input = form.querySelector('.clear-confirm-input');
+                    var resultSpan = document.querySelector('.clear-result-' + entity);
+
+                    btn.addEventListener('click', function() {
+                        if (input.value !== entity) {
+                            if (resultSpan) resultSpan.innerHTML = '<span style="color: #e74c3c;">Type \'' + escapeHtml(entity) + '\' to confirm.</span>';
+                            return;
+                        }
+
+                        btn.disabled = true;
+                        btn.textContent = 'Clearing...';
+                        if (resultSpan) resultSpan.innerHTML = '';
+
+                        apiPost('admin_clear_entity', 'entity=' + encodeURIComponent(entity), function(err, result) {
+                            btn.disabled = false;
+                            btn.textContent = 'Clear';
+                            input.value = '';
+                            if (err) {
+                                if (resultSpan) resultSpan.innerHTML = '<span style="color: #e74c3c;">' + escapeHtml(err) + '</span>';
+                            } else {
+                                if (resultSpan) resultSpan.innerHTML = '<span style="color: #27ae60;">' + escapeHtml(result.message || 'Cleared.') + '</span>';
+                            }
+                        });
+                    });
+                })(clearForms[i]);
+            }
+
+            // Clear all database
+            var clearAllBtn = document.getElementById('btn-clear-all');
+            var clearAllInput = document.getElementById('clear-all-confirm');
+            var clearAllResult = document.getElementById('clear-all-result');
+
+            if (clearAllBtn) {
+                clearAllBtn.addEventListener('click', function() {
+                    if (clearAllInput.value !== 'CLEAR') {
+                        if (clearAllResult) clearAllResult.innerHTML = '<span style="color: #e74c3c;">Type \'CLEAR\' to confirm.</span>';
+                        return;
+                    }
+
+                    clearAllBtn.disabled = true;
+                    clearAllBtn.textContent = 'Clearing...';
+                    if (clearAllResult) clearAllResult.innerHTML = '';
+
+                    apiPost('admin_clear', 'confirm_text=CLEAR', function(err, result) {
+                        clearAllBtn.disabled = false;
+                        clearAllBtn.textContent = 'Clear All Data';
+                        clearAllInput.value = '';
+                        if (err) {
+                            if (clearAllResult) clearAllResult.innerHTML = '<span style="color: #e74c3c;">' + escapeHtml(err) + '</span>';
+                        } else {
+                            if (clearAllResult) clearAllResult.innerHTML = '<span style="color: #27ae60;">' + escapeHtml(result.message || 'All data cleared.') + '</span>';
+                        }
+                    });
+                });
+            }
+        }
+
+        // =====================================================================
+        // SEED TAB
+        // =====================================================================
+        function renderSeed(data) {
+            var html = '';
+
+            // Generate Test Data form
+            html += '<div class="card admin-section">';
+            html += '<h3><span class="icon">&#127793;</span> Generate Test Data</h3>';
+            html += '<p>Generate audit-compatible test data. Billing reports will use calculated prices from the pricing tier system with controlled variance for testing.</p>';
+
+            html += '<form id="seed-form">';
+            html += '<div class="form-row">';
+
+            html += '<div class="form-group">';
+            html += '<label>Days of History</label>';
+            html += '<input type="number" name="days" value="90" min="7" max="365">';
+            html += '</div>';
+
+            html += '<div class="form-group">';
+            html += '<label>Customers</label>';
+            html += '<input type="number" name="customers" value="100" min="10" max="500">';
+            html += '</div>';
+
+            html += '<div class="form-group">';
+            html += '<label>Exact Match %</label>';
+            html += '<input type="number" name="exact_pct" value="85" min="0" max="100">';
+            html += '</div>';
+
+            html += '<div class="form-group">';
+            html += '<label>Small Variance %</label>';
+            html += '<input type="number" name="small_pct" value="10" min="0" max="100">';
+            html += '</div>';
+
+            html += '<div class="form-group">';
+            html += '<label>Large Variance %</label>';
+            html += '<input type="number" name="large_pct" value="5" min="0" max="100">';
+            html += '</div>';
+
+            html += '</div>'; // form-row
+
+            html += '<div class="form-group checkbox-group">';
+            html += '<input type="checkbox" name="clear_first" value="1" id="clear_first" checked>';
+            html += '<label for="clear_first" style="margin-bottom: 0; font-weight: normal;">Clear database before seeding</label>';
+            html += '</div>';
+
+            html += '<p style="margin-top: 15px;">';
+            html += '<button type="submit" class="btn btn-warning">Reseed Database</button>';
+            html += '</p>';
+
+            html += '</form>';
+            html += '</div>'; // card
+
+            // Test Data Info
+            html += '<div class="card admin-section">';
+            html += '<h3><span class="icon">&#128218;</span> Test Data Info</h3>';
+            html += '<p>The test data generator creates:</p>';
+            html += '<ul style="margin: 15px 0 0 20px; line-height: 1.8;">';
+            html += '<li><strong>Customers</strong> - With random discount groups and LMS assignments</li>';
+            html += '<li><strong>Services</strong> - Standard service types with default pricing</li>';
+            html += '<li><strong>Pricing Tiers</strong> - Volume-based pricing at default, group, and customer levels</li>';
+            html += '<li><strong>Escalators</strong> - Annual price increases for some customers</li>';
+            html += '<li><strong>Billing Reports</strong> - Daily humanreadable CSVs with transaction data</li>';
+            html += '<li><strong>Transaction Types</strong> - EFX code mappings</li>';
+            html += '</ul>';
+            html += '<p style="margin-top: 15px;">Billing line prices are calculated using the actual pricing engine, then variance is applied:</p>';
+            html += '<ul style="margin: 10px 0 0 20px; line-height: 1.8;">';
+            html += '<li><strong>Exact match</strong> - Price matches calculated price exactly</li>';
+            html += '<li><strong>Small variance</strong> - &plusmn;5% difference (rounding, timing)</li>';
+            html += '<li><strong>Large variance</strong> - &plusmn;20% difference (errors to investigate)</li>';
+            html += '</ul>';
+
+            html += '</div>'; // card
+
+            return html;
+        }
+
+        function bindSeedEvents() {
+            var seedForm = document.getElementById('seed-form');
+            if (seedForm) {
+                seedForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    startJob('seed', {
+                        days_of_history: seedForm.days.value,
+                        customer_count: seedForm.customers.value,
+                        exact_match_pct: seedForm.exact_pct.value,
+                        small_variance_pct: seedForm.small_pct.value,
+                        large_variance_pct: seedForm.large_pct.value,
+                        clear_first: seedForm.clear_first.checked ? '1' : '0'
+                    }, 'Seeding Database...');
+                });
+            }
+        }
+
+        // =====================================================================
+        // MAIN LOADER
+        // =====================================================================
+        function loadAdminData() {
+            var el = document.getElementById('admin-content');
+
+            apiGet('admin', {tab: currentTab}, function(err, data) {
+                if (err) { showAjaxError('admin-content', err); return; }
+
+                var html = '';
+
+                switch (currentTab) {
+                    case 'overview':
+                        html = renderOverview(data);
+                        break;
+                    case 'sync':
+                        html = renderSync(data);
+                        break;
+                    case 'filesystem':
+                        html = renderFilesystem(data);
+                        break;
+                    case 'environment':
+                        html = renderEnvironment(data);
+                        break;
+                    case 'data':
+                        html = renderData(data);
+                        break;
+                    case 'seed':
+                        html = renderSeed(data);
+                        break;
+                    default:
+                        html = renderOverview(data);
+                        break;
+                }
+
+                el.innerHTML = html;
+
+                // Bind events after rendering
+                switch (currentTab) {
+                    case 'sync':
+                        bindSyncEvents();
+                        break;
+                    case 'filesystem':
+                        bindFilesystemEvents();
+                        break;
+                    case 'data':
+                        bindDataEvents();
+                        break;
+                    case 'seed':
+                        bindSeedEvents();
+                        break;
+                }
+            });
+        }
+
+        loadAdminData();
+    })();
+    </script>
 
 <?php render_footer();
 } /**
@@ -7795,140 +8120,200 @@ function render_admin_explore_remote($data)
         .back-link { display: inline-block; margin-bottom: 20px; color: #8e44ad; }
     </style>
 
-    <div class="explore-container">
-        <a href="?action=admin&tab=sync" class="back-link">&larr; Back to Admin</a>
-
-        <div class="explore-header">
-            <h1>Remote Database Explorer</h1>
-            <p>Database: <strong><?php echo h($data["db_name"]); ?></strong> |
-               Status: <?php echo $data["connected"]
-                   ? '<span style="color:#afa">Connected</span>'
-                   : '<span style="color:#faa">Not Connected</span>'; ?></p>
-        </div>
-
-        <?php if ($data["error"]): ?>
-        <div class="error-box">
-            <strong>Error:</strong> <?php echo h($data["error"]); ?>
-        </div>
-        <?php endif; ?>
-
-        <div class="filter-form">
-            <form method="GET">
-                <input type="hidden" name="action" value="admin_explore_remote">
-                <label><strong>Filter tables:</strong></label>
-                <input type="text" name="filter" value="<?php echo h(
-                    $data["filter"],
-                ); ?>" placeholder="e.g. customer, billing, service...">
-                <button type="submit">Search</button>
-                <?php if (!empty($data["filter"])): ?>
-                <a href="?action=admin_explore_remote" style="margin-left: 10px;">Clear filter</a>
-                <?php endif; ?>
-            </form>
-            <p style="margin: 10px 0 0 0; color: #666; font-size: 13px;">
-                Enter a substring to filter table names. Leave empty to see all tables.
-            </p>
-        </div>
-
-        <?php if ($data["connected"] && !empty($data["tables"])): ?>
-        <div class="tables-list">
-            <h3>Tables (<?php echo count(
-                $data["tables"],
-            ); ?> found<?php echo !empty($data["filter"])
-     ? ' matching "' . h($data["filter"]) . '"'
-     : ""; ?>)</h3>
-            <?php foreach ($data["tables"] as $t): ?>
-            <a href="?action=admin_explore_remote&filter=<?php echo urlencode(
-                $data["filter"],
-            ); ?>&table=<?php echo urlencode($t); ?>"
-               class="table-link <?php echo $t === $data["selected_table"]
-                   ? "selected"
-                   : ""; ?>">
-                <?php echo h($t); ?>
-            </a>
-            <?php endforeach; ?>
-        </div>
-        <?php elseif ($data["connected"]): ?>
-        <div class="tables-list">
-            <h3>No tables found<?php echo !empty($data["filter"])
-                ? ' matching "' . h($data["filter"]) . '"'
-                : ""; ?></h3>
-            <p>Try a different filter or <a href="?action=admin_explore_remote">clear the filter</a> to see all tables.</p>
-        </div>
-        <?php endif; ?>
-
-        <?php if (!empty($data["selected_table"])): ?>
-        <div class="table-detail">
-            <h3>Table: <?php echo h($data["selected_table"]); ?></h3>
-
-            <?php if (!empty($data["columns"])): ?>
-            <h4>Columns (<?php echo count($data["columns"]); ?>)</h4>
-            <table class="columns-table">
-                <tr>
-                    <th>Column Name</th>
-                    <th>Type</th>
-                    <th>Nullable</th>
-                    <th>Key</th>
-                </tr>
-                <?php foreach ($data["columns"] as $col): ?>
-                <tr>
-                    <td><code><?php echo h($col["COLUMN_NAME"]); ?></code></td>
-                    <td><?php echo h($col["DATA_TYPE"]); ?></td>
-                    <td><?php echo $col["IS_NULLABLE"] === "YES"
-                        ? "Yes"
-                        : "No"; ?></td>
-                    <td><?php echo h($col["COLUMN_KEY"]); ?></td>
-                </tr>
-                <?php endforeach; ?>
-            </table>
-            <?php endif; ?>
-
-            <?php if (!empty($data["sample_data"])): ?>
-            <h4>Sample Data (first 10 rows)</h4>
-            <div class="sample-data">
-                <table>
-                    <tr>
-                        <?php foreach (
-                            array_keys($data["sample_data"][0])
-                            as $col
-                        ): ?>
-                        <th><?php echo h($col); ?></th>
-                        <?php endforeach; ?>
-                    </tr>
-                    <?php foreach ($data["sample_data"] as $row): ?>
-                    <tr>
-                        <?php foreach ($row as $val): ?>
-                        <td title="<?php echo h($val); ?>"><?php echo h(
-    substr($val, 0, 50),
-); ?></td>
-                        <?php endforeach; ?>
-                    </tr>
-                    <?php endforeach; ?>
-                </table>
-            </div>
-            <?php elseif (!empty($data["columns"])): ?>
-            <p><em>No data in this table or unable to query.</em></p>
-            <?php endif; ?>
-        </div>
-        <?php endif; ?>
-
-        <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-            <h4 style="margin-top: 0;">Common Search Terms</h4>
-            <p>Try filtering by:
-                <a href="?action=admin_explore_remote&filter=customer">customer</a> |
-                <a href="?action=admin_explore_remote&filter=client">client</a> |
-                <a href="?action=admin_explore_remote&filter=service">service</a> |
-                <a href="?action=admin_explore_remote&filter=product">product</a> |
-                <a href="?action=admin_explore_remote&filter=billing">billing</a> |
-                <a href="?action=admin_explore_remote&filter=price">price</a> |
-                <a href="?action=admin_explore_remote&filter=discount">discount</a> |
-                <a href="?action=admin_explore_remote&filter=group">group</a> |
-                <a href="?action=admin_explore_remote&filter=lms">lms</a> |
-                <a href="?action=admin_explore_remote&filter=cost">cost</a> |
-                <a href="?action=admin_explore_remote&filter=cog">cog</a> |
-                <a href="?action=admin_explore_remote&filter=rule">rule</a>
-            </p>
+    <div id="page-data" class="ajax-content">
+        <div class="loading-skeleton">
+            <div class="skeleton-bar w75"></div>
+            <div class="skeleton-bar w90"></div>
+            <div class="skeleton-bar w50"></div>
+            <p>Loading remote database explorer...</p>
         </div>
     </div>
+
+    <script>
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        var filter = params.get('filter') || '';
+        var table = params.get('table') || '';
+
+        apiGet('admin_explore_remote', {filter: filter, table: table}, function(err, data) {
+            if (err) { showAjaxError('page-data', err); return; }
+
+            var el = document.getElementById('page-data');
+            var html = '';
+
+            html += '<div class="explore-container">';
+
+            // Back link
+            html += '<a href="?action=admin&tab=sync" class="back-link">&larr; Back to Admin</a>';
+
+            // Header banner
+            html += '<div class="explore-header">';
+            html += '<h1>Remote Database Explorer</h1>';
+            html += '<p>Database: <strong>' + escapeHtml(data.db_name || '') + '</strong> | ';
+            html += 'Status: ';
+            if (data.connected) {
+                html += '<span style="color:#afa">Connected</span>';
+            } else {
+                html += '<span style="color:#faa">Not Connected</span>';
+            }
+            html += '</p>';
+            html += '</div>';
+
+            // Error box
+            if (data.error) {
+                html += '<div class="error-box">';
+                html += '<strong>Error:</strong> ' + escapeHtml(data.error);
+                html += '</div>';
+            }
+
+            // Filter form
+            html += '<div class="filter-form">';
+            html += '<form id="explore-filter-form">';
+            html += '<input type="hidden" name="action" value="admin_explore_remote">';
+            html += '<label><strong>Filter tables:</strong></label> ';
+            html += '<input type="text" name="filter" value="' + escapeHtml(data.filter || '') + '" placeholder="e.g. customer, billing, service...">';
+            html += ' <button type="submit">Search</button>';
+            if (data.filter) {
+                html += ' <a href="?action=admin_explore_remote" style="margin-left: 10px;">Clear filter</a>';
+            }
+            html += '</form>';
+            html += '<p style="margin: 10px 0 0 0; color: #666; font-size: 13px;">';
+            html += 'Enter a substring to filter table names. Leave empty to see all tables.';
+            html += '</p>';
+            html += '</div>';
+
+            // Tables list
+            var tables = data.tables || [];
+            if (data.connected && tables.length > 0) {
+                html += '<div class="tables-list">';
+                html += '<h3>Tables (' + tables.length + ' found';
+                if (data.filter) {
+                    html += ' matching &quot;' + escapeHtml(data.filter) + '&quot;';
+                }
+                html += ')</h3>';
+                for (var i = 0; i < tables.length; i++) {
+                    var t = tables[i];
+                    var selectedClass = (t === data.selected_table) ? ' selected' : '';
+                    html += '<a href="?action=admin_explore_remote&filter=' + encodeURIComponent(data.filter || '') + '&table=' + encodeURIComponent(t) + '"';
+                    html += ' class="table-link' + selectedClass + '">';
+                    html += escapeHtml(t);
+                    html += '</a>';
+                }
+                html += '</div>';
+            } else if (data.connected) {
+                html += '<div class="tables-list">';
+                html += '<h3>No tables found';
+                if (data.filter) {
+                    html += ' matching &quot;' + escapeHtml(data.filter) + '&quot;';
+                }
+                html += '</h3>';
+                html += '<p>Try a different filter or <a href="?action=admin_explore_remote">clear the filter</a> to see all tables.</p>';
+                html += '</div>';
+            }
+
+            // Table detail
+            if (data.selected_table) {
+                html += '<div class="table-detail">';
+                html += '<h3>Table: ' + escapeHtml(data.selected_table) + '</h3>';
+
+                // Columns
+                var columns = data.columns || [];
+                if (columns.length > 0) {
+                    html += '<h4>Columns (' + columns.length + ')</h4>';
+                    html += '<table class="columns-table">';
+                    html += '<tr>';
+                    html += '<th>Column Name</th>';
+                    html += '<th>Type</th>';
+                    html += '<th>Nullable</th>';
+                    html += '<th>Key</th>';
+                    html += '</tr>';
+                    for (var c = 0; c < columns.length; c++) {
+                        var col = columns[c];
+                        html += '<tr>';
+                        html += '<td><code>' + escapeHtml(col.COLUMN_NAME || '') + '</code></td>';
+                        html += '<td>' + escapeHtml(col.DATA_TYPE || '') + '</td>';
+                        html += '<td>' + (col.IS_NULLABLE === 'YES' ? 'Yes' : 'No') + '</td>';
+                        html += '<td>' + escapeHtml(col.COLUMN_KEY || '') + '</td>';
+                        html += '</tr>';
+                    }
+                    html += '</table>';
+                }
+
+                // Sample data
+                var sampleData = data.sample_data || [];
+                if (sampleData.length > 0) {
+                    html += '<h4>Sample Data (first 10 rows)</h4>';
+                    html += '<div class="sample-data">';
+                    html += '<table>';
+
+                    // Header row from keys of first record
+                    var sampleKeys = [];
+                    for (var key in sampleData[0]) {
+                        if (sampleData[0].hasOwnProperty(key)) {
+                            sampleKeys.push(key);
+                        }
+                    }
+                    html += '<tr>';
+                    for (var k = 0; k < sampleKeys.length; k++) {
+                        html += '<th>' + escapeHtml(sampleKeys[k]) + '</th>';
+                    }
+                    html += '</tr>';
+
+                    // Data rows
+                    for (var r = 0; r < sampleData.length; r++) {
+                        html += '<tr>';
+                        for (var v = 0; v < sampleKeys.length; v++) {
+                            var val = sampleData[r][sampleKeys[v]];
+                            var valStr = (val === null || typeof val === 'undefined') ? '' : String(val);
+                            var displayStr = valStr.length > 50 ? valStr.substring(0, 50) : valStr;
+                            html += '<td title="' + escapeHtml(valStr) + '">' + escapeHtml(displayStr) + '</td>';
+                        }
+                        html += '</tr>';
+                    }
+
+                    html += '</table>';
+                    html += '</div>';
+                } else if (columns.length > 0) {
+                    html += '<p><em>No data in this table or unable to query.</em></p>';
+                }
+
+                html += '</div>'; // close .table-detail
+            }
+
+            // Common Search Terms
+            html += '<div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">';
+            html += '<h4 style="margin-top: 0;">Common Search Terms</h4>';
+            html += '<p>Try filtering by: ';
+
+            var terms = ['customer', 'client', 'service', 'product', 'billing', 'price', 'discount', 'group', 'lms', 'cost', 'cog', 'rule'];
+            for (var s = 0; s < terms.length; s++) {
+                if (s > 0) { html += ' | '; }
+                html += '<a href="?action=admin_explore_remote&filter=' + encodeURIComponent(terms[s]) + '">' + escapeHtml(terms[s]) + '</a>';
+            }
+
+            html += '</p>';
+            html += '</div>';
+
+            html += '</div>'; // close .explore-container
+
+            el.innerHTML = html;
+
+            // Attach filter form submit handler for URL navigation
+            var filterForm = document.getElementById('explore-filter-form');
+            if (filterForm) {
+                filterForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    var filterVal = filterForm.querySelector('input[name="filter"]').value;
+                    var url = '?action=admin_explore_remote';
+                    if (filterVal) {
+                        url += '&filter=' + encodeURIComponent(filterVal);
+                    }
+                    window.location = url;
+                });
+            }
+        });
+    })();
+    </script>
 <?php render_footer();
 } // ============================================================
 /**
@@ -7937,158 +8322,190 @@ function render_admin_explore_remote($data)
 function render_billing_flags($data)
 {
     render_header("Billing Flags - Control Panel"); ?>
-    <div class="card">
-        <h2>Billing Flags</h2>
-        <p class="text-muted">Configure per-service billing behavior flags (by_hit, zero_null, bav_by_trans).</p>
-
-        <!-- Level Selector -->
-        <div style="margin: 15px 0; display: flex; gap: 10px; align-items: center;">
-            <label><strong>Level:</strong></label>
-            <a href="?action=billing_flags&level=default" class="btn btn-sm <?php echo $data[
-                "level"
-            ] === "default"
-                ? "btn-primary"
-                : ""; ?>">Default</a>
-
-            <select onchange="if(this.value) window.location='?action=billing_flags&level=group&level_id='+this.value" class="form-control" style="width: auto; display: inline-block;">
-                <option value="">-- Group --</option>
-                <?php foreach ($data["groups"] as $g): ?>
-                <option value="<?php echo $g["id"]; ?>" <?php echo $data[
-    "level"
-] === "group" && $data["level_id"] == $g["id"]
-    ? "selected"
-    : ""; ?>><?php echo h($g["name"]); ?></option>
-                <?php endforeach; ?>
-            </select>
-
-            <select onchange="if(this.value) window.location='?action=billing_flags&level=customer&level_id='+this.value" class="form-control" style="width: auto; display: inline-block;">
-                <option value="">-- Customer --</option>
-                <?php foreach ($data["customers"] as $c): ?>
-                <option value="<?php echo $c["id"]; ?>" <?php echo $data[
-    "level"
-] === "customer" && $data["level_id"] == $c["id"]
-    ? "selected"
-    : ""; ?>><?php echo h($c["name"]); ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-
-        <?php if ($data["level"] !== "default" && $data["level_entity"]): ?>
-        <div style="background: #e8f4fd; padding: 10px 15px; border-radius: 4px; margin-bottom: 15px;">
-            Viewing flags for <strong><?php echo ucfirst(
-                $data["level"],
-            ); ?>: <?php echo h($data["level_entity"]["name"]); ?></strong>
-        </div>
-        <?php endif; ?>
-
-        <!-- Current Flags -->
-        <?php if (!empty($data["current_flags"])): ?>
-        <table>
-            <thead>
-                <tr>
-                    <th>Service</th>
-                    <th>EFX Code</th>
-                    <th>By Hit</th>
-                    <th>Zero Null</th>
-                    <th>BAV by Trans</th>
-                    <th>Effective Date</th>
-                    <th class="text-right">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($data["current_flags"] as $flag): ?>
-                <tr>
-                    <td><?php echo h(
-                        $flag["service_name"] ?: $flag["service_id"],
-                    ); ?></td>
-                    <td><?php echo h($flag["efx_code"]); ?></td>
-                    <td><?php echo $flag["by_hit"]
-                        ? '<span class="badge badge-success">Yes</span>'
-                        : '<span class="badge">No</span>'; ?></td>
-                    <td><?php echo $flag["zero_null"]
-                        ? '<span class="badge badge-success">Yes</span>'
-                        : '<span class="badge">No</span>'; ?></td>
-                    <td><?php echo $flag["bav_by_trans"]
-                        ? '<span class="badge badge-success">Yes</span>'
-                        : '<span class="badge">No</span>'; ?></td>
-                    <td><?php echo h($flag["effective_date"]); ?></td>
-                    <td class="text-right">
-                        <?php if ($data["level"] !== "default"): ?>
-                        <a href="?action=billing_flags&level=<?php echo $data[
-                            "level"
-                        ]; ?>&level_id=<?php echo $data[
-    "level_id"
-]; ?>&clear=<?php echo $flag[
-    "id"
-]; ?>" class="btn btn-sm" onclick="return confirm('Clear this override?')">Clear</a>
-                        <?php endif; ?>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-        <?php else: ?>
-        <p class="text-muted">No billing flags configured at this level.</p>
-        <?php endif; ?>
-
-        <!-- Add/Edit Flag Form -->
-        <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 4px;">
-            <h3>Set Flag</h3>
-            <form method="POST" action="?action=billing_flags">
-                <input type="hidden" name="action" value="save_flags">
-                <input type="hidden" name="level" value="<?php echo h(
-                    $data["level"],
-                ); ?>">
-                <?php if ($data["level_id"]): ?>
-                <input type="hidden" name="level_id" value="<?php echo h(
-                    $data["level_id"],
-                ); ?>">
-                <?php endif; ?>
-
-                <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: end;">
-                    <div>
-                        <label>Service</label>
-                        <select name="service_id" class="form-control" required>
-                            <option value="">Select...</option>
-                            <?php foreach ($data["services"] as $svc): ?>
-                            <option value="<?php echo $svc[
-                                "id"
-                            ]; ?>"><?php echo h($svc["name"]); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div>
-                        <label>EFX Code</label>
-                        <select name="efx_code" class="form-control" required>
-                            <option value="">Select...</option>
-                            <?php foreach (
-                                $data["transaction_types"]
-                                as $tt
-                            ): ?>
-                            <option value="<?php echo h(
-                                $tt["efx_code"],
-                            ); ?>"><?php echo h(
-    $tt["efx_code"],
-); ?> - <?php echo h($tt["display_name"]); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div>
-                        <label><input type="checkbox" name="by_hit" value="1"> By Hit</label>
-                    </div>
-                    <div>
-                        <label><input type="checkbox" name="zero_null" value="1"> Zero Null</label>
-                    </div>
-                    <div>
-                        <label><input type="checkbox" name="bav_by_trans" value="1"> BAV by Trans</label>
-                    </div>
-                    <div>
-                        <button type="submit" class="btn btn-primary">Save</button>
-                    </div>
-                </div>
-            </form>
+    <div id="page-data" class="ajax-content">
+        <div class="loading-skeleton">
+            <div class="skeleton-bar w75"></div>
+            <div class="skeleton-bar w90"></div>
+            <div class="skeleton-bar w50"></div>
+            <p>Loading billing flags...</p>
         </div>
     </div>
+    <script>
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        var level = params.get('level') || 'default';
+        var levelId = params.get('level_id') || '';
+
+        apiGet('billing_flags', {level: level, level_id: levelId}, function(err, data) {
+            if (err) { showAjaxError('page-data', err); return; }
+
+            var el = document.getElementById('page-data');
+            var html = '';
+
+            html += '<div class="card">';
+            html += '<h2>Billing Flags</h2>';
+            html += '<p class="text-muted">Configure per-service billing behavior flags (by_hit, zero_null, bav_by_trans).</p>';
+
+            // Level Selector
+            html += '<div style="margin: 15px 0; display: flex; gap: 10px; align-items: center;">';
+            html += '<label><strong>Level:</strong></label>';
+            html += '<a href="?action=billing_flags&level=default" class="btn btn-sm ' + (data.level === 'default' ? 'btn-primary' : '') + '">Default</a>';
+
+            // Group dropdown
+            html += '<select onchange="if(this.value) window.location=\'?action=billing_flags&level=group&level_id=\'+this.value" class="form-control" style="width: auto; display: inline-block;">';
+            html += '<option value="">-- Group --</option>';
+            if (data.groups) {
+                for (var g = 0; g < data.groups.length; g++) {
+                    var grp = data.groups[g];
+                    var grpSelected = (data.level === 'group' && data.level_id == grp.id) ? ' selected' : '';
+                    html += '<option value="' + escapeHtml(grp.id + '') + '"' + grpSelected + '>' + escapeHtml(grp.name) + '</option>';
+                }
+            }
+            html += '</select>';
+
+            // Customer dropdown
+            html += '<select onchange="if(this.value) window.location=\'?action=billing_flags&level=customer&level_id=\'+this.value" class="form-control" style="width: auto; display: inline-block;">';
+            html += '<option value="">-- Customer --</option>';
+            if (data.customers) {
+                for (var c = 0; c < data.customers.length; c++) {
+                    var cust = data.customers[c];
+                    var custSelected = (data.level === 'customer' && data.level_id == cust.id) ? ' selected' : '';
+                    html += '<option value="' + escapeHtml(cust.id + '') + '"' + custSelected + '>' + escapeHtml(cust.name) + '</option>';
+                }
+            }
+            html += '</select>';
+            html += '</div>';
+
+            // Entity info banner for non-default level
+            if (data.level !== 'default' && data.level_entity) {
+                html += '<div style="background: #e8f4fd; padding: 10px 15px; border-radius: 4px; margin-bottom: 15px;">';
+                html += 'Viewing flags for <strong>' + escapeHtml(data.level.charAt(0).toUpperCase() + data.level.slice(1)) + ': ' + escapeHtml(data.level_entity.name) + '</strong>';
+                html += '</div>';
+            }
+
+            // Current Flags table
+            var flags = data.current_flags || [];
+            if (flags.length > 0) {
+                html += '<table>';
+                html += '<thead><tr>';
+                html += '<th>Service</th>';
+                html += '<th>EFX Code</th>';
+                html += '<th>By Hit</th>';
+                html += '<th>Zero Null</th>';
+                html += '<th>BAV by Trans</th>';
+                html += '<th>Effective Date</th>';
+                html += '<th class="text-right">Actions</th>';
+                html += '</tr></thead>';
+                html += '<tbody>';
+                for (var f = 0; f < flags.length; f++) {
+                    var flag = flags[f];
+                    html += '<tr>';
+                    html += '<td>' + escapeHtml(flag.service_name || (flag.service_id + '')) + '</td>';
+                    html += '<td>' + escapeHtml(flag.efx_code || '') + '</td>';
+                    html += '<td>' + (flag.by_hit ? '<span class="badge badge-success">Yes</span>' : '<span class="badge">No</span>') + '</td>';
+                    html += '<td>' + (flag.zero_null ? '<span class="badge badge-success">Yes</span>' : '<span class="badge">No</span>') + '</td>';
+                    html += '<td>' + (flag.bav_by_trans ? '<span class="badge badge-success">Yes</span>' : '<span class="badge">No</span>') + '</td>';
+                    html += '<td>' + escapeHtml(flag.effective_date || '') + '</td>';
+                    html += '<td class="text-right">';
+                    if (data.level !== 'default') {
+                        html += '<button type="button" class="btn btn-sm" data-flag-id="' + escapeHtml(flag.id + '') + '" onclick="clearBillingFlag(this)">Clear</button>';
+                    }
+                    html += '</td>';
+                    html += '</tr>';
+                }
+                html += '</tbody></table>';
+            } else {
+                html += '<p class="text-muted">No billing flags configured at this level.</p>';
+            }
+
+            // Set Flag form
+            html += '<div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 4px;">';
+            html += '<h3>Set Flag</h3>';
+            html += '<div id="flag-form-result"></div>';
+            html += '<form id="billing-flag-form">';
+
+            html += '<div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: end;">';
+
+            // Service dropdown
+            html += '<div>';
+            html += '<label>Service</label>';
+            html += '<select name="service_id" class="form-control" required>';
+            html += '<option value="">Select...</option>';
+            if (data.services) {
+                for (var s = 0; s < data.services.length; s++) {
+                    var svc = data.services[s];
+                    html += '<option value="' + escapeHtml(svc.id + '') + '">' + escapeHtml(svc.name) + '</option>';
+                }
+            }
+            html += '</select>';
+            html += '</div>';
+
+            // EFX Code dropdown
+            html += '<div>';
+            html += '<label>EFX Code</label>';
+            html += '<select name="efx_code" class="form-control" required>';
+            html += '<option value="">Select...</option>';
+            if (data.transaction_types) {
+                for (var t = 0; t < data.transaction_types.length; t++) {
+                    var tt = data.transaction_types[t];
+                    html += '<option value="' + escapeHtml(tt.efx_code) + '">' + escapeHtml(tt.efx_code) + ' - ' + escapeHtml(tt.display_name) + '</option>';
+                }
+            }
+            html += '</select>';
+            html += '</div>';
+
+            // Checkboxes
+            html += '<div><label><input type="checkbox" name="by_hit" value="1"> By Hit</label></div>';
+            html += '<div><label><input type="checkbox" name="zero_null" value="1"> Zero Null</label></div>';
+            html += '<div><label><input type="checkbox" name="bav_by_trans" value="1"> BAV by Trans</label></div>';
+
+            // Save button
+            html += '<div><button type="submit" class="btn btn-primary">Save</button></div>';
+
+            html += '</div>'; // close flex row
+            html += '</form>';
+            html += '</div>'; // close form container
+
+            html += '</div>'; // close card
+
+            el.innerHTML = html;
+
+            // Attach form submit handler
+            document.getElementById('billing-flag-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                var formData = new FormData(this);
+                formData.append('level', level);
+                if (levelId) {
+                    formData.append('level_id', levelId);
+                }
+                apiPost('save_billing_flags', formData, function(err, result) {
+                    var msgDiv = document.getElementById('flag-form-result');
+                    if (err) {
+                        msgDiv.innerHTML = '<div class="flash flash-error">' + escapeHtml(err) + '</div>';
+                    } else {
+                        msgDiv.innerHTML = '<div class="flash flash-success">' + escapeHtml(result.message) + '</div>';
+                        // Reload data to show updated flags
+                        setTimeout(function() { window.location.reload(); }, 800);
+                    }
+                });
+            });
+        });
+
+        // Clear flag handler (global so onclick can reach it)
+        window.clearBillingFlag = function(btn) {
+            if (!confirm('Clear this override?')) return;
+            var flagId = btn.getAttribute('data-flag-id');
+            var body = 'flag_action=delete&flag_id=' + encodeURIComponent(flagId);
+            apiPost('save_billing_flags', body, function(err, result) {
+                if (err) {
+                    alert('Error: ' + err);
+                } else {
+                    window.location.reload();
+                }
+            });
+        };
+    })();
+    </script>
 <?php render_footer();
 } // END PHASE 4
 // ============================================================
