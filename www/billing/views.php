@@ -845,13 +845,6 @@ function render_dashboard($data)
     </noscript>
 
     <script>
-    function formatDate(timestamp) {
-        var d = new Date(timestamp * 1000);
-        var pad = function(n) { return n < 10 ? '0' + n : n; };
-        return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) +
-            ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
-    }
-
     apiGet('dashboard', null, function(err, data) {
         if (err) {
             showAjaxError('dashboard-stats', err);
@@ -1000,14 +993,6 @@ function render_ingestion($data)
     <script>
     (function() {
         var currentTab = <?php echo json_encode($tab); ?>;
-
-        function formatDate(timestamp) {
-            var d = new Date(timestamp * 1000);
-            var pad = function(n) { return n < 10 ? '0' + n : n; };
-            return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
-                ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
-        }
-
         apiGet('ingestion', {tab: currentTab}, function(err, data) {
             if (err) { showAjaxError('page-data', err); return; }
 
@@ -1919,13 +1904,6 @@ function render_generation($data)
 
     <script>
     (function() {
-        function formatDate(timestamp) {
-            var d = new Date(timestamp * 1000);
-            var pad = function(n) { return n < 10 ? '0' + n : n; };
-            return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
-                ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
-        }
-
         apiGet('generation', null, function(err, data) {
             if (err) { showAjaxError('page-data', err); return; }
 
@@ -2098,7 +2076,6 @@ function render_generation_types($data)
             html += '</div>';
             html += '</form>';
 
-            html += '<div id="form-result"></div>';
 
             html += '</div>'; // close card
 
@@ -2145,7 +2122,7 @@ function render_generation_types($data)
                             showToast(err, 'error');
                         } else {
                             showToast(result.message, 'success');
-                            setTimeout(function() { window.location.reload(); }, 1200);
+                            setTimeout(function() { window.location.reload(); }, TOAST_RELOAD_DELAY_MS);
                         }
                     });
                 });
@@ -2212,7 +2189,6 @@ function render_lms_edit($data)
             html += '<button type="submit" class="btn btn-success">Save</button>';
             html += '</form>';
 
-            html += '<div id="form-result"></div>';
 
             html += '</div>';
 
@@ -2298,7 +2274,6 @@ function render_lms_edit($data)
             html += '<button type="submit" class="btn btn-success">Save</button>';
             html += '</form>';
 
-            html += '<div id="form-result"></div>';
             html += '</div>'; // close card
 
             el.innerHTML = html;
@@ -3049,7 +3024,6 @@ function render_pricing_defaults_edit($data)
 
             html += '</form>';
 
-            html += '<div id="form-result"></div>';
 
             html += '</div>';
 
@@ -3526,7 +3500,6 @@ function render_pricing_group_edit($data)
 
             html += '</form>';
 
-            html += '<div id="form-result"></div>';
 
             html += '</div>';
 
@@ -4083,7 +4056,6 @@ function render_pricing_customer_edit($data)
 
             html += '</form>';
 
-            html += '<div id="form-result"></div>';
 
             html += '</div>'; // close card
 
@@ -4277,7 +4249,6 @@ function render_pricing_customer_settings($data)
             html += '<a href="?action=pricing_customer_edit&customer_id=' + encodeURIComponent(customer.id) + '" class="btn">Cancel</a>';
             html += '</div>';
 
-            html += '<div id="form-result" style="margin-top: 15px;"></div>';
 
             html += '</form>';
             html += '</div>'; // close settings card
@@ -4481,7 +4452,6 @@ function render_escalators($data)
 
             html += '</form>';
 
-            html += '<div id="form-result"></div>';
 
             html += '</div>'; // close card
 
@@ -7377,7 +7347,7 @@ function render_admin($data)
                             } else {
                                 if (resultSpan) resultSpan.innerHTML = '<span class="status-badge ok">' + escapeHtml(result.message || 'Done') + '</span>';
                                 // Reload after brief delay to show updated counts
-                                setTimeout(function() { loadAdminData(); }, 1200);
+                                setTimeout(function() { loadAdminData(); }, TOAST_RELOAD_DELAY_MS);
                             }
                         });
                     });
@@ -8159,7 +8129,6 @@ function render_billing_flags($data)
             // Set Flag form
             html += '<div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 4px;">';
             html += '<h3>Set Flag</h3>';
-            html += '<div id="flag-form-result"></div>';
             html += '<form id="billing-flag-form">';
 
             html += '<div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: end;">';
@@ -8221,7 +8190,7 @@ function render_billing_flags($data)
                         showToast(err, 'error');
                     } else {
                         showToast(result.message, 'success');
-                        setTimeout(function() { window.location.reload(); }, 1200);
+                        setTimeout(function() { window.location.reload(); }, TOAST_RELOAD_DELAY_MS);
                     }
                 });
             });
