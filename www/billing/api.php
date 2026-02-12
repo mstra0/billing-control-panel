@@ -17,6 +17,52 @@ require_once __DIR__ . "/control_panel.php";
 api_dispatch();
 
 // ============================================================
+// SHARED HELPERS
+// ============================================================
+
+/**
+ * Parse tier data from POST arrays and validate ranges.
+ * Returns tiers array, or sends a needs_confirmation response and exits.
+ */
+function parse_and_validate_tiers()
+{
+    $volume_starts = isset($_POST["volume_start"])
+        ? $_POST["volume_start"]
+        : [];
+    $volume_ends = isset($_POST["volume_end"]) ? $_POST["volume_end"] : [];
+    $prices = isset($_POST["price_per_inquiry"])
+        ? $_POST["price_per_inquiry"]
+        : [];
+
+    $tiers = [];
+    for ($i = 0; $i < count($volume_starts); $i++) {
+        if ($volume_starts[$i] !== "" && $prices[$i] !== "") {
+            $tiers[] = [
+                "volume_start" => (int) $volume_starts[$i],
+                "volume_end" =>
+                    $volume_ends[$i] !== "" ? (int) $volume_ends[$i] : null,
+                "price_per_inquiry" => (float) $prices[$i],
+            ];
+        }
+    }
+
+    $validation = validate_tier_ranges($tiers);
+    if (!empty($validation["errors"])) {
+        $confirm = get_param("confirm_overlap", "");
+        if (empty($confirm)) {
+            api_response([
+                "needs_confirmation" => true,
+                "validation" => $validation,
+                "tiers" => $tiers,
+            ]);
+            // api_response calls exit(), so this is unreachable
+        }
+    }
+
+    return $tiers;
+}
+
+// ============================================================
 // DISPATCHER
 // ============================================================
 
@@ -2135,39 +2181,7 @@ function api_save_default_tiers()
         api_error("Service not found", 404);
     }
 
-    $tiers = [];
-    $volume_starts = isset($_POST["volume_start"])
-        ? $_POST["volume_start"]
-        : [];
-    $volume_ends = isset($_POST["volume_end"]) ? $_POST["volume_end"] : [];
-    $prices = isset($_POST["price_per_inquiry"])
-        ? $_POST["price_per_inquiry"]
-        : [];
-
-    for ($i = 0; $i < count($volume_starts); $i++) {
-        if ($volume_starts[$i] !== "" && $prices[$i] !== "") {
-            $tiers[] = [
-                "volume_start" => (int) $volume_starts[$i],
-                "volume_end" =>
-                    $volume_ends[$i] !== "" ? (int) $volume_ends[$i] : null,
-                "price_per_inquiry" => (float) $prices[$i],
-            ];
-        }
-    }
-
-    $validation = validate_tier_ranges($tiers);
-    if (!empty($validation["errors"])) {
-        $confirm = get_param("confirm_overlap", "");
-        if (empty($confirm)) {
-            api_response([
-                "needs_confirmation" => true,
-                "validation" => $validation,
-                "tiers" => $tiers,
-            ]);
-            return;
-        }
-    }
-
+    $tiers = parse_and_validate_tiers();
     save_default_tiers($service_id, $tiers);
     api_response([
         "success" => true,
@@ -2187,39 +2201,7 @@ function api_save_group_tiers()
         api_error("Group ID and service ID required");
     }
 
-    $tiers = [];
-    $volume_starts = isset($_POST["volume_start"])
-        ? $_POST["volume_start"]
-        : [];
-    $volume_ends = isset($_POST["volume_end"]) ? $_POST["volume_end"] : [];
-    $prices = isset($_POST["price_per_inquiry"])
-        ? $_POST["price_per_inquiry"]
-        : [];
-
-    for ($i = 0; $i < count($volume_starts); $i++) {
-        if ($volume_starts[$i] !== "" && $prices[$i] !== "") {
-            $tiers[] = [
-                "volume_start" => (int) $volume_starts[$i],
-                "volume_end" =>
-                    $volume_ends[$i] !== "" ? (int) $volume_ends[$i] : null,
-                "price_per_inquiry" => (float) $prices[$i],
-            ];
-        }
-    }
-
-    $validation = validate_tier_ranges($tiers);
-    if (!empty($validation["errors"])) {
-        $confirm = get_param("confirm_overlap", "");
-        if (empty($confirm)) {
-            api_response([
-                "needs_confirmation" => true,
-                "validation" => $validation,
-                "tiers" => $tiers,
-            ]);
-            return;
-        }
-    }
-
+    $tiers = parse_and_validate_tiers();
     save_group_tiers($group_id, $service_id, $tiers);
     api_response(["success" => true, "message" => "Group pricing saved"]);
 }
@@ -2252,39 +2234,7 @@ function api_save_customer_tiers()
         api_error("Customer ID and service ID required");
     }
 
-    $tiers = [];
-    $volume_starts = isset($_POST["volume_start"])
-        ? $_POST["volume_start"]
-        : [];
-    $volume_ends = isset($_POST["volume_end"]) ? $_POST["volume_end"] : [];
-    $prices = isset($_POST["price_per_inquiry"])
-        ? $_POST["price_per_inquiry"]
-        : [];
-
-    for ($i = 0; $i < count($volume_starts); $i++) {
-        if ($volume_starts[$i] !== "" && $prices[$i] !== "") {
-            $tiers[] = [
-                "volume_start" => (int) $volume_starts[$i],
-                "volume_end" =>
-                    $volume_ends[$i] !== "" ? (int) $volume_ends[$i] : null,
-                "price_per_inquiry" => (float) $prices[$i],
-            ];
-        }
-    }
-
-    $validation = validate_tier_ranges($tiers);
-    if (!empty($validation["errors"])) {
-        $confirm = get_param("confirm_overlap", "");
-        if (empty($confirm)) {
-            api_response([
-                "needs_confirmation" => true,
-                "validation" => $validation,
-                "tiers" => $tiers,
-            ]);
-            return;
-        }
-    }
-
+    $tiers = parse_and_validate_tiers();
     save_customer_tiers($customer_id, $service_id, $tiers);
     api_response(["success" => true, "message" => "Customer pricing saved"]);
 }

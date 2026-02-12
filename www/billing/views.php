@@ -991,6 +991,18 @@ function render_header($title = "Control Panel")
         div.appendChild(document.createTextNode(str));
         return div.innerHTML;
     }
+
+    function numberFormat(n, decimals) {
+        if (n === null || n === undefined) return '';
+        return parseFloat(n).toLocaleString('en-US', decimals !== undefined ? {minimumFractionDigits: decimals, maximumFractionDigits: decimals} : {});
+    }
+
+    function formatFilesize(bytes) {
+        var units = ['B', 'KB', 'MB', 'GB'];
+        var i = 0;
+        while (bytes >= 1024 && i < units.length - 1) { bytes /= 1024; i++; }
+        return (Math.round(bytes * 100) / 100) + ' ' + units[i];
+    }
     </script>
 </body>
 </html>
@@ -1042,12 +1054,6 @@ function render_dashboard($data)
     </noscript>
 
     <script>
-    function formatFilesize(bytes) {
-        var units = ['B', 'KB', 'MB', 'GB'];
-        var i = 0;
-        while (bytes >= 1024 && i < units.length - 1) { bytes /= 1024; i++; }
-        return (Math.round(bytes * 100) / 100) + ' ' + units[i];
-    }
     function formatDate(timestamp) {
         var d = new Date(timestamp * 1000);
         var pad = function(n) { return n < 10 ? '0' + n : n; };
@@ -1188,7 +1194,7 @@ function render_upload_config($data)
 function render_ingestion($data)
 {
     render_header("Ingestion - Control Panel");
-    $tab = isset($data['tab']) ? $data['tab'] : 'reports';
+    $tab = isset($data["tab"]) ? $data["tab"] : "reports";
     ?>
 
     <div id="page-data" class="ajax-content">
@@ -1465,8 +1471,7 @@ function render_ingestion($data)
  */
 function render_line_audit($data)
 {
-    render_header("Price Audit - Control Panel");
-    ?>
+    render_header("Price Audit - Control Panel"); ?>
     <!-- MathJax for LaTeX rendering -->
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -1879,8 +1884,7 @@ function render_line_audit($data)
  */
 function render_report_audit($data)
 {
-    render_header("Report Audit - Control Panel");
-    ?>
+    render_header("Report Audit - Control Panel"); ?>
     <style>
         .audit-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
         .audit-summary-card { background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; }
@@ -2076,7 +2080,7 @@ function render_generation($data)
         <h3>Preview (<?php echo $data["preview"]["row_count"]; ?> rows)</h3>
         <?php if (!empty($data["preview"]["errors"])): ?>
             <div class="flash flash-error"><?php echo h(
-                implode(", ", $data["preview"]["errors"])
+                implode(", ", $data["preview"]["errors"]),
             ); ?></div>
         <?php endif; ?>
 
@@ -2108,7 +2112,9 @@ function render_generation($data)
                 </table>
             </div>
             <?php if ($data["preview"]["row_count"] > 50): ?>
-                <p class="text-muted">Showing first 50 of <?php echo $data["preview"]["row_count"]; ?> rows.</p>
+                <p class="text-muted">Showing first 50 of <?php echo $data[
+                    "preview"
+                ]["row_count"]; ?> rows.</p>
             <?php endif; ?>
         <?php endif; ?>
         <?php endif; ?>
@@ -2122,13 +2128,6 @@ function render_generation($data)
 
     <script>
     (function() {
-        function formatFilesize(bytes) {
-            var units = ['B', 'KB', 'MB', 'GB'];
-            var i = 0;
-            while (bytes >= 1024 && i < units.length - 1) { bytes /= 1024; i++; }
-            return (Math.round(bytes * 100) / 100) + ' ' + units[i];
-        }
-
         function formatDate(timestamp) {
             var d = new Date(timestamp * 1000);
             var pad = function(n) { return n < 10 ? '0' + n : n; };
@@ -2391,12 +2390,6 @@ function render_lms_edit($data)
             showAjaxError('lms-edit-content', 'Missing lms_id parameter');
             return;
         }
-
-        function numberFormat(n, decimals) {
-            if (n === null || n === undefined) return '';
-            return parseFloat(n).toLocaleString('en-US', decimals !== undefined ? {minimumFractionDigits: decimals, maximumFractionDigits: decimals} : {});
-        }
-
         apiGet('lms_edit', {lms_id: lmsId}, function(err, data) {
             if (err) { showAjaxError('lms-edit-content', err); return; }
 
@@ -3113,10 +3106,6 @@ function render_pricing_defaults($data)
     </div>
 
     <script>
-    function numberFormat(n, decimals) {
-        if (n === null || n === undefined) return '';
-        return parseFloat(n).toLocaleString('en-US', decimals !== undefined ? {minimumFractionDigits: decimals, maximumFractionDigits: decimals} : {});
-    }
     function toggleTiers(id) {
         var el = document.getElementById('tiers-' + id);
         var icon = document.getElementById('icon-' + id);
@@ -3213,12 +3202,6 @@ function render_pricing_defaults_edit($data)
             showAjaxError('pde-content', 'Missing service_id parameter');
             return;
         }
-
-        function numberFormat(n, decimals) {
-            if (n === null || n === undefined) return '';
-            return parseFloat(n).toLocaleString('en-US', decimals !== undefined ? {minimumFractionDigits: decimals, maximumFractionDigits: decimals} : {});
-        }
-
         apiGet('pricing_defaults_edit', {service_id: serviceId}, function(err, data) {
             if (err) { showAjaxError('pde-content', err); return; }
 
@@ -3385,11 +3368,10 @@ function render_pricing_defaults_edit($data)
  */
 function render_pricing_group_services($data)
 {
-    $group_id   = $data["group"]["id"];
+    $group_id = $data["group"]["id"];
     $group_name = $data["group"]["name"];
-
     render_header("Group Pricing - " . h($group_name));
-?>
+    ?>
     <div id="page-data" class="ajax-content">
         <div class="loading-skeleton">
             <div class="skeleton-bar w75"></div>
@@ -3403,12 +3385,6 @@ function render_pricing_group_services($data)
     (function() {
         var groupId   = <?php echo (int) $group_id; ?>;
         var groupName = <?php echo json_encode($group_name); ?>;
-
-        function numberFormat(n, decimals) {
-            if (n === null || n === undefined) return '';
-            return parseFloat(n).toLocaleString('en-US', decimals !== undefined ? {minimumFractionDigits: decimals, maximumFractionDigits: decimals} : {});
-        }
-
         function validateTierRanges(tiers) {
             var gaps = [], overlaps = [];
             if (!tiers || tiers.length === 0) return {gaps: gaps, overlaps: overlaps};
@@ -3653,12 +3629,6 @@ function render_pricing_group_edit($data)
             showAjaxError('page-data', 'Missing group_id or service_id parameter');
             return;
         }
-
-        function numberFormat(n, decimals) {
-            if (n === null || n === undefined) return '';
-            return parseFloat(n).toLocaleString('en-US', decimals !== undefined ? {minimumFractionDigits: decimals, maximumFractionDigits: decimals} : {});
-        }
-
         function renderValidation(validation) {
             if (!validation) return '';
             var hasGaps = validation.gaps && validation.gaps.length > 0;
@@ -3993,12 +3963,6 @@ function render_pricing_customer_services($data)
     <script>
     (function() {
         var customerId = <?php echo (int) $data["customer"]["id"]; ?>;
-
-        function numberFormat(n, decimals) {
-            if (n === null || n === undefined) return '';
-            return parseFloat(n).toLocaleString('en-US', decimals !== undefined ? {minimumFractionDigits: decimals, maximumFractionDigits: decimals} : {});
-        }
-
         function validateTierRanges(tiers) {
             var result = {gaps: [], overlaps: []};
             if (!tiers || tiers.length === 0) return result;
@@ -6886,16 +6850,6 @@ function render_billing_customer_daily($data)
 (function() {
     var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-    function escapeHtml(str) {
-        if (str === null || str === undefined) return '';
-        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
-    function numberFormat(num) {
-        if (num === null || num === undefined) return '0';
-        return Number(num).toLocaleString();
-    }
-
     var params = new URLSearchParams(window.location.search);
     var customerId = params.get('id');
     var year = params.get('year');
@@ -7333,22 +7287,24 @@ function render_admin($data)
     <!-- Environment Banner (server-rendered - uses PHP constants) -->
     <?php
     $env_code = defined("CODE_ENVIRONMENT") ? CODE_ENVIRONMENT : "mock_prod";
-    $env_colors = array(
+    $env_colors = [
         "default" => "linear-gradient(135deg, #4b6cb7 0%, #182848 100%)",
         "dev" => "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         "rc" => "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
         "live" => "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)",
         "mock_prod" => "linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%)",
-    );
-    $env_labels = array(
+    ];
+    $env_labels = [
         "default" => "Default",
         "dev" => "Development",
         "rc" => "Release Candidate",
         "live" => "Production",
         "mock_prod" => "Mock Production",
-    );
+    ];
     ?>
-    <div class="mode-banner" style="background: <?php echo $env_colors[$env_code]; ?>;">
+    <div class="mode-banner" style="background: <?php echo $env_colors[
+        $env_code
+    ]; ?>;">
         <div>
             <h3 style="display: flex; align-items: center; gap: 10px;">
                 <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 4px; font-size: 12px; text-transform: uppercase;">
@@ -7367,7 +7323,9 @@ function render_admin($data)
             </p>
         </div>
         <div style="display: flex; gap: 10px;">
-            <a href="?mock=<?php echo MOCK_MODE ? "0" : "1"; ?>" class="btn" style="background: rgba(255,255,255,0.2); color: white;">
+            <a href="?mock=<?php echo MOCK_MODE
+                ? "0"
+                : "1"; ?>" class="btn" style="background: rgba(255,255,255,0.2); color: white;">
                 <?php echo MOCK_MODE ? "Use Live Data" : "Use Mock Data"; ?>
             </a>
         </div>
@@ -7375,12 +7333,27 @@ function render_admin($data)
 
     <!-- Tabs (server-rendered - uses $data["tab"] for active class) -->
     <div class="admin-tabs">
-        <a href="?action=admin&tab=overview" class="<?php echo $tab === "overview" ? "active" : ""; ?>">Overview</a>
-        <a href="?action=admin&tab=sync" class="<?php echo $tab === "sync" ? "active" : ""; ?>">Data Sync</a>
-        <a href="?action=admin&tab=filesystem" class="<?php echo $tab === "filesystem" ? "active" : ""; ?>">File System</a>
-        <a href="?action=admin&tab=environment" class="<?php echo $tab === "environment" ? "active" : ""; ?>">Environment</a>
-        <a href="?action=admin&tab=data" class="<?php echo $tab === "data" ? "active" : ""; ?>">Data Management</a>
-        <a href="?action=admin&tab=seed" class="<?php echo $tab === "seed" ? "active" : ""; ?>">Test Data</a>
+        <a href="?action=admin&tab=overview" class="<?php echo $tab ===
+        "overview"
+            ? "active"
+            : ""; ?>">Overview</a>
+        <a href="?action=admin&tab=sync" class="<?php echo $tab === "sync"
+            ? "active"
+            : ""; ?>">Data Sync</a>
+        <a href="?action=admin&tab=filesystem" class="<?php echo $tab ===
+        "filesystem"
+            ? "active"
+            : ""; ?>">File System</a>
+        <a href="?action=admin&tab=environment" class="<?php echo $tab ===
+        "environment"
+            ? "active"
+            : ""; ?>">Environment</a>
+        <a href="?action=admin&tab=data" class="<?php echo $tab === "data"
+            ? "active"
+            : ""; ?>">Data Management</a>
+        <a href="?action=admin&tab=seed" class="<?php echo $tab === "seed"
+            ? "active"
+            : ""; ?>">Test Data</a>
     </div>
 
     <!-- AJAX content area -->
