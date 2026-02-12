@@ -1084,3 +1084,145 @@ function get_flash()
     }
     return null;
 }
+
+// ============================================================
+// BACKGROUND JOB HELPERS
+// ============================================================
+
+/**
+ * Get path to a job's progress JSON file
+ *
+ * @param string $job_id
+ * @return string
+ */
+function job_file($job_id)
+{
+    return get_temp_path() . "/jobs/" . basename($job_id) . ".json";
+}
+
+/**
+ * Create a new background job and return its ID
+ *
+ * @param string $type   "seed", "sync", "audit"
+ * @param array  $params Parameters for the job
+ * @return string Job ID
+ */
+function job_create($type, $params = array())
+{
+    $job_id = uniqid("job_", true);
+    $job_dir = get_temp_path() . "/jobs";
+    if (!is_dir($job_dir)) {
+        mkdir($job_dir, 0755, true);
+    }
+    $data = array(
+        "id" => $job_id,
+        "type" => $type,
+        "params" => $params,
+        "status" => "pending",
+        "progress" => 0,
+        "total_steps" => 0,
+        "current_step" => "",
+        "log" => array(),
+        "started_at" => date("c"),
+        "updated_at" => date("c")
+    );
+    file_put_contents(job_file($job_id), json_encode($data));
+    return $job_id;
+}
+
+/**
+ * Update job progress
+ *
+ * @param string $job_id
+ * @param string $step        Current step label
+ * @param int    $progress    Current step number
+ * @param int    $total_steps Total number of steps
+ * @param string $message     Log message
+ */
+function job_progress($job_id, $step, $progress, $total_steps, $message)
+{
+    $file = job_file($job_id);
+    if (!file_exists($file)) {
+        return;
+    }
+    $data = json_decode(file_get_contents($file), true);
+    $data["status"] = "running";
+    $data["progress"] = $progress;
+    $data["total_steps"] = $total_steps;
+    $data["current_step"] = $step;
+    $data["log"][] = $message;
+    $data["updated_at"] = date("c");
+    file_put_contents($file, json_encode($data));
+}
+
+/**
+ * Mark job as complete
+ *
+ * @param string $job_id
+ * @param string $result_message
+ */
+function job_complete($job_id, $result_message)
+{
+    $file = job_file($job_id);
+    if (!file_exists($file)) {
+        return;
+    }
+    $data = json_decode(file_get_contents($file), true);
+    $data["status"] = "complete";
+    $data["progress"] = $data["total_steps"];
+    $data["result"] = $result_message;
+    $data["updated_at"] = date("c");
+    file_put_contents($file, json_encode($data));
+}
+
+/**
+ * Mark job as failed
+ *
+ * @param string $job_id
+ * @param string $error_message
+ */
+function job_fail($job_id, $error_message)
+{
+    $file = job_file($job_id);
+    if (!file_exists($file)) {
+        return;
+    }
+    $data = json_decode(file_get_contents($file), true);
+    $data["status"] = "failed";
+    $data["error"] = $error_message;
+    $data["updated_at"] = date("c");
+    file_put_contents($file, json_encode($data));
+}
+
+/**
+ * Read job status
+ *
+ * @param string $job_id
+ * @return array|null
+ */
+function job_read($job_id)
+{
+    $file = job_file($job_id);
+    if (!file_exists($file)) {
+        return null;
+    }
+    return json_decode(file_get_contents($file), true);
+}
+
+/**
+ * Clean up old job files
+ *
+ * @param int $max_age_seconds Default 1 hour
+ */
+function job_cleanup($max_age_seconds = 3600)
+{
+    $dir = get_temp_path() . "/jobs";
+    if (!is_dir($dir)) {
+        return;
+    }
+    foreach (glob($dir . "/job_*.json") as $f) {
+        if (filemtime($f) < time() - $max_age_seconds) {
+            unlink($f);
+        }
+    }
+}

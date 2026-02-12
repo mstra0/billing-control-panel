@@ -120,6 +120,9 @@ require_once __DIR__ . "/data.php";
 // We need calculator for price lookups, but it requires data.php functions
 // which we're including above
 
+// Number of numbered steps in run_seed() — keep in sync with seed_log("N. ...") calls
+$SEED_TOTAL_STEPS = 14;
+
 // ============================================================
 // HELPER FUNCTIONS
 // ============================================================
@@ -127,6 +130,23 @@ require_once __DIR__ . "/data.php";
 function seed_log($message)
 {
     global $is_cli, $seed_log_buffer;
+
+    // Background job mode: write progress to job JSON file
+    if (defined("BACKGROUND_JOB") && defined("BACKGROUND_JOB_ID")) {
+        global $SEED_TOTAL_STEPS;
+        if (preg_match("/^(\d+)\./", $message, $m)) {
+            $step = (int) $m[1];
+            job_progress(
+                BACKGROUND_JOB_ID,
+                $message,
+                $step,
+                $SEED_TOTAL_STEPS,
+                $message
+            );
+        }
+        return;
+    }
+
     if (isset($is_cli) && $is_cli) {
         echo $message . "\n";
     } else {

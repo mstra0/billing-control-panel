@@ -22,6 +22,14 @@ $_is_qa_mode = !$_is_cli && !$_is_included;
 if ($_is_qa_mode) {
     require_once __DIR__ . "/../bootstrap_qa.php";
 
+    // Include calculator (needed for cross-engine agreement tests)
+    $_test_root = dirname(dirname(__DIR__));
+    if (file_exists($_test_root . "/calculator.php")) {
+        require_once $_test_root . "/calculator.php";
+    } else {
+        require_once $_test_root . "/www/billing/calculator.php";
+    }
+
     ob_start();
     $_qa_test_results = run_escalator_tests();
     $test_output = ob_get_clean();
@@ -38,7 +46,12 @@ if ($_is_cli && !$_is_included) {
 }
 
 // Include calculator for cross-engine agreement tests
-require_once dirname(dirname(__DIR__)) . "/www/billing/calculator.php";
+$_test_root = dirname(dirname(__DIR__));
+if (file_exists($_test_root . "/calculator.php")) {
+    require_once $_test_root . "/calculator.php";
+} else {
+    require_once $_test_root . "/www/billing/calculator.php";
+}
 
 // Backdated effective_date for test data — must be far enough in the past
 // that point-in-time queries with any reasonable as_of_date will see the data.

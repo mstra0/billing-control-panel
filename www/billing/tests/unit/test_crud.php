@@ -23,7 +23,12 @@ $_is_qa_mode = !$_is_cli && !$_is_included;
 if ($_is_qa_mode) {
     require_once __DIR__ . "/../bootstrap_qa.php";
     require_once __DIR__ . "/../qa_wrapper.php";
-    require_once dirname(dirname(__DIR__)) . "/www/billing/calculator.php";
+    $_test_root = dirname(dirname(__DIR__));
+    if (file_exists($_test_root . "/calculator.php")) {
+        require_once $_test_root . "/calculator.php";
+    } else {
+        require_once $_test_root . "/www/billing/calculator.php";
+    }
 
     ob_start();
     $_qa_test_results = run_crud_tests();

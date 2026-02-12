@@ -2546,7 +2546,7 @@ function action_business_rules()
         // Count masked rules
         $masked_count = 0;
         foreach ($rules as $rule) {
-            if (get_rule_mask_status($customer["id"], $rule["rule_name"])) {
+            if (get_rule_mask_status($customer["id"], $rule["name"])) {
                 $masked_count++;
             }
         }
@@ -2577,14 +2577,14 @@ function action_business_rules_all()
 
     if ($filter_masked === "1") {
         $where[] =
-            "EXISTS (SELECT 1 FROM business_rule_masks brm WHERE brm.customer_id = br.customer_id AND brm.rule_name = br.rule_name AND brm.is_masked = 1)";
+            "EXISTS (SELECT 1 FROM business_rule_masks brm WHERE brm.customer_id = cbr.customer_id AND brm.rule_name = br.name AND brm.is_masked = 1)";
     } elseif ($filter_masked === "0") {
         $where[] =
-            "NOT EXISTS (SELECT 1 FROM business_rule_masks brm WHERE brm.customer_id = br.customer_id AND brm.rule_name = br.rule_name AND brm.is_masked = 1)";
+            "NOT EXISTS (SELECT 1 FROM business_rule_masks brm WHERE brm.customer_id = cbr.customer_id AND brm.rule_name = br.name AND brm.is_masked = 1)";
     }
 
     if (!empty($search)) {
-        $where[] = "(br.rule_name LIKE ? OR c.name LIKE ?)";
+        $where[] = "(br.name LIKE ? OR c.name LIKE ?)";
         $params[] = "%$search%";
         $params[] = "%$search%";
     }
@@ -2593,7 +2593,8 @@ function action_business_rules_all()
 
     // Get total count
     $count_sql = "SELECT COUNT(*) as cnt FROM business_rules br
-                  JOIN customers c ON br.customer_id = c.id
+                  JOIN customer_business_rules cbr ON cbr.business_rule_id = br.id
+                  JOIN customers c ON c.id = cbr.customer_id
                   $where_clause";
     $total = sqlite_query($count_sql, $params);
     $total_count = $total[0]["cnt"];
@@ -2602,11 +2603,12 @@ function action_business_rules_all()
     $offset = ($page - 1) * ITEMS_PER_PAGE;
 
     // Get rules
-    $sql = "SELECT br.*, c.name as customer_name, c.status as customer_status
+    $sql = "SELECT br.*, br.name as rule_name, cbr.customer_id, c.name as customer_name, c.status as customer_status
             FROM business_rules br
-            JOIN customers c ON br.customer_id = c.id
+            JOIN customer_business_rules cbr ON cbr.business_rule_id = br.id
+            JOIN customers c ON c.id = cbr.customer_id
             $where_clause
-            ORDER BY c.name, br.rule_name
+            ORDER BY c.name, br.name
             LIMIT ? OFFSET ?";
     $params[] = ITEMS_PER_PAGE;
     $params[] = $offset;
@@ -2630,7 +2632,7 @@ function action_business_rules_all()
             "SELECT COUNT(*) as cnt FROM business_rule_masks WHERE is_masked = 1"
         )[0]["cnt"],
         "customers_with_rules" => sqlite_query(
-            "SELECT COUNT(DISTINCT customer_id) as cnt FROM business_rules"
+            "SELECT COUNT(DISTINCT customer_id) as cnt FROM customer_business_rules"
         )[0]["cnt"],
     ];
 
@@ -2677,10 +2679,8 @@ function action_business_rule_edit()
     // Get rules with mask status
     $rules = get_customer_rules($customer_id);
     foreach ($rules as &$rule) {
-        $rule["is_masked"] = get_rule_mask_status(
-            $customer_id,
-            $rule["rule_name"]
-        );
+        $rule["rule_name"] = $rule["name"];
+        $rule["is_masked"] = get_rule_mask_status($customer_id, $rule["name"]);
     }
 
     $data = [
@@ -4589,7 +4589,91 @@ function action_admin_reseed()
 }
 
 // ============================================================
-// SYSTEM/SETUP ACTIONS
+// BACKGROUND JOB ENDPOINTS
+// ============================================================
+
+/**
+ * Start a background job
+ * Accepts POST with job_type and params, launches a CLI process,
+ * returns JSON with job_id for polling.
+ */
+function action_job_start()
+{
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+        header("Content-Type: application/json");
+        echo json_encode(array("error" => "POST required"));
+        exit();
+    }
+
+    $type = get_param("job_type");
+    $valid_types = array("seed", "sync", "audit");
+    if (!in_array($type, $valid_types)) {
+        header("Content-Type: application/json");
+        echo json_encode(array("error" => "Invalid job type: $type"));
+        exit();
+    }
+
+    $params_raw = get_param("params", "{}");
+    $params = json_decode($params_raw, true);
+    if (!is_array($params)) {
+        $params = array();
+    }
+
+    // Clean up old jobs
+    job_cleanup();
+
+    // Create the job
+    $job_id = job_create($type, $params);
+
+    // Launch background process
+    $php = PHP_BINARY;
+    $script = __DIR__ . "/job_runner.php";
+    $cmd = sprintf(
+        "%s %s --job-id=%s --type=%s > /dev/null 2>&1 &",
+        escapeshellarg($php),
+        escapeshellarg($script),
+        escapeshellarg($job_id),
+        escapeshellarg($type)
+    );
+    exec($cmd, $exec_output, $exec_return);
+
+    if ($exec_return !== 0) {
+        job_fail(
+            $job_id,
+            "Failed to launch background process (exit code: $exec_return)"
+        );
+    }
+
+    header("Content-Type: application/json");
+    echo json_encode(array("job_id" => $job_id));
+    exit();
+}
+
+/**
+ * Get background job status
+ * Returns JSON with current progress for polling.
+ */
+function action_job_status()
+{
+    $job_id = get_param("id");
+    if (empty($job_id)) {
+        header("Content-Type: application/json");
+        echo json_encode(array("error" => "No job ID specified"));
+        exit();
+    }
+
+    $job = job_read($job_id);
+    if (!$job) {
+        header("Content-Type: application/json");
+        echo json_encode(array("error" => "Job not found"));
+        exit();
+    }
+
+    header("Content-Type: application/json");
+    echo json_encode($job);
+    exit();
+}
+
 // ============================================================
 
 /**
@@ -4729,6 +4813,10 @@ function route()
         "admin_clear_entity" => "action_admin_clear_entity",
         "admin_reseed" => "action_admin_reseed",
         "admin_fix_directories" => "action_admin_fix_directories",
+
+        // Background Jobs
+        "job_start" => "action_job_start",
+        "job_status" => "action_job_status",
 
         // System/Setup
         "fix_shared_directory" => "action_fix_shared_directory",

@@ -229,5 +229,7 @@ init_mock_data();
 sqlite_db();
 sqlite_seed_mock_data();
 
-// Route the request
-route();
+// Route the request (skip when loaded by background job runner)
+if (!defined("BACKGROUND_JOB")) {
+    route();
+}

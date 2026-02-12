@@ -17,7 +17,13 @@ ini_set("display_errors", 1);
 
 // Test mode flag - used by control_panel.php to use test database
 define("TEST_MODE", true);
-define("TEST_DB_PATH", "/tmp/test_control_panel.db");
+
+// Use separate db paths for CLI vs browser to avoid WAL file ownership conflicts
+if (php_sapi_name() === "cli") {
+    define("TEST_DB_PATH", "/tmp/test_control_panel_cli.db");
+} else {
+    define("TEST_DB_PATH", "/tmp/test_control_panel_web.db");
+}
 
 // Track test results
 $_test_results = [
@@ -481,9 +487,12 @@ function setup_test_database()
     // Close existing connection
     $_sqlite_db = null;
 
-    // Delete existing test database
-    if (file_exists(TEST_DB_PATH)) {
-        unlink(TEST_DB_PATH);
+    // Delete existing test database and WAL/SHM files
+    foreach (["", "-wal", "-shm"] as $suffix) {
+        $f = TEST_DB_PATH . $suffix;
+        if (file_exists($f)) {
+            unlink($f);
+        }
     }
 
     // The control_panel.php will create fresh schema on sqlite_db() call
@@ -497,8 +506,11 @@ function teardown_test_database()
     global $_sqlite_db;
     $_sqlite_db = null;
 
-    if (file_exists(TEST_DB_PATH)) {
-        unlink(TEST_DB_PATH);
+    foreach (["", "-wal", "-shm"] as $suffix) {
+        $f = TEST_DB_PATH . $suffix;
+        if (file_exists($f)) {
+            unlink($f);
+        }
     }
 }
 
@@ -519,13 +531,24 @@ function get_test_db_path()
 
 // For now, we'll include it and override the database path
 $_original_cwd = getcwd();
-chdir(dirname(__DIR__)); // Change to PHP directory
+
+// Detect if we're inside www/billing/tests or at the project root tests/
+$_bootstrap_dir = dirname(__DIR__);
+if (file_exists($_bootstrap_dir . "/control_panel.php")) {
+    // We're inside www/billing/ - control_panel.php is a sibling
+    $_cp_path = $_bootstrap_dir . "/control_panel.php";
+} else {
+    // We're at project root - control_panel.php is in www/billing/
+    $_cp_path = $_bootstrap_dir . "/www/billing/control_panel.php";
+}
+
+chdir(dirname($_cp_path));
 
 // Capture and discard any output from control_panel.php
 ob_start();
 
 // Include the main application to get all function definitions
-require_once dirname(__DIR__) . "/www/billing/control_panel.php";
+require_once $_cp_path;
 
 ob_end_clean();
 

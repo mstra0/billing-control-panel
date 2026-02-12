@@ -732,6 +732,146 @@ function render_header($title = "Control Panel")
 {
     ?>
     </div>
+
+    <!-- Background Job Status Modal -->
+    <div id="job-modal" style="display:none;">
+        <div class="job-modal-backdrop"></div>
+        <div class="job-modal-content">
+            <h3 id="job-modal-title">Processing...</h3>
+            <div class="progress-bar" style="margin: 20px 0; height: 24px;">
+                <div id="job-modal-fill" class="fill green" style="width: 0%; min-width: 0;">0%</div>
+            </div>
+            <div id="job-modal-step" style="font-weight: 600; margin-bottom: 10px;">Starting...</div>
+            <div id="job-modal-log" style="max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px; background: #f8f8f8; padding: 10px; border-radius: 4px; border: 1px solid #eee;"></div>
+            <div id="job-modal-result" style="display:none; margin-top: 15px;"></div>
+        </div>
+    </div>
+    <style>
+        .job-modal-backdrop {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); z-index: 9998;
+        }
+        .job-modal-content {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #fff; border-radius: 12px; padding: 30px; width: 500px;
+            max-width: 90vw; z-index: 9999; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .job-modal-content h3 { margin: 0 0 10px 0; font-size: 18px; }
+    </style>
+    <script>
+    var JOB_POLL_INTERVAL_MS = 1000;
+
+    function startJob(type, params, title) {
+        var modal = document.getElementById('job-modal');
+        modal.style.display = '';
+        document.getElementById('job-modal-title').textContent = title || 'Processing...';
+        document.getElementById('job-modal-fill').style.width = '0%';
+        document.getElementById('job-modal-fill').textContent = '0%';
+        document.getElementById('job-modal-fill').className = 'fill green';
+        document.getElementById('job-modal-step').textContent = 'Starting...';
+        document.getElementById('job-modal-log').innerHTML = '';
+        document.getElementById('job-modal-result').style.display = 'none';
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '?action=job_start');
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onload = function() {
+            try {
+                var resp = JSON.parse(xhr.responseText);
+                if (resp.job_id) {
+                    pollJob(resp.job_id);
+                } else {
+                    showJobError(resp.error || 'Failed to start job');
+                }
+            } catch (e) {
+                showJobError('Invalid response from server');
+            }
+        };
+        xhr.onerror = function() {
+            showJobError('Network error starting job');
+        };
+        xhr.send('job_type=' + encodeURIComponent(type) +
+                 '&params=' + encodeURIComponent(JSON.stringify(params)));
+    }
+
+    function pollJob(jobId) {
+        var pollInterval = setInterval(function() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '?action=job_status&id=' + encodeURIComponent(jobId));
+            xhr.onload = function() {
+                try {
+                    var job = JSON.parse(xhr.responseText);
+                } catch (e) {
+                    return;
+                }
+                if (!job || job.error) {
+                    clearInterval(pollInterval);
+                    showJobError(job ? job.error : 'Job not found');
+                    return;
+                }
+
+                var pct = job.total_steps > 0
+                    ? Math.round((job.progress / job.total_steps) * 100) : 0;
+                var fillEl = document.getElementById('job-modal-fill');
+                fillEl.style.width = pct + '%';
+                fillEl.textContent = pct + '%';
+
+                var stepText = job.current_step || 'Working...';
+                if (job.total_steps > 0) {
+                    stepText = 'Step ' + job.progress + ' of ' + job.total_steps + ': ' + stepText;
+                }
+                document.getElementById('job-modal-step').textContent = stepText;
+
+                var logEl = document.getElementById('job-modal-log');
+                if (job.log && job.log.length > 0) {
+                    var html = '';
+                    for (var i = 0; i < job.log.length; i++) {
+                        html += '<div>' + escapeHtml(job.log[i]) + '</div>';
+                    }
+                    logEl.innerHTML = html;
+                    logEl.scrollTop = logEl.scrollHeight;
+                }
+
+                if (job.status === 'complete') {
+                    clearInterval(pollInterval);
+                    fillEl.className = 'fill green';
+                    fillEl.style.width = '100%';
+                    fillEl.textContent = '100%';
+                    document.getElementById('job-modal-step').textContent = 'Complete!';
+                    var resultEl = document.getElementById('job-modal-result');
+                    resultEl.style.display = '';
+                    resultEl.innerHTML = '<div class="flash flash-success">' + escapeHtml(job.result) +
+                        '</div><p style="margin-top:15px; text-align:center;"><button onclick="location.reload();" class="btn btn-success">Done</button></p>';
+                }
+                if (job.status === 'failed') {
+                    clearInterval(pollInterval);
+                    fillEl.className = 'fill red';
+                    var resultEl = document.getElementById('job-modal-result');
+                    resultEl.style.display = '';
+                    resultEl.innerHTML = '<div class="flash flash-error">Error: ' + escapeHtml(job.error) +
+                        '</div><p style="margin-top:15px; text-align:center;"><button onclick="location.reload();" class="btn">Close</button></p>';
+                }
+            };
+            xhr.send();
+        }, JOB_POLL_INTERVAL_MS);
+    }
+
+    function showJobError(msg) {
+        document.getElementById('job-modal-fill').className = 'fill red';
+        document.getElementById('job-modal-step').textContent = 'Error';
+        var resultEl = document.getElementById('job-modal-result');
+        resultEl.style.display = '';
+        resultEl.innerHTML = '<div class="flash flash-error">' + escapeHtml(msg) +
+            '</div><p style="margin-top:15px; text-align:center;"><button onclick="document.getElementById(\'job-modal\').style.display=\'none\';" class="btn">Close</button></p>';
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+    </script>
 </body>
 </html>
 <?php
@@ -40829,11 +40969,9 @@ function render_billing_customer_daily($data)
         </table>
 
         <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
-            <form method="POST" action="?action=admin_sync" style="display: inline;">
+            <form method="POST" action="?action=admin_sync" style="display: inline;" onsubmit="event.preventDefault(); startJob('sync', {entity: 'all'}, 'Syncing All Master Data...'); return false;">
                 <input type="hidden" name="entity" value="all">
-                <button type="submit" class="btn btn-sync" onclick="return confirm('Sync all entities from remote database?');">
-                    Sync All Master Data
-                </button>
+                <button type="submit" class="btn btn-sync">Sync All Master Data</button>
             </form>
         </div>
     </div>
@@ -41027,7 +41165,14 @@ define("REMOTE_DB_PASS", "secure_password");
         <h3><span class="icon">&#127793;</span> Generate Test Data</h3>
         <p>Generate audit-compatible test data. Billing reports will use calculated prices from the pricing tier system with controlled variance for testing.</p>
 
-        <form method="POST" action="?action=admin_reseed" onsubmit="return confirm('This will generate new test data. Continue?');">
+        <form method="POST" action="?action=admin_reseed" onsubmit="event.preventDefault(); startJob('seed', {
+            days_of_history: this.days.value,
+            customer_count: this.customers.value,
+            exact_match_pct: this.exact_pct.value,
+            small_variance_pct: this.small_pct.value,
+            large_variance_pct: this.large_pct.value,
+            clear_first: this.clear_first.checked ? '1' : '0'
+        }, 'Seeding Database...'); return false;">
             <div class="form-row">
                 <div class="form-group">
                     <label>Days of History</label>
