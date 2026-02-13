@@ -1002,15 +1002,26 @@ function sqlite_seed_mock_data()
          VALUES (1, '2024-01-01', 3, 10.0, 0, '2024-01-01')"
     );
 
-    // Seed business rules
+    // Seed business rules (business_rules has: id, name, active)
     sqlite_execute(
-        "INSERT INTO business_rules (customer_id, rule_name, rule_description) VALUES (1, 'RULE_SKIP_EMPTY', 'Skip empty records')"
+        "INSERT INTO business_rules (id, name) VALUES (1, 'RULE_SKIP_EMPTY')"
     );
     sqlite_execute(
-        "INSERT INTO business_rules (customer_id, rule_name, rule_description) VALUES (1, 'RULE_VALIDATE_SSN', 'Validate SSN format')"
+        "INSERT INTO business_rules (id, name) VALUES (2, 'RULE_VALIDATE_SSN')"
     );
     sqlite_execute(
-        "INSERT INTO business_rules (customer_id, rule_name, rule_description) VALUES (1, 'RULE_CHECK_DUPLICATES', 'Check for duplicates')"
+        "INSERT INTO business_rules (id, name) VALUES (3, 'RULE_CHECK_DUPLICATES')"
+    );
+
+    // Link rules to customer via join table
+    sqlite_execute(
+        "INSERT INTO customer_business_rules (customer_id, business_rule_id) VALUES (1, 1)"
+    );
+    sqlite_execute(
+        "INSERT INTO customer_business_rules (customer_id, business_rule_id) VALUES (1, 2)"
+    );
+    sqlite_execute(
+        "INSERT INTO customer_business_rules (customer_id, business_rule_id) VALUES (1, 3)"
     );
 
     // Mask one rule

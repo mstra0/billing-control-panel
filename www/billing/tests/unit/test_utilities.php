@@ -172,6 +172,7 @@ echo format_filesize(1048576);  // "1 MB"</pre>
         <?php if (isset($_GET["escape_test"])):
             // Call REAL functions
 
+
             $escaped = h($_GET["escape_test"]);
             $safe_name = safe_filename($_GET["filename_test"]);
             $formatted_size = format_filesize(intval($_GET["filesize_test"]));
@@ -441,16 +442,20 @@ function run_utilities_tests()
     run_test("paginate - page beyond total", function () {
         $result = paginate(50, 100, 10);
 
-        // Returns the requested page even if beyond total
-        assert_equals(100, $result["current"], "Returns requested page");
-        assert_loose_equals(5, $result["total_pages"], "Total pages is 5"); // ceil() returns float
+        // Page is clamped to total_pages
+        assert_loose_equals(5, $result["current"], "Clamps to last page");
+        assert_loose_equals(5, $result["total_pages"], "Total pages is 5");
     });
 
     run_test("paginate - zero items", function () {
         $result = paginate(0, 1, 10);
 
         assert_equals(0, $result["total"], "Total items");
-        assert_loose_equals(0, $result["total_pages"], "Zero pages for empty"); // ceil() returns float
+        assert_loose_equals(
+            1,
+            $result["total_pages"],
+            "Minimum 1 page even when empty"
+        );
     });
 
     // ============================================================

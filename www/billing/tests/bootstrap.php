@@ -557,5 +557,11 @@ chdir($_original_cwd);
 // Include test fixtures (factory functions)
 require_once __DIR__ . "/fixtures.php";
 
+// Start every test run with a fresh, empty database.
+// control_panel.php already ran sqlite_seed_mock_data() above, but tests
+// expect an empty DB so they can create their own isolated data.
+setup_test_database();
+reset_fixture_counters();
+
 echo "Test framework loaded.\n";
 echo "Test database: " . TEST_DB_PATH . "\n";

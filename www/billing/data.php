@@ -167,7 +167,7 @@ function get_customers_with_masked_rules()
         $masked_count = 0;
 
         foreach ($rules as $rule) {
-            if (get_rule_mask_status($customer["id"], $rule["rule_name"])) {
+            if (get_rule_mask_status($customer["id"], $rule["name"])) {
                 $masked_count++;
             }
         }
@@ -2516,6 +2516,412 @@ function get_environment_status()
             defined("REMOTE_DB_HOST") && REMOTE_DB_HOST !== "",
         "remote_db_host" => defined("REMOTE_DB_HOST") ? REMOTE_DB_HOST : "",
         "remote_db_name" => defined("REMOTE_DB_NAME") ? REMOTE_DB_NAME : "",
+    ];
+}
+
+/**
+ * Get database access info for the admin Database Access tab.
+ * Returns DB path, size, table inventory, and phpliteadmin credentials.
+ */
+function get_db_access_info()
+{
+    $db_path = defined("SQLITE_DB_PATH") ? SQLITE_DB_PATH : "";
+    $tables = [];
+    try {
+        $raw = sqlite_query(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
+        );
+        foreach ($raw as $row) {
+            $count = sqlite_query(
+                "SELECT COUNT(*) as cnt FROM \"" . $row["name"] . "\""
+            );
+            $tables[] = [
+                "name" => $row["name"],
+                "rows" => $count[0]["cnt"],
+            ];
+        }
+    } catch (Exception $e) {
+        $tables = [];
+    }
+
+    return [
+        "db_path" => $db_path,
+        "db_size" => file_exists($db_path) ? filesize($db_path) : 0,
+        "db_writable" => file_exists($db_path) && is_writable($db_path),
+        "tables" => $tables,
+        "table_count" => count($tables),
+        "phpliteadmin_url" => "phpliteadmin.php",
+        "phpliteadmin_password" => defined("PHPLITEADMIN_PASSWORD")
+            ? PHPLITEADMIN_PASSWORD
+            : "admin",
+        "environment" => defined("CODE_ENVIRONMENT")
+            ? CODE_ENVIRONMENT
+            : "unknown",
+    ];
+}
+
+// ============================================================
+// BILLING INTELLIGENCE ANALYTICS
+// ============================================================
+function get_lms_performance_metrics($year, $month)
+{
+    $all_lms = get_all_lms();
+    $default_rate = get_default_commission_rate();
+    $services = get_all_services();
+
+    // Build service COGS lookup
+    $service_cogs = [];
+    foreach ($services as $svc) {
+        $service_cogs[$svc["id"]] = get_service_cogs($svc["id"]);
+    }
+
+    // Get EFX code to service mapping
+    $efx_to_service = [];
+    $types = sqlite_query(
+        "SELECT efx_code, service_id FROM transaction_types WHERE service_id IS NOT NULL"
+    );
+    foreach ($types as $t) {
+        $efx_to_service[$t["efx_code"]] = $t["service_id"];
+    }
+
+    $lms_data = [];
+    $totals = [
+        "revenue" => 0,
+        "cogs" => 0,
+        "gross_profit" => 0,
+        "commission" => 0,
+        "net_profit" => 0,
+        "transactions" => 0,
+        "customers" => 0,
+    ];
+
+    foreach ($all_lms as $lms) {
+        $customers = get_customers_by_lms($lms["id"]);
+        if (empty($customers)) {
+            continue;
+        }
+
+        $customer_ids = array_column($customers, "id");
+        $customer_id_placeholders = implode(
+            ",",
+            array_fill(0, count($customer_ids), "?")
+        );
+
+        // Get billing data for this LMS's customers for the period
+        $params = array_merge($customer_ids, [$year, $month]);
+        $billing = sqlite_query(
+            "SELECT
+                brl.efx_code,
+                SUM(brl.count) as total_count,
+                SUM(brl.revenue) as total_revenue
+             FROM billing_report_lines brl
+             WHERE brl.customer_id IN ($customer_id_placeholders)
+               AND brl.year = ? AND brl.month = ?
+             GROUP BY brl.efx_code",
+            $params
+        );
+
+        $lms_revenue = 0;
+        $lms_cogs = 0;
+        $lms_transactions = 0;
+
+        foreach ($billing as $row) {
+            $lms_revenue += (float) $row["total_revenue"];
+            $lms_transactions += (int) $row["total_count"];
+
+            // Calculate COGS based on service mapping
+            $service_id = isset($efx_to_service[$row["efx_code"]])
+                ? $efx_to_service[$row["efx_code"]]
+                : null;
+            if ($service_id && isset($service_cogs[$service_id])) {
+                $lms_cogs +=
+                    $service_cogs[$service_id] * (int) $row["total_count"];
+            }
+        }
+
+        $effective_rate =
+            $lms["commission_rate"] !== null
+                ? (float) $lms["commission_rate"]
+                : $default_rate;
+
+        $gross_profit = $lms_revenue - $lms_cogs;
+        $commission = $gross_profit * ($effective_rate / 100);
+        $net_profit = $gross_profit - $commission;
+
+        if ($lms_revenue > 0 || $lms_transactions > 0) {
+            $lms_data[] = [
+                "id" => $lms["id"],
+                "name" => $lms["name"],
+                "commission_rate" => $effective_rate,
+                "is_default_rate" => $lms["commission_rate"] === null,
+                "customer_count" => count($customers),
+                "transactions" => $lms_transactions,
+                "revenue" => $lms_revenue,
+                "cogs" => $lms_cogs,
+                "gross_profit" => $gross_profit,
+                "commission" => $commission,
+                "net_profit" => $net_profit,
+                "margin_pct" =>
+                    $lms_revenue > 0 ? ($net_profit / $lms_revenue) * 100 : 0,
+            ];
+
+            $totals["revenue"] += $lms_revenue;
+            $totals["cogs"] += $lms_cogs;
+            $totals["gross_profit"] += $gross_profit;
+            $totals["commission"] += $commission;
+            $totals["net_profit"] += $net_profit;
+            $totals["transactions"] += $lms_transactions;
+            $totals["customers"] += count($customers);
+        }
+    }
+
+    // Sort by revenue descending
+    usort($lms_data, function ($a, $b) {
+        if ($b["revenue"] == $a["revenue"]) {
+            return 0;
+        }
+        return $b["revenue"] > $a["revenue"] ? 1 : -1;
+    });
+
+    return [
+        "lms_list" => $lms_data,
+        "totals" => $totals,
+        "default_rate" => $default_rate,
+    ];
+}
+
+/**
+ * Get tier proximity analysis - how close customers are to next tier
+ */
+function get_tier_proximity_analysis($year, $month)
+{
+    // Get all active customers with their MTD transaction counts by service
+    $customer_volumes = sqlite_query(
+        "SELECT
+            brl.customer_id,
+            brl.customer_name,
+            brl.efx_code,
+            SUM(brl.count) as mtd_count,
+            SUM(brl.revenue) as mtd_revenue
+         FROM billing_report_lines brl
+         JOIN billing_reports br ON brl.report_id = br.id
+         WHERE brl.year = ? AND brl.month = ?
+         GROUP BY brl.customer_id, brl.customer_name, brl.efx_code",
+        [$year, $month]
+    );
+
+    // Get EFX code to service mapping
+    $efx_to_service = [];
+    $types = sqlite_query(
+        "SELECT efx_code, service_id FROM transaction_types WHERE service_id IS NOT NULL"
+    );
+    foreach ($types as $t) {
+        $efx_to_service[$t["efx_code"]] = $t["service_id"];
+    }
+
+    // Calculate days elapsed and remaining in month
+    $days_in_month = (int) date("t");
+    $current_day = (int) date("j");
+    $days_remaining = $days_in_month - $current_day;
+    $month_progress_pct = ($current_day / $days_in_month) * 100;
+
+    $proximity_data = [];
+
+    foreach ($customer_volumes as $vol) {
+        $customer_id = $vol["customer_id"];
+        $efx_code = $vol["efx_code"];
+        $mtd_count = (int) $vol["mtd_count"];
+
+        // Map to service
+        $service_id = isset($efx_to_service[$efx_code])
+            ? $efx_to_service[$efx_code]
+            : null;
+        if (!$service_id) {
+            continue;
+        }
+
+        // Get effective tiers for this customer/service
+        $tiers = get_effective_customer_tiers($customer_id, $service_id);
+        if (empty($tiers)) {
+            continue;
+        }
+
+        // Find current tier and next tier
+        $current_tier = null;
+        $next_tier = null;
+
+        for ($i = 0; $i < count($tiers); $i++) {
+            $tier = $tiers[$i];
+            $vol_start = (int) $tier["volume_start"];
+            $vol_end =
+                $tier["volume_end"] !== null
+                    ? (int) $tier["volume_end"]
+                    : PHP_INT_MAX;
+
+            if ($mtd_count >= $vol_start && $mtd_count <= $vol_end) {
+                $current_tier = $tier;
+                $current_tier["index"] = $i;
+                // Next tier is the one after
+                if ($i + 1 < count($tiers)) {
+                    $next_tier = $tiers[$i + 1];
+                }
+                break;
+            }
+        }
+
+        if (!$current_tier || !$next_tier) {
+            continue; // Already at highest tier or no tier found
+        }
+
+        // Calculate proximity to next tier
+        $next_tier_threshold = (int) $next_tier["volume_start"];
+        $distance_to_next = $next_tier_threshold - $mtd_count;
+
+        // Project end-of-month volume based on current rate
+        $daily_rate = $current_day > 0 ? $mtd_count / $current_day : 0;
+        $projected_eom = $mtd_count + $daily_rate * $days_remaining;
+
+        // Will they hit next tier?
+        $will_hit_next = $projected_eom >= $next_tier_threshold;
+
+        // Calculate probability of hitting next tier
+        $hit_probability = 0;
+        if ($distance_to_next > 0) {
+            // How many days needed at current rate to hit next tier
+            $days_needed =
+                $daily_rate > 0 ? $distance_to_next / $daily_rate : PHP_INT_MAX;
+            $hit_probability = min(
+                100,
+                ($days_remaining / max(1, $days_needed)) * 100
+            );
+        } elseif ($mtd_count >= $next_tier_threshold) {
+            $hit_probability = 100;
+        }
+
+        // Calculate potential savings if they hit next tier
+        $current_price = (float) $current_tier["price_per_inquiry"];
+        $next_price = (float) $next_tier["price_per_inquiry"];
+        $price_reduction_pct =
+            $current_price > 0
+                ? (($current_price - $next_price) / $current_price) * 100
+                : 0;
+
+        // Progress through current tier
+        $tier_start = (int) $current_tier["volume_start"];
+        $tier_range = $next_tier_threshold - $tier_start;
+        $position_in_tier = $mtd_count - $tier_start;
+        $progress_to_next =
+            $tier_range > 0 ? ($position_in_tier / $tier_range) * 100 : 0;
+
+        // Only include if they have meaningful progress or chance
+        if ($progress_to_next >= 40 || $hit_probability >= 25) {
+            $proximity_data[] = [
+                "customer_id" => $customer_id,
+                "customer_name" => $vol["customer_name"],
+                "service_id" => $service_id,
+                "efx_code" => $efx_code,
+                "mtd_count" => $mtd_count,
+                "mtd_revenue" => (float) $vol["mtd_revenue"],
+                "current_tier_start" => $tier_start,
+                "current_tier_end" => $current_tier["volume_end"],
+                "current_price" => $current_price,
+                "next_tier_threshold" => $next_tier_threshold,
+                "next_tier_price" => $next_price,
+                "distance_to_next" => $distance_to_next,
+                "progress_to_next_pct" => $progress_to_next,
+                "daily_rate" => $daily_rate,
+                "projected_eom" => $projected_eom,
+                "will_hit_next" => $will_hit_next,
+                "hit_probability_pct" => $hit_probability,
+                "price_reduction_pct" => $price_reduction_pct,
+            ];
+        }
+    }
+
+    // Sort by hit probability descending
+    usort($proximity_data, function ($a, $b) {
+        if ($b["hit_probability_pct"] == $a["hit_probability_pct"]) {
+            return 0;
+        }
+        return $b["hit_probability_pct"] > $a["hit_probability_pct"] ? 1 : -1;
+    });
+
+    return [
+        "customers" => $proximity_data,
+        "month_progress_pct" => $month_progress_pct,
+        "days_remaining" => $days_remaining,
+        "days_elapsed" => $current_day,
+        "days_in_month" => $days_in_month,
+        "likely_to_upgrade" => count(
+            array_filter($proximity_data, function ($p) {
+                return $p["hit_probability_pct"] >= 70;
+            })
+        ),
+        "possible_upgrade" => count(
+            array_filter($proximity_data, function ($p) {
+                return $p["hit_probability_pct"] >= 30 &&
+                    $p["hit_probability_pct"] < 70;
+            })
+        ),
+        "unlikely_upgrade" => count(
+            array_filter($proximity_data, function ($p) {
+                return $p["hit_probability_pct"] < 30;
+            })
+        ),
+    ];
+}
+
+/**
+ * Get variance statistics from billing data
+ */
+function get_billing_variance_stats()
+{
+    // Get a sample of audited lines to calculate variance distribution
+    $sample_size = 1000;
+
+    $lines = sqlite_query(
+        "SELECT id FROM billing_report_lines ORDER BY RANDOM() LIMIT ?",
+        [$sample_size]
+    );
+
+    $matches = 0;
+    $small_variances = 0;
+    $large_variances = 0;
+    $errors = 0;
+    $total_audited = 0;
+
+    // Only audit if we have the calculator and reasonable number of lines
+    if (function_exists("audit_billing_line") && count($lines) > 0) {
+        foreach ($lines as $line) {
+            $audit = audit_billing_line($line["id"]);
+
+            if (!empty($audit["errors"])) {
+                $errors++;
+            } elseif (isset($audit["variance"])) {
+                $total_audited++;
+                if ($audit["variance"]["is_match"]) {
+                    $matches++;
+                } elseif (abs($audit["variance"]["unit_price_pct"]) <= 5) {
+                    $small_variances++;
+                } else {
+                    $large_variances++;
+                }
+            }
+        }
+    }
+
+    return [
+        "total_audited" => $total_audited,
+        "matches" => $matches,
+        "small_variances" => $small_variances,
+        "large_variances" => $large_variances,
+        "errors" => $errors,
+        "match_pct" =>
+            $total_audited > 0 ? ($matches / $total_audited) * 100 : 0,
+        "small_var_pct" =>
+            $total_audited > 0 ? ($small_variances / $total_audited) * 100 : 0,
+        "large_var_pct" =>
+            $total_audited > 0 ? ($large_variances / $total_audited) * 100 : 0,
     ];
 }
 

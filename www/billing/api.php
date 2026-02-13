@@ -160,7 +160,7 @@ function api_dashboard()
     $services = sqlite_query("SELECT COUNT(*) as cnt FROM services");
     $groups = sqlite_query("SELECT COUNT(*) as cnt FROM discount_groups");
     $customers_active = sqlite_query(
-        "SELECT COUNT(*) as cnt FROM customers WHERE status = 'active'",
+        "SELECT COUNT(*) as cnt FROM customers WHERE status = 'active'"
     );
     $customers_all = sqlite_query("SELECT COUNT(*) as cnt FROM customers");
     $alerts = get_dashboard_alerts();
@@ -220,14 +220,14 @@ function api_pricing_groups()
     foreach ($groups as &$group) {
         $count = sqlite_query(
             "SELECT COUNT(*) as cnt FROM customers WHERE discount_group_id = ?",
-            [$group["id"]],
+            [$group["id"]]
         );
         $group["member_count"] = $count[0]["cnt"];
 
         $overrides = sqlite_query(
             "SELECT COUNT(DISTINCT service_id) as cnt FROM pricing_tiers
              WHERE level = 'group' AND level_id = ? AND effective_date <= date('now')",
-            [$group["id"]],
+            [$group["id"]]
         );
         $group["override_count"] = $overrides[0]["cnt"];
     }
@@ -310,7 +310,7 @@ function api_pricing_customers()
 
     $total = sqlite_query(
         "SELECT COUNT(*) as cnt FROM customers c LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id $where_str",
-        $params,
+        $params
     );
     $total_count = $total[0]["cnt"];
     $pagination = paginate($total_count, $page);
@@ -327,7 +327,7 @@ function api_pricing_customers()
          $where_str
          ORDER BY c.name
          LIMIT ? OFFSET ?",
-        $query_params,
+        $query_params
     );
 
     api_response([
@@ -350,7 +350,7 @@ function api_pricing_customer_edit()
          FROM customers c
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          WHERE c.id = ?",
-        [$customer_id],
+        [$customer_id]
     );
     if (empty($customers)) {
         api_error("Customer not found", 404);
@@ -397,7 +397,7 @@ function api_pricing_customer_edit()
         foreach ($services as &$svc) {
             $svc["tiers"] = get_effective_customer_tiers(
                 $customer_id,
-                $svc["id"],
+                $svc["id"]
             );
             $svc["has_override"] =
                 !empty($svc["tiers"]) &&
@@ -429,7 +429,7 @@ function api_pricing_customer_settings()
          FROM customers c
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          WHERE c.id = ?",
-        [$customer_id],
+        [$customer_id]
     );
     if (empty($customers)) {
         api_error("Customer not found", 404);
@@ -468,7 +468,7 @@ function api_escalators()
          INNER JOIN customer_escalators ce ON c.id = ce.customer_id
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          WHERE 1=1 $where_str",
-        $params,
+        $params
     );
     $total_count = $total[0]["cnt"];
     $pagination = paginate($total_count, $page);
@@ -486,7 +486,7 @@ function api_escalators()
          WHERE 1=1 $where_str
          ORDER BY c.name
          LIMIT ? OFFSET ?",
-        $query_params,
+        $query_params
     );
 
     foreach ($customers as &$customer) {
@@ -516,7 +516,7 @@ function api_escalator_edit()
          FROM customers c
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          WHERE c.id = ?",
-        [$customer_id],
+        [$customer_id]
     );
     if (empty($customers)) {
         api_error("Customer not found", 404);
@@ -527,7 +527,7 @@ function api_escalator_edit()
     foreach ($escalators as &$esc) {
         $esc["total_delay"] = get_total_delay_months(
             $customer_id,
-            $esc["year_number"],
+            $esc["year_number"]
         );
     }
 
@@ -558,7 +558,7 @@ function api_business_rules()
          INNER JOIN customer_business_rules cbr ON c.id = cbr.customer_id
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          WHERE 1=1 $where_str",
-        $params,
+        $params
     );
     $total_count = $total[0]["cnt"];
     $pagination = paginate($total_count, $page);
@@ -576,7 +576,7 @@ function api_business_rules()
          WHERE 1=1 $where_str
          ORDER BY c.name
          LIMIT ? OFFSET ?",
-        $query_params,
+        $query_params
     );
 
     foreach ($customers as &$customer) {
@@ -628,7 +628,7 @@ function api_business_rules_all()
          JOIN customer_business_rules cbr ON cbr.business_rule_id = br.id
          JOIN customers c ON c.id = cbr.customer_id
          $where_clause",
-        $params,
+        $params
     );
     $total_count = $total[0]["cnt"];
     $pagination = paginate($total_count, $page);
@@ -646,25 +646,25 @@ function api_business_rules_all()
          $where_clause
          ORDER BY c.name, br.name
          LIMIT ? OFFSET ?",
-        $query_params,
+        $query_params
     );
 
     foreach ($rules as &$rule) {
         $rule["is_masked"] = get_rule_mask_status(
             $rule["customer_id"],
-            $rule["rule_name"],
+            $rule["rule_name"]
         );
     }
 
     $stats = [
         "total_rules" => sqlite_query(
-            "SELECT COUNT(*) as cnt FROM business_rules",
+            "SELECT COUNT(*) as cnt FROM business_rules"
         )[0]["cnt"],
         "masked_rules" => sqlite_query(
-            "SELECT COUNT(*) as cnt FROM business_rule_masks WHERE is_masked = 1",
+            "SELECT COUNT(*) as cnt FROM business_rule_masks WHERE is_masked = 1"
         )[0]["cnt"],
         "customers_with_rules" => sqlite_query(
-            "SELECT COUNT(DISTINCT customer_id) as cnt FROM customer_business_rules",
+            "SELECT COUNT(DISTINCT customer_id) as cnt FROM customer_business_rules"
         )[0]["cnt"],
     ];
 
@@ -689,7 +689,7 @@ function api_business_rule_edit()
          FROM customers c
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          WHERE c.id = ?",
-        [$customer_id],
+        [$customer_id]
     );
     if (empty($customers)) {
         api_error("Customer not found", 404);
@@ -991,7 +991,7 @@ function api_billing_intelligence()
     require_once __DIR__ . "/calculator.php";
 
     $date_range = sqlite_query(
-        "SELECT MIN(report_date) as earliest, MAX(report_date) as latest FROM billing_reports",
+        "SELECT MIN(report_date) as earliest, MAX(report_date) as latest FROM billing_reports"
     );
     $earliest = isset($date_range[0]["earliest"])
         ? $date_range[0]["earliest"]
@@ -1011,7 +1011,7 @@ function api_billing_intelligence()
             COUNT(DISTINCT brl.customer_id) as unique_customers,
             COUNT(DISTINCT brl.efx_code) as unique_services
          FROM billing_reports br
-         LEFT JOIN billing_report_lines brl ON br.id = brl.report_id",
+         LEFT JOIN billing_report_lines brl ON br.id = brl.report_id"
     );
     $stats = isset($overall_stats[0]) ? $overall_stats[0] : [];
 
@@ -1022,11 +1022,11 @@ function api_billing_intelligence()
 
     $lms_performance = get_lms_performance_metrics(
         $current_year,
-        $current_month,
+        $current_month
     );
     $tier_proximity = get_tier_proximity_analysis(
         $current_year,
-        $current_month,
+        $current_month
     );
 
     $monthly_data = sqlite_query(
@@ -1041,7 +1041,7 @@ function api_billing_intelligence()
          JOIN billing_reports br ON brl.report_id = br.id
          GROUP BY brl.year, brl.month
          ORDER BY brl.year DESC, brl.month DESC
-         LIMIT 6",
+         LIMIT 6"
     );
 
     $variance_stats = get_billing_variance_stats();
@@ -1091,7 +1091,7 @@ function api_billing_month()
          FROM billing_report_lines brl
          JOIN billing_reports br ON brl.report_id = br.id
          WHERE brl.year = ? AND brl.month = ?",
-        [$year, $month],
+        [$year, $month]
     );
 
     $daily_data = sqlite_query(
@@ -1105,7 +1105,7 @@ function api_billing_month()
          WHERE brl.year = ? AND brl.month = ? AND br.report_type = 'daily'
          GROUP BY br.report_date
          ORDER BY br.report_date",
-        [$year, $month],
+        [$year, $month]
     );
 
     $customer_breakdown = sqlite_query(
@@ -1119,7 +1119,7 @@ function api_billing_month()
          WHERE brl.year = ? AND brl.month = ?
          GROUP BY brl.customer_id, brl.customer_name
          ORDER BY revenue DESC",
-        [$year, $month],
+        [$year, $month]
     );
 
     $service_breakdown = sqlite_query(
@@ -1134,7 +1134,7 @@ function api_billing_month()
          WHERE brl.year = ? AND brl.month = ?
          GROUP BY brl.efx_code
          ORDER BY revenue DESC",
-        [$year, $month],
+        [$year, $month]
     );
 
     $reports = sqlite_query(
@@ -1142,7 +1142,7 @@ function api_billing_month()
          FROM billing_reports br
          WHERE br.report_year = ? AND br.report_month = ?
          ORDER BY br.report_date DESC",
-        [$year, $month],
+        [$year, $month]
     );
 
     api_response([
@@ -1169,7 +1169,7 @@ function api_billing_customer()
          FROM billing_report_lines
          WHERE customer_id = ?
          LIMIT 1",
-        [$customer_id],
+        [$customer_id]
     );
     if (empty($customer_info)) {
         api_error("Customer not found in billing data", 404);
@@ -1186,7 +1186,7 @@ function api_billing_customer()
          FROM billing_report_lines brl
          JOIN billing_reports br ON brl.report_id = br.id
          WHERE brl.customer_id = ?",
-        [$customer_id],
+        [$customer_id]
     );
 
     $monthly_trend = sqlite_query(
@@ -1199,7 +1199,7 @@ function api_billing_customer()
          WHERE brl.customer_id = ?
          GROUP BY brl.year, brl.month
          ORDER BY brl.year DESC, brl.month DESC",
-        [$customer_id],
+        [$customer_id]
     );
 
     $service_breakdown = sqlite_query(
@@ -1214,7 +1214,7 @@ function api_billing_customer()
          WHERE brl.customer_id = ?
          GROUP BY brl.efx_code
          ORDER BY revenue DESC",
-        [$customer_id],
+        [$customer_id]
     );
 
     $recent_lines = sqlite_query(
@@ -1224,7 +1224,7 @@ function api_billing_customer()
          WHERE brl.customer_id = ?
          ORDER BY br.report_date DESC, brl.id DESC
          LIMIT 50",
-        [$customer_id],
+        [$customer_id]
     );
 
     api_response([
@@ -1252,7 +1252,7 @@ function api_billing_customer_daily()
          FROM billing_report_lines
          WHERE customer_id = ?
          LIMIT 1",
-        [$customer_id],
+        [$customer_id]
     );
     if (empty($customer_info)) {
         api_error("Customer not found in billing data", 404);
@@ -1265,7 +1265,7 @@ function api_billing_customer_daily()
          LEFT JOIN transaction_types tt ON brl.efx_code = tt.efx_code
          WHERE brl.customer_id = ? AND brl.year = ? AND brl.month = ?
          ORDER BY brl.efx_code",
-        [$customer_id, $year, $month],
+        [$customer_id, $year, $month]
     );
 
     $efx_filter = "";
@@ -1289,7 +1289,7 @@ function api_billing_customer_daily()
            $efx_filter
          GROUP BY br.report_date
          ORDER BY br.report_date",
-        $params,
+        $params
     );
 
     $chart_data = [];
@@ -1323,7 +1323,7 @@ function api_billing_customer_daily()
          WHERE brl.customer_id = ?
            AND brl.year = ? AND brl.month = ?
            $efx_filter",
-        $params,
+        $params
     );
 
     $total_days = count($chart_data);
@@ -1340,7 +1340,7 @@ function api_billing_customer_daily()
          JOIN billing_reports br ON brl.report_id = br.id
          WHERE brl.customer_id = ? AND br.report_type = 'daily'
          ORDER BY brl.year DESC, brl.month DESC",
-        [$customer_id],
+        [$customer_id]
     );
 
     $days_in_month = cal_days_in_month(CAL_GREGORIAN, $month, $year);
@@ -1395,7 +1395,7 @@ function api_billing_service()
          FROM transaction_types tt
          LEFT JOIN services s ON tt.service_id = s.id
          WHERE tt.efx_code = ?",
-        [$efx_code],
+        [$efx_code]
     );
     $service = isset($service_info[0])
         ? $service_info[0]
@@ -1411,7 +1411,7 @@ function api_billing_service()
          FROM billing_report_lines brl
          JOIN billing_reports br ON brl.report_id = br.id
          WHERE brl.efx_code = ?",
-        [$efx_code],
+        [$efx_code]
     );
 
     $monthly_trend = sqlite_query(
@@ -1425,7 +1425,7 @@ function api_billing_service()
          WHERE brl.efx_code = ?
          GROUP BY brl.year, brl.month
          ORDER BY brl.year DESC, brl.month DESC",
-        [$efx_code],
+        [$efx_code]
     );
 
     $customer_breakdown = sqlite_query(
@@ -1439,7 +1439,7 @@ function api_billing_service()
          WHERE brl.efx_code = ?
          GROUP BY brl.customer_id, brl.customer_name
          ORDER BY revenue DESC",
-        [$efx_code],
+        [$efx_code]
     );
 
     api_response([
@@ -1577,7 +1577,7 @@ function api_lms_report()
                 "SELECT SUM(revenue) as total_revenue, SUM(count) as total_count
                  FROM billing_report_lines
                  WHERE customer_id = ? AND year = ? AND month = ?",
-                [$customer["id"], $year, $month],
+                [$customer["id"], $year, $month]
             );
 
             $customer_revenue =
@@ -1649,13 +1649,13 @@ function api_minimums()
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          LEFT JOIN customer_settings cs ON c.id = cs.customer_id
          WHERE cs.monthly_minimum IS NOT NULL AND cs.monthly_minimum > 0
-         ORDER BY c.name",
+         ORDER BY c.name"
     );
 
     $stats = sqlite_query(
         "SELECT COUNT(*) as count, SUM(monthly_minimum) as total_minimums, AVG(monthly_minimum) as avg_minimum
          FROM customer_settings
-         WHERE monthly_minimum IS NOT NULL AND monthly_minimum > 0",
+         WHERE monthly_minimum IS NOT NULL AND monthly_minimum > 0"
     );
 
     $pagination = paginate(count($customers_with_minimums), $page);
@@ -1680,7 +1680,7 @@ function api_annualized()
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          LEFT JOIN customer_settings cs ON c.id = cs.customer_id
          WHERE cs.uses_annualized = 1
-         ORDER BY c.name",
+         ORDER BY c.name"
     );
 
     $today = date("Y-m-d");
@@ -1697,7 +1697,7 @@ function api_annualized()
     }
 
     $stats = sqlite_query(
-        "SELECT COUNT(*) as count FROM customer_settings WHERE uses_annualized = 1",
+        "SELECT COUNT(*) as count FROM customer_settings WHERE uses_annualized = 1"
     );
     $upcoming_resets = get_upcoming_annualized_resets(30);
     $pagination = paginate(count($customers_annualized), $page);
@@ -1722,7 +1722,7 @@ function api_customer_pricing()
          FROM customers c
          LEFT JOIN discount_groups dg ON c.discount_group_id = dg.id
          WHERE c.id = ?",
-        [$customer_id],
+        [$customer_id]
     );
     if (empty($customer)) {
         api_error("Customer not found", 404);
@@ -1741,7 +1741,7 @@ function api_customer_pricing()
         if ($customer["discount_group_id"]) {
             $group_tiers = get_current_group_tiers(
                 $customer["discount_group_id"],
-                $service_id,
+                $service_id
             );
         }
 
@@ -1824,7 +1824,7 @@ function api_customer_pricing()
     foreach ($escalators as &$esc) {
         $esc["total_delay"] = get_total_delay_months(
             $customer_id,
-            $esc["year_number"],
+            $esc["year_number"]
         );
     }
 
@@ -1893,7 +1893,7 @@ function api_ingestion()
             SUM(record_count) as total_rows,
             MIN(report_date) as earliest,
             MAX(report_date) as latest
-         FROM billing_reports",
+         FROM billing_reports"
     );
 
     api_response([
@@ -1931,7 +1931,7 @@ function api_ingestion_view()
          WHERE report_id = ?
          GROUP BY customer_id, customer_name
          ORDER BY total_revenue DESC",
-        [$report_id],
+        [$report_id]
     );
 
     api_response([
@@ -1978,11 +1978,11 @@ function api_generation()
     $tab = get_param("tab", "generate");
 
     $active_customers = sqlite_query(
-        "SELECT COUNT(*) as cnt FROM customers WHERE status = 'active'",
+        "SELECT COUNT(*) as cnt FROM customers WHERE status = 'active'"
     );
     $services_count = sqlite_query("SELECT COUNT(*) as cnt FROM services");
     $transaction_types_count = sqlite_query(
-        "SELECT COUNT(*) as cnt FROM transaction_types",
+        "SELECT COUNT(*) as cnt FROM transaction_types"
     );
 
     $pending_files = [];
@@ -2061,7 +2061,7 @@ function api_billing_flags()
          LEFT JOIN services s ON sbf.service_id = s.id
          WHERE sbf.level = ? AND $level_id_cond
          ORDER BY sbf.service_id, sbf.efx_code, sbf.effective_date DESC",
-        [$level],
+        [$level]
     );
 
     $flags_by_key = [];
@@ -2073,10 +2073,10 @@ function api_billing_flags()
     }
 
     $groups = sqlite_query(
-        "SELECT id, name FROM discount_groups ORDER BY name",
+        "SELECT id, name FROM discount_groups ORDER BY name"
     );
     $customers = sqlite_query(
-        "SELECT id, name FROM customers WHERE status = 'active' ORDER BY name",
+        "SELECT id, name FROM customers WHERE status = 'active' ORDER BY name"
     );
 
     $level_entity = null;
@@ -2117,6 +2117,7 @@ function api_admin()
         "sync_log" => get_sync_log(15),
         "filesystem" => get_filesystem_status(),
         "environment" => get_environment_status(),
+        "db_access" => get_db_access_info(),
     ]);
 }
 
@@ -2146,7 +2147,7 @@ function api_admin_explore_remote()
             $data["columns"] = remote_db_describe_table($table);
             try {
                 $data["sample_data"] = remote_db_query(
-                    "SELECT * FROM `" . $table . "` LIMIT 10",
+                    "SELECT * FROM `" . $table . "` LIMIT 10"
                 );
             } catch (Exception $e) {
                 $data["sample_data"] = [];
@@ -2443,7 +2444,7 @@ function api_save_billing_flags()
         $service_id,
         $efx_code,
         get_param("include_exclude"),
-        get_param("effective_date", date("Y-m-d")),
+        get_param("effective_date", date("Y-m-d"))
     );
     api_response(["success" => true, "message" => "Billing flag saved"]);
 }
@@ -2594,7 +2595,7 @@ function api_job_start()
         escapeshellarg($php),
         escapeshellarg($script),
         escapeshellarg($job_id),
-        escapeshellarg($type),
+        escapeshellarg($type)
     );
 
     $exec_output = [];
@@ -2604,7 +2605,7 @@ function api_job_start()
     if ($exec_return !== 0) {
         job_fail(
             $job_id,
-            "Failed to launch background process (exit code: $exec_return)",
+            "Failed to launch background process (exit code: $exec_return)"
         );
     }
 

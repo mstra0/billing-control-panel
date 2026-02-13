@@ -609,6 +609,7 @@ function render_header($title = "Control Panel")
         }
         .toast-close:hover { opacity: 1; }
     </style>
+    <script src="js/billing.js"></script>
 </head>
 <body>
     <div class="header">
@@ -647,13 +648,13 @@ function render_header($title = "Control Panel")
             <div class="nav-dropdown">
                 <a href="?action=pricing_customers" <?php echo strpos(
                     $action,
-                    "pricing_customer",
+                    "pricing_customer"
                 ) === 0
                     ? 'class="active"'
                     : ""; ?>>Customers</a>
                 <a href="?action=pricing_groups" <?php echo strpos(
                     $action,
-                    "pricing_group",
+                    "pricing_group"
                 ) === 0
                     ? 'class="active"'
                     : ""; ?>>Groups</a>
@@ -662,31 +663,31 @@ function render_header($title = "Control Panel")
                     : ""; ?>>LMS</a>
                 <a href="?action=escalators" <?php echo strpos(
                     $action,
-                    "escalator",
+                    "escalator"
                 ) === 0
                     ? 'class="active"'
                     : ""; ?>>Escalators</a>
                 <a href="?action=business_rules" <?php echo strpos(
                     $action,
-                    "business_rule",
+                    "business_rule"
                 ) === 0
                     ? 'class="active"'
                     : ""; ?>>Rules</a>
                 <a href="?action=minimums" <?php echo strpos(
                     $action,
-                    "minimums",
+                    "minimums"
                 ) === 0
                     ? 'class="active"'
                     : ""; ?>>Monthly Minimums</a>
                 <a href="?action=annualized" <?php echo strpos(
                     $action,
-                    "annualized",
+                    "annualized"
                 ) === 0
                     ? 'class="active"'
                     : ""; ?>>Annualized Tiers</a>
                 <a href="?action=pricing_defaults" <?php echo strpos(
                     $action,
-                    "pricing_defaults",
+                    "pricing_defaults"
                 ) === 0
                     ? 'class="active"'
                     : ""; ?>>Default Pricing</a>
@@ -698,13 +699,13 @@ function render_header($title = "Control Panel")
             <div class="nav-dropdown">
                 <a href="?action=ingestion" <?php echo strpos(
                     $action,
-                    "ingestion",
+                    "ingestion"
                 ) === 0
                     ? 'class="active"'
                     : ""; ?>>Ingestion</a>
                 <a href="?action=generation" <?php echo strpos(
                     $action,
-                    "generation",
+                    "generation"
                 ) === 0
                     ? 'class="active"'
                     : ""; ?>>Generation</a>
@@ -714,7 +715,7 @@ function render_header($title = "Control Panel")
                     : ""; ?>>Billing Reports</a>
                 <a href="?action=export" <?php echo strpos(
                     $action,
-                    "export",
+                    "export"
                 ) === 0
                     ? 'class="active"'
                     : ""; ?>>Export</a>
@@ -723,7 +724,7 @@ function render_header($title = "Control Panel")
                     : ""; ?>>History</a>
                 <a href="?action=billing_intelligence" <?php echo strpos(
                     $action,
-                    "billing_",
+                    "billing_"
                 ) === 0
                     ? 'class="active"'
                     : ""; ?> style="color: #27ae60; font-weight: 600;">Billing Dashboard</a>
@@ -794,7 +795,6 @@ function render_header($title = "Control Panel")
         }
         .job-modal-content h3 { margin: 0 0 10px 0; font-size: 18px; }
     </style>
-    <script src="js/billing.js"></script>
 </body>
 </html>
 <?php
@@ -947,7 +947,7 @@ function render_upload_config($data)
 
         <?php if ($data["error"]): ?>
             <div class="flash flash-error"><?php echo h(
-                $data["error"],
+                $data["error"]
             ); ?></div>
         <?php endif; ?>
 
@@ -1239,6 +1239,104 @@ function render_ingestion($data)
             var selectAllEl = document.getElementById('select-all');
             if (selectAllEl) { selectAllEl.checked = false; }
         };
+    })();
+    </script>
+<?php render_footer();
+}
+/**
+ * Render single report view
+ */ function render_ingestion_view($data)
+{
+    render_header("View Report - Control Panel"); ?>
+    <div id="iv-content" class="ajax-content">
+        <div class="loading-skeleton">
+            <div class="skeleton-bar w75"></div>
+            <div class="skeleton-bar w90"></div>
+            <div class="skeleton-bar w50"></div>
+            <p>Loading report...</p>
+        </div>
+    </div>
+    <script>
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        var reportId = params.get('id');
+        if (!reportId) {
+            showAjaxError('iv-content', 'No report ID specified');
+            return;
+        }
+        apiGet('ingestion_view', {id: reportId}, function(err, data) {
+            if (err) { showAjaxError('iv-content', err); return; }
+
+            var report = data.report;
+            var lines = data.lines || [];
+            var html = '';
+
+            // Breadcrumb
+            html += '<div class="breadcrumb"><a href="?action=ingestion">Ingestion</a><span>/</span>' +
+                escapeHtml(report.report_type) + ' - ' + escapeHtml(report.report_date) + '</div>';
+
+            html += '<div class="card">';
+            html += '<h2>' + escapeHtml(report.report_type.charAt(0).toUpperCase() + report.report_type.slice(1)) +
+                ' Report: ' + escapeHtml(report.report_date) + '</h2>';
+            html += '<p class="text-muted">' + numberFormat(report.record_count, 0) + ' rows imported on ' +
+                escapeHtml(report.created_at || report.imported_at || '') + '</p>';
+
+            html += '<div style="margin: 20px 0;">';
+            html += '<a href="?action=report_audit&id=' + report.id + '" class="btn">Audit All Lines</a>';
+            html += '</div>';
+
+            // Customer Summary (extra data from API)
+            if (data.customer_summary && data.customer_summary.length > 0) {
+                html += '<h3 style="margin-top: 20px;">Customer Summary</h3>';
+                html += '<table><thead><tr><th>Customer ID</th><th>Customer Name</th><th class="text-right">Lines</th><th class="text-right">Count</th><th class="text-right">Revenue</th></tr></thead><tbody>';
+                for (var c = 0; c < data.customer_summary.length; c++) {
+                    var cs = data.customer_summary[c];
+                    html += '<tr>';
+                    html += '<td>' + escapeHtml(cs.customer_id) + '</td>';
+                    html += '<td>' + escapeHtml(cs.customer_name || '') + '</td>';
+                    html += '<td class="text-right">' + numberFormat(cs.line_count, 0) + '</td>';
+                    html += '<td class="text-right">' + numberFormat(cs.total_count, 0) + '</td>';
+                    html += '<td class="text-right">$' + numberFormat(cs.total_revenue, 2) + '</td>';
+                    html += '</tr>';
+                }
+                html += '</tbody></table>';
+            }
+
+            // All Line Items
+            html += '<h3 style="margin-top: 20px;">All Line Items</h3>';
+            if (lines.length === 0) {
+                html += '<p class="text-muted">No line items.</p>';
+            } else {
+                html += '<div style="overflow-x: auto;">';
+                html += '<table><thead><tr>';
+                html += '<th>Year</th><th>Month</th><th>Cust ID</th><th>Customer Name</th>';
+                html += '<th>Hit Code</th><th>Transaction</th><th class="text-right">Unit Cost</th>';
+                html += '<th class="text-right">Count</th><th class="text-right">Revenue</th>';
+                html += '<th>EFX Code</th><th>Billing ID</th><th>Audit</th>';
+                html += '</tr></thead><tbody>';
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i];
+                    html += '<tr>';
+                    html += '<td>' + escapeHtml(line.year + '') + '</td>';
+                    html += '<td>' + escapeHtml(line.month + '') + '</td>';
+                    html += '<td>' + escapeHtml(line.customer_id) + '</td>';
+                    html += '<td>' + escapeHtml(line.customer_name || '') + '</td>';
+                    html += '<td>' + escapeHtml(line.hit_code || '') + '</td>';
+                    html += '<td>' + escapeHtml(line.tran_displayname || '') + '</td>';
+                    html += '<td class="text-right">$' + numberFormat(line.actual_unit_cost, 4) + '</td>';
+                    html += '<td class="text-right">' + numberFormat(line.count, 0) + '</td>';
+                    html += '<td class="text-right">$' + numberFormat(line.revenue, 2) + '</td>';
+                    html += '<td>' + escapeHtml(line.efx_code || '') + '</td>';
+                    html += '<td>' + escapeHtml(line.billing_id || '') + '</td>';
+                    html += '<td><a href="?action=line_audit&id=' + line.id + '" title="View price calculation audit">Audit</a></td>';
+                    html += '</tr>';
+                }
+                html += '</tbody></table></div>';
+            }
+
+            html += '</div>'; // close card
+            document.getElementById('iv-content').innerHTML = html;
+        });
     })();
     </script>
 <?php render_footer();
@@ -1833,6 +1931,58 @@ function render_report_audit($data)
     })();
     </script>
 <?php render_footer();
+}
+/**
+ * Render bulk ingestion results
+ */ function render_ingestion_bulk($data)
+{
+    render_header("Bulk Ingestion - Control Panel"); ?>
+    <div class="breadcrumb"><a href="?action=ingestion">Ingestion</a><span>/</span>Bulk Import</div>
+
+    <div class="card">
+        <h2>Bulk Import Results</h2>
+        <?php if (!empty($data["results"])): ?>
+            <table>
+                <thead>
+                    <tr>
+                        <th>File</th>
+                        <th>Status</th>
+                        <th>Rows</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($data["results"] as $result): ?>
+                    <tr>
+                        <td><?php echo h($result["filename"]); ?></td>
+                        <td>
+                            <span class="badge badge-<?php echo $result[
+                                "success"
+                            ]
+                                ? "success"
+                                : "error"; ?>">
+                                <?php echo $result["success"]
+                                    ? "OK"
+                                    : "Failed"; ?>
+                            </span>
+                        </td>
+                        <td><?php echo isset($result["rows_imported"])
+                            ? $result["rows_imported"]
+                            : "-"; ?></td>
+                        <td><?php echo h(
+                            isset($result["errors"])
+                                ? implode(", ", $result["errors"])
+                                : ""
+                        ); ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php else: ?>
+            <p class="text-muted">No results.</p>
+        <?php endif; ?>
+    </div>
+<?php render_footer();
 } /**
  * Render generation page - generate tier_pricing.csv
  */
@@ -1856,7 +2006,7 @@ function render_generation($data)
         <h3>Preview (<?php echo $data["preview"]["row_count"]; ?> rows)</h3>
         <?php if (!empty($data["preview"]["errors"])): ?>
             <div class="flash flash-error"><?php echo h(
-                implode(", ", $data["preview"]["errors"]),
+                implode(", ", $data["preview"]["errors"])
             ); ?></div>
         <?php endif; ?>
 
@@ -2127,6 +2277,87 @@ function render_generation_types($data)
                     });
                 });
             }
+        });
+    })();
+    </script>
+<?php render_footer();
+}
+/**
+ * Render LMS list
+ */ function render_lms($data)
+{
+    render_header("LMS Management - Control Panel"); ?>
+    <div class="card">
+        <h2>LMS Management</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <p class="text-muted" style="margin: 0;">Manage Loan Management System entries and commission rates.</p>
+            <div>
+                <a href="?action=lms_settings" class="btn">Settings</a>
+                <a href="?action=lms&sync=1" class="btn btn-info">Sync from Remote</a>
+            </div>
+        </div>
+
+        <?php
+        $search_val = isset($data["search"]) ? $data["search"] : "";
+        render_search_bar("lms", [
+            "search" => $search_val,
+            "placeholder" => "Search LMS...",
+        ]);
+        ?>
+
+        <div id="lms-content" class="ajax-content">
+            <div class="loading-skeleton">
+                <div class="skeleton-bar w75"></div>
+                <div class="skeleton-bar w90"></div>
+                <div class="skeleton-bar w50"></div>
+                <p>Loading LMS data...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        var params = {};
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('search')) params.search = urlParams.get('search');
+        if (urlParams.get('page')) params.page = urlParams.get('page');
+
+        apiGet('lms', params, function(err, data) {
+            if (err) { showAjaxError('lms-content', err); return; }
+            var el = document.getElementById('lms-content');
+            var html = '';
+
+            // Default rate banner
+            var rateText = data.default_rate !== null ? parseFloat(data.default_rate).toFixed(2) + '%' : 'Not set';
+            html += '<div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin-bottom: 20px;"><strong>Default Commission Rate:</strong> ' + escapeHtml(rateText) + '</div>';
+
+            // Unassigned warning
+            if (data.unassigned_customers && data.unassigned_customers.length > 0) {
+                html += '<div style="background: #fff3cd; padding: 15px; border-radius: 4px; margin-bottom: 20px; border-left: 4px solid #ffc107;"><strong>\u26A0 Attention:</strong> ' + data.unassigned_customers.length + ' customer(s) have no LMS assigned.</div>';
+            }
+
+            if (!data.lms_list || data.lms_list.length === 0) {
+                var searchActive = urlParams.get('search');
+                html += '<p class="text-muted">No LMS entries found. ' + (searchActive ? 'Try a different search.' : 'Click "Sync from Remote" to import.') + '</p>';
+            } else {
+                html += '<table><thead><tr><th>LMS ID</th><th>Name</th><th>Commission Rate</th><th>Customers</th><th class="text-right">Actions</th></tr></thead><tbody>';
+                for (var i = 0; i < data.lms_list.length; i++) {
+                    var l = data.lms_list[i];
+                    var inherited = l.is_inherited ? ' <span class="text-muted" style="font-size: 11px;">(default)</span>' : '';
+                    html += '<tr>';
+                    html += '<td><code>' + escapeHtml(String(l.id)) + '</code></td>';
+                    html += '<td>' + escapeHtml(l.name) + '</td>';
+                    html += '<td>' + parseFloat(l.effective_rate).toFixed(2) + '%' + inherited + '</td>';
+                    html += '<td>' + l.customer_count + '</td>';
+                    html += '<td class="text-right"><a href="?action=lms_edit&lms_id=' + encodeURIComponent(l.id) + '" class="btn btn-sm">Edit</a></td>';
+                    html += '</tr>';
+                }
+                html += '</tbody></table>';
+                if (data.pagination && data.pagination.total_pages > 1) {
+                    html += buildPagination(data.pagination, '?action=lms', params);
+                }
+            }
+            el.innerHTML = html;
         });
     })();
     </script>
@@ -2677,14 +2908,14 @@ function render_list_pending($data)
                         <td><?php echo format_filesize($file["size"]); ?></td>
                         <td><?php echo date(
                             "Y-m-d H:i:s",
-                            $file["modified"],
+                            $file["modified"]
                         ); ?></td>
                         <td class="text-right">
                             <a href="?action=view_config&file=<?php echo urlencode(
-                                $file["name"],
+                                $file["name"]
                             ); ?>&source=pending" class="btn btn-sm">View</a>
                             <a href="?action=download_config&file=<?php echo urlencode(
-                                $file["name"],
+                                $file["name"]
                             ); ?>&source=pending" class="btn btn-sm btn-success">Download</a>
                         </td>
                     </tr>
@@ -2723,14 +2954,14 @@ function render_list_archive($data)
                         <td><?php echo format_filesize($file["size"]); ?></td>
                         <td><?php echo date(
                             "Y-m-d H:i:s",
-                            $file["modified"],
+                            $file["modified"]
                         ); ?></td>
                         <td class="text-right">
                             <a href="?action=view_config&file=<?php echo urlencode(
-                                $file["name"],
+                                $file["name"]
                             ); ?>&source=archive" class="btn btn-sm">View</a>
                             <a href="?action=download_config&file=<?php echo urlencode(
-                                $file["name"],
+                                $file["name"]
                             ); ?>&source=archive" class="btn btn-sm btn-success">Download</a>
                         </td>
                     </tr>
@@ -2755,7 +2986,7 @@ function render_view_config($data)
             <?php echo h($data["filename"]); ?>
             <span class="text-muted" style="font-weight: normal; font-size: 12px;">(<?php echo $source_label; ?>)</span>
             <a href="?action=download_config&file=<?php echo urlencode(
-                $data["filename"],
+                $data["filename"]
             ); ?>&source=<?php echo $data["source"]; ?>" class="btn btn-sm btn-success" style="float: right;">Download</a>
         </h2>
         <p class="text-muted mb-20"><?php echo $data["count"]; ?> rows</p>
@@ -2777,12 +3008,12 @@ function render_view_config($data)
                         <tr>
                             <?php foreach ($data["headers"] as $header): ?>
                                 <td title="<?php echo h(
-                                    isset($row[$header]) ? $row[$header] : "",
+                                    isset($row[$header]) ? $row[$header] : ""
                                 ); ?>">
                                     <?php echo h(
                                         isset($row[$header])
                                             ? $row[$header]
-                                            : "",
+                                            : ""
                                     ); ?>
                                 </td>
                             <?php endforeach; ?>
@@ -2817,7 +3048,7 @@ function render_tier_range_warnings($validation)
             <strong>Overlap:</strong>
             <?php foreach ($validation["overlaps"] as $o): ?>
                 Volume <?php echo number_format(
-                    $o["start"],
+                    $o["start"]
                 ); ?> &ndash; <?php echo $o["end"] !== null && $o["end"] !== ""
      ? number_format($o["end"])
      : "Unlimited"; ?> is covered by multiple tiers.
@@ -2829,9 +3060,9 @@ function render_tier_range_warnings($validation)
             <strong>Gap:</strong>
             <?php foreach ($validation["gaps"] as $g): ?>
                 Volume <?php echo number_format(
-                    $g["start"],
+                    $g["start"]
                 ); ?> &ndash; <?php echo number_format(
-     $g["end"],
+     $g["end"]
  ); ?> has no pricing.
             <?php endforeach; ?>
         </div>
@@ -3655,7 +3886,7 @@ function render_pricing_customer_services($data)
         <p class="text-muted mb-20">
             <?php if ($data["customer"]["group_name"]): ?>
                 Group: <strong><?php echo h(
-                    $data["customer"]["group_name"],
+                    $data["customer"]["group_name"]
                 ); ?></strong> |
             <?php else: ?>
                 <span style="color: #e67e22;">No discount group (inherits from defaults)</span> |
@@ -3674,7 +3905,7 @@ function render_pricing_customer_services($data)
             <span style="<?php echo $status_class; ?>"><?php echo ucfirst($data["customer"]["status"]); ?></span>
             <?php if ($data["customer"]["contract_start_date"]): ?>
                 | Contract: <?php echo h(
-                    $data["customer"]["contract_start_date"],
+                    $data["customer"]["contract_start_date"]
                 ); ?>
             <?php endif; ?>
         </p>
@@ -3939,7 +4170,7 @@ function render_pricing_customer_services($data)
     </script>
 
     <div class="breadcrumb"><a href="?action=pricing_customers">Customers</a><span>/</span><?php echo h(
-        $data["customer"]["name"],
+        $data["customer"]["name"]
     ); ?></div>
 <?php render_footer();
 } /**
@@ -4193,7 +4424,7 @@ function render_pricing_customer_settings($data)
             // Warning if no LMS assigned
             if (!customer.lms_id) {
                 html += '<div style="margin-top: 8px; padding: 10px; background: #f8d7da; border-radius: 4px; font-size: 13px; color: #721c24;">';
-                html += '<strong>Warning:</strong> This customer has no LMS assigned. LMS is required for revenue/commission calculations.';
+                html += '<strong>\u26A0 Attention:</strong> This customer has no LMS assigned. LMS is required for revenue/commission calculations.';
                 html += '</div>';
             }
             html += '</div>';
@@ -5680,10 +5911,10 @@ function render_compare_reports($data)
             <h4><?php echo h($data["file1"]["label"]); ?></h4>
             <div class="meta">
                 <span><strong>Generated:</strong> <?php echo h(
-                    $data["file1"]["generated"],
+                    $data["file1"]["generated"]
                 ); ?></span>
                 <span><strong>Rows:</strong> <?php echo number_format(
-                    $data["file1"]["row_count"],
+                    $data["file1"]["row_count"]
                 ); ?></span>
             </div>
         </div>
@@ -5691,10 +5922,10 @@ function render_compare_reports($data)
             <h4><?php echo h($data["file2"]["label"]); ?></h4>
             <div class="meta">
                 <span><strong>Generated:</strong> <?php echo h(
-                    $data["file2"]["generated"],
+                    $data["file2"]["generated"]
                 ); ?></span>
                 <span><strong>Rows:</strong> <?php echo number_format(
-                    $data["file2"]["row_count"],
+                    $data["file2"]["row_count"]
                 ); ?></span>
             </div>
         </div>
@@ -5704,25 +5935,25 @@ function render_compare_reports($data)
     <div class="compare-summary">
         <div class="compare-stat added">
             <div class="num"><?php echo number_format(
-                count($comparison["added"]),
+                count($comparison["added"])
             ); ?></div>
             <div class="lbl">Added</div>
         </div>
         <div class="compare-stat removed">
             <div class="num"><?php echo number_format(
-                count($comparison["removed"]),
+                count($comparison["removed"])
             ); ?></div>
             <div class="lbl">Removed</div>
         </div>
         <div class="compare-stat changed">
             <div class="num"><?php echo number_format(
-                count($comparison["changed"]),
+                count($comparison["changed"])
             ); ?></div>
             <div class="lbl">Changed</div>
         </div>
         <div class="compare-stat unchanged">
             <div class="num"><?php echo number_format(
-                $comparison["unchanged"],
+                $comparison["unchanged"]
             ); ?></div>
             <div class="lbl">Unchanged</div>
         </div>
@@ -5732,7 +5963,7 @@ function render_compare_reports($data)
     <?php if (!empty($comparison["changed"])): ?>
     <div class="compare-section">
         <h3>Changed Rows <span class="count">(<?php echo count(
-            $comparison["changed"],
+            $comparison["changed"]
         ); ?>)</span></h3>
         <table class="compare-table">
             <thead>
@@ -5750,24 +5981,24 @@ function render_compare_reports($data)
                 ): ?>
                 <tr class="diff-changed">
                     <td class="mono"><?php echo h(
-                        $change["row"]["cust_id"],
+                        $change["row"]["cust_id"]
                     ); ?></td>
                     <td class="mono"><?php echo h(
-                        $change["row"]["EFX_code"],
+                        $change["row"]["EFX_code"]
                     ); ?></td>
                     <td class="mono"><?php echo h(
-                        $change["row"]["start_trans"],
+                        $change["row"]["start_trans"]
                     ); ?>-<?php echo h($change["row"]["end_trans"]); ?></td>
                     <td>
                         <?php foreach ($change["changes"] as $col => $vals): ?>
                             <div style="margin-bottom: 4px;">
                                 <strong><?php echo h($col); ?>:</strong>
                                 <span class="diff-value old"><?php echo h(
-                                    $vals["old"],
+                                    $vals["old"]
                                 ); ?></span>
                                 &rarr;
                                 <span class="diff-value new"><?php echo h(
-                                    $vals["new"],
+                                    $vals["new"]
                                 ); ?></span>
                             </div>
                         <?php endforeach; ?>
@@ -5778,7 +6009,7 @@ function render_compare_reports($data)
         </table>
         <?php if (count($comparison["changed"]) > 50): ?>
             <p style="margin-top: 10px; color: #666; font-size: 12px;">Showing 50 of <?php echo count(
-                $comparison["changed"],
+                $comparison["changed"]
             ); ?> changed rows</p>
         <?php endif; ?>
     </div>
@@ -5788,7 +6019,7 @@ function render_compare_reports($data)
     <?php if (!empty($comparison["added"])): ?>
     <div class="compare-section">
         <h3>Added Rows <span class="count">(<?php echo count(
-            $comparison["added"],
+            $comparison["added"]
         ); ?>)</span></h3>
         <table class="compare-table">
             <thead>
@@ -5813,7 +6044,7 @@ function render_compare_reports($data)
                     <td class="mono"><?php echo h($row["EFX_code"]); ?></td>
                     <td><?php echo h($row["type"]); ?></td>
                     <td class="mono"><?php echo h(
-                        $row["start_trans"],
+                        $row["start_trans"]
                     ); ?>-<?php echo h($row["end_trans"]); ?></td>
                     <td class="mono"><?php echo h($row["adj_price"]); ?></td>
                     <td class="mono"><?php echo h($row["base_price"]); ?></td>
@@ -5823,7 +6054,7 @@ function render_compare_reports($data)
         </table>
         <?php if (count($comparison["added"]) > 50): ?>
             <p style="margin-top: 10px; color: #666; font-size: 12px;">Showing 50 of <?php echo count(
-                $comparison["added"],
+                $comparison["added"]
             ); ?> added rows</p>
         <?php endif; ?>
     </div>
@@ -5833,7 +6064,7 @@ function render_compare_reports($data)
     <?php if (!empty($comparison["removed"])): ?>
     <div class="compare-section">
         <h3>Removed Rows <span class="count">(<?php echo count(
-            $comparison["removed"],
+            $comparison["removed"]
         ); ?>)</span></h3>
         <table class="compare-table">
             <thead>
@@ -5858,7 +6089,7 @@ function render_compare_reports($data)
                     <td class="mono"><?php echo h($row["EFX_code"]); ?></td>
                     <td><?php echo h($row["type"]); ?></td>
                     <td class="mono"><?php echo h(
-                        $row["start_trans"],
+                        $row["start_trans"]
                     ); ?>-<?php echo h($row["end_trans"]); ?></td>
                     <td class="mono"><?php echo h($row["adj_price"]); ?></td>
                     <td class="mono"><?php echo h($row["base_price"]); ?></td>
@@ -5868,7 +6099,7 @@ function render_compare_reports($data)
         </table>
         <?php if (count($comparison["removed"]) > 50): ?>
             <p style="margin-top: 10px; color: #666; font-size: 12px;">Showing 50 of <?php echo count(
-                $comparison["removed"],
+                $comparison["removed"]
             ); ?> removed rows</p>
         <?php endif; ?>
     </div>
@@ -7089,6 +7320,10 @@ function render_admin($data)
         <a href="?action=admin&tab=seed" class="<?php echo $tab === "seed"
             ? "active"
             : ""; ?>">Test Data</a>
+        <a href="?action=admin&tab=database" class="<?php echo $tab ===
+        "database"
+            ? "active"
+            : ""; ?>">Database Access</a>
     </div>
 
     <!-- AJAX content area -->
@@ -7735,6 +7970,137 @@ function render_admin($data)
         }
 
         // =====================================================================
+        // DATABASE ACCESS TAB
+        // =====================================================================
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            var units = ['B', 'KB', 'MB', 'GB'];
+            var i = Math.floor(Math.log(bytes) / Math.log(1024));
+            return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + units[i];
+        }
+
+        function renderDatabase(data) {
+            var db = data.db_access || {};
+            var tables = db.tables || [];
+            var html = '';
+
+            // Card 1: Connection Info
+            html += '<div class="card admin-section">';
+            html += '<h3><span class="icon">&#128451;</span> Connection Info</h3>';
+            html += '<div class="env-grid">';
+
+            html += '<div class="env-item">';
+            html += '<span class="label">Environment</span>';
+            html += '<span class="value">' + escapeHtml(db.environment || 'unknown') + '</span>';
+            html += '</div>';
+
+            html += '<div class="env-item">';
+            html += '<span class="label">Database Path</span>';
+            html += '<span class="value" style="font-size: 11px; word-break: break-all;">' + escapeHtml(db.db_path || '') + '</span>';
+            html += '</div>';
+
+            html += '<div class="env-item">';
+            html += '<span class="label">File Size</span>';
+            html += '<span class="value">' + formatBytes(db.db_size || 0) + '</span>';
+            html += '</div>';
+
+            html += '<div class="env-item">';
+            html += '<span class="label">Writable</span>';
+            html += '<span class="value ' + (db.db_writable ? 'true' : 'false') + '">' + (db.db_writable ? 'YES' : 'NO') + '</span>';
+            html += '</div>';
+
+            html += '<div class="env-item">';
+            html += '<span class="label">Tables</span>';
+            html += '<span class="value">' + (db.table_count || 0) + '</span>';
+            html += '</div>';
+
+            html += '</div>'; // env-grid
+            html += '</div>'; // card
+
+            // Card 2: DB Explorer Credentials
+            html += '<div class="card admin-section">';
+            html += '<h3><span class="icon">&#128273;</span> DB Explorer Credentials</h3>';
+            html += '<p class="text-muted" style="margin-bottom: 15px;">Use these credentials to log into the DB Explorer (phpLiteAdmin). The explorer opens in a new tab with its own login page.</p>';
+
+            html += '<div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">';
+            html += '<div>';
+            html += '<span class="label" style="display: block; font-size: 12px; color: #666; margin-bottom: 4px;">Password</span>';
+            html += '<code id="db-password" style="font-size: 16px; padding: 8px 14px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; display: inline-block;">' + escapeHtml(db.phpliteadmin_password || '') + '</code>';
+            html += '</div>';
+            html += '<button type="button" class="btn btn-sm" id="btn-copy-password" style="margin-top: 16px;">Copy</button>';
+            html += '</div>';
+
+            html += '<button type="button" class="btn btn-success" id="btn-launch-explorer">Launch DB Explorer</button>';
+
+            html += '</div>'; // card
+
+            // Card 3: Table Inventory
+            html += '<div class="card admin-section">';
+            html += '<h3><span class="icon">&#128202;</span> Table Inventory (' + tables.length + ' tables)</h3>';
+
+            if (tables.length === 0) {
+                html += '<p class="text-muted">No tables found in the database.</p>';
+            } else {
+                html += '<table class="sync-table">';
+                html += '<thead><tr><th>Table Name</th><th style="text-align: right;">Row Count</th></tr></thead>';
+                html += '<tbody>';
+                var totalRows = 0;
+                for (var i = 0; i < tables.length; i++) {
+                    var t = tables[i];
+                    var rowCount = parseInt(t.rows, 10) || 0;
+                    totalRows += rowCount;
+                    html += '<tr>';
+                    html += '<td><code>' + escapeHtml(t.name) + '</code></td>';
+                    html += '<td style="text-align: right;">' + numberFormat(rowCount, 0) + '</td>';
+                    html += '</tr>';
+                }
+                html += '</tbody>';
+                html += '<tfoot><tr style="font-weight: bold; border-top: 2px solid #dee2e6;">';
+                html += '<td>Total</td>';
+                html += '<td style="text-align: right;">' + numberFormat(totalRows, 0) + '</td>';
+                html += '</tr></tfoot>';
+                html += '</table>';
+            }
+
+            html += '</div>'; // card
+
+            return html;
+        }
+
+        function bindDatabaseEvents() {
+            var copyBtn = document.getElementById('btn-copy-password');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', function() {
+                    var pw = document.getElementById('db-password');
+                    if (pw) {
+                        var text = pw.textContent || pw.innerText;
+                        if (navigator.clipboard) {
+                            navigator.clipboard.writeText(text);
+                            copyBtn.textContent = 'Copied!';
+                            setTimeout(function() { copyBtn.textContent = 'Copy'; }, 2000);
+                        } else {
+                            // Fallback for older browsers
+                            var range = document.createRange();
+                            range.selectNodeContents(pw);
+                            var sel = window.getSelection();
+                            sel.removeAllRanges();
+                            sel.addRange(range);
+                            copyBtn.textContent = 'Selected!';
+                            setTimeout(function() { copyBtn.textContent = 'Copy'; }, 2000);
+                        }
+                    }
+                });
+            }
+
+            var launchBtn = document.getElementById('btn-launch-explorer');
+            if (launchBtn) {
+                launchBtn.addEventListener('click', function() {
+                    window.open('phpliteadmin.php', '_blank');
+                });
+            }
+        }
+
+        // =====================================================================
         // MAIN LOADER
         // =====================================================================
         function loadAdminData() {
@@ -7764,6 +8130,9 @@ function render_admin($data)
                     case 'seed':
                         html = renderSeed(data);
                         break;
+                    case 'database':
+                        html = renderDatabase(data);
+                        break;
                     default:
                         html = renderOverview(data);
                         break;
@@ -7784,6 +8153,9 @@ function render_admin($data)
                         break;
                     case 'seed':
                         bindSeedEvents();
+                        break;
+                    case 'database':
+                        bindDatabaseEvents();
                         break;
                 }
             });

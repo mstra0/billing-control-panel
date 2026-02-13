@@ -139,6 +139,9 @@ define("REMOTE_DB_PASS", $_current_config["remote_db_pass"]);
 // Environment description (for UI display)
 define("ENV_DESCRIPTION", $_current_config["description"]);
 
+// phpliteadmin password (single source of truth for DB Explorer credentials)
+define("PHPLITEADMIN_PASSWORD", "billing_qa_2024");
+
 // ------------------------------------------------------------
 // MOCK MODE CONFIGURATION
 // ------------------------------------------------------------
@@ -149,7 +152,10 @@ if (isset($_GET["mock"])) {
     $_SESSION["mock_mode"] = $_GET["mock"] === "1" || $_GET["mock"] === "true";
 }
 if (!isset($_SESSION["mock_mode"])) {
-    $_SESSION["mock_mode"] = $_current_config["default_mock_mode"];
+    $_SESSION["mock_mode"] =
+        defined("TEST_MODE") && TEST_MODE
+            ? true
+            : $_current_config["default_mock_mode"];
 }
 define("MOCK_MODE", $_SESSION["mock_mode"]);
 
@@ -231,8 +237,10 @@ if (!MOCK_MODE) {
 // INITIALIZE
 // ------------------------------------------------------------
 
-// Initialize mock data if in mock mode
-init_mock_data();
+// Initialize mock data if in mock mode (not available in API_MODE)
+if (!defined("API_MODE")) {
+    init_mock_data();
+}
 
 // Initialize SQLite and seed mock data
 sqlite_db();
